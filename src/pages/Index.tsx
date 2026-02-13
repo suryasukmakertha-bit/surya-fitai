@@ -1,14 +1,77 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Dumbbell, Brain, Utensils, ChevronRight } from "lucide-react";
+import heroBg from "@/assets/hero-bg.jpg";
 
-const Index = () => {
+export default function Index() {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Hero */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+        <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
+            <Brain className="w-4 h-4 text-primary" />
+            <span className="text-xs text-primary font-medium tracking-wide uppercase">AI-Powered Training</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-display font-black text-foreground leading-tight mb-6">
+            Your Personal <br />
+            <span className="text-gradient">AI Trainer</span>
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
+            Get a fully personalized workout plan, nutrition guide, and grocery list — generated in seconds by AI, tailored to your body and goals.
+          </p>
+          <Button size="lg" onClick={() => navigate("/programs")} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
+            Start My Program <ChevronRight className="w-5 h-5 ml-1" />
+          </Button>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-display font-bold text-center text-foreground mb-12">
+            How It <span className="text-gradient">Works</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: Dumbbell, title: "Choose Your Program", desc: "Pick from Beginner, Bulking, Cutting, or Senior fitness programs tailored to your needs." },
+              { icon: Brain, title: "AI Analyzes You", desc: "Our AI engine processes your body data, goals, and limitations to create the perfect plan." },
+              { icon: Utensils, title: "Get Your Plan", desc: "Receive a complete workout schedule, meal plan, grocery list, and progress targets." },
+            ].map((f, i) => (
+              <div key={i} className="card-gradient rounded-lg p-6 border border-border/50 text-center group hover:neon-border transition-all duration-300">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                  <f.icon className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-lg font-display font-bold text-foreground mb-2">{f.title}</h3>
+                <p className="text-sm text-muted-foreground">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-16 px-4">
+        <div className="max-w-3xl mx-auto text-center neon-border rounded-2xl p-12">
+          <h2 className="text-3xl font-display font-bold text-foreground mb-4">Ready to Transform?</h2>
+          <p className="text-muted-foreground mb-6">Join thousands who already use AI to reach their fitness goals faster.</p>
+          <Button size="lg" onClick={() => navigate("/programs")} className="h-12 px-8 font-bold">
+            Get Started Free <ChevronRight className="w-5 h-5 ml-1" />
+          </Button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-8 px-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
+          <span className="font-display font-bold text-foreground">FitAI</span>
+          <span>© 2026 All rights reserved</span>
+        </div>
+      </footer>
     </div>
   );
-};
-
-export default Index;
+}
