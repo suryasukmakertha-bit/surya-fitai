@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, BarChart3 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 
 export default function Index() {
@@ -69,6 +69,9 @@ export default function Index() {
       <footer className="border-t border-border py-8 px-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
           <span className="font-display font-bold text-foreground">FitAI</span>
+          <button onClick={() => navigate("/progress")} className="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <BarChart3 className="w-4 h-4" /> Progress Tracker
+          </button>
           <span>© 2026 All rights reserved</span>
         </div>
       </footer>
