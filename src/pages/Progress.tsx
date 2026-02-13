@@ -1,0 +1,190 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Plus, Trash2, TrendingDown, TrendingUp, Scale } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { useToast } from "@/hooks/use-toast";
+
+interface CheckIn {
+  id: string;
+  date: string;
+  weight: number;
+  note?: string;
+}
+
+const STORAGE_KEY = "fitai-checkins";
+
+function loadCheckIns(): CheckIn[] {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveCheckIns(data: CheckIn[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+export default function Progress() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [checkIns, setCheckIns] = useState<CheckIn[]>(loadCheckIns);
+  const [weight, setWeight] = useState("");
+  const [note, setNote] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  useEffect(() => {
+    saveCheckIns(checkIns);
+  }, [checkIns]);
+
+  const sorted = [...checkIns].sort((a, b) => a.date.localeCompare(b.date));
+
+  const addCheckIn = () => {
+    const w = parseFloat(weight);
+    if (!w || w < 20 || w > 500) {
+      toast({ title: "Enter a valid weight (20–500 kg)", variant: "destructive" });
+      return;
+    }
+    setCheckIns((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), date, weight: w, note: note.trim() || undefined },
+    ]);
+    setWeight("");
+    setNote("");
+    toast({ title: "Check-in logged!" });
+  };
+
+  const removeCheckIn = (id: string) => {
+    setCheckIns((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const firstWeight = sorted[0]?.weight;
+  const lastWeight = sorted[sorted.length - 1]?.weight;
+  const diff = firstWeight && lastWeight ? lastWeight - firstWeight : 0;
+  const trending = diff > 0 ? "up" : diff < 0 ? "down" : "neutral";
+
+  const chartData = sorted.map((c) => ({
+    date: new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    weight: c.weight,
+  }));
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+
+        <h1 className="text-3xl font-display font-bold text-foreground mb-2">
+          Progress <span className="text-gradient">Tracker</span>
+        </h1>
+        <p className="text-muted-foreground mb-8">Log your weekly weigh-ins and track your transformation.</p>
+
+        {/* Stats row */}
+        {sorted.length >= 2 && (
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Start</p>
+              <p className="text-lg font-bold text-foreground">{firstWeight} kg</p>
+            </div>
+            <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Current</p>
+              <p className="text-lg font-bold text-foreground">{lastWeight} kg</p>
+            </div>
+            <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Change</p>
+              <div className="flex items-center justify-center gap-1">
+                {trending === "down" ? (
+                  <TrendingDown className="w-4 h-4 text-primary" />
+                ) : trending === "up" ? (
+                  <TrendingUp className="w-4 h-4 text-destructive" />
+                ) : null}
+                <p className={`text-lg font-bold ${trending === "down" ? "text-primary" : trending === "up" ? "text-destructive" : "text-foreground"}`}>
+                  {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Chart */}
+        {chartData.length >= 2 && (
+          <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
+            <h3 className="font-display font-bold text-foreground mb-4">Weight Over Time</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 15%, 18%)" />
+                  <XAxis dataKey="date" tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
+                  <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }}
+                    labelStyle={{ color: "hsl(135, 100%, 60%)" }}
+                  />
+                  <Area type="monotone" dataKey="weight" stroke="hsl(135, 100%, 60%)" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "hsl(135, 100%, 60%)", r: 4 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {chartData.length < 2 && (
+          <div className="card-gradient rounded-lg p-8 border border-border/50 mb-8 text-center">
+            <Scale className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">Log at least 2 check-ins to see your progress chart.</p>
+          </div>
+        )}
+
+        {/* Add check-in */}
+        <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
+          <h3 className="font-display font-bold text-foreground mb-4">Log Check-In</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-secondary border-border" />
+            </div>
+            <div className="space-y-2">
+              <Label>Weight (kg)</Label>
+              <Input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="75" className="bg-secondary border-border" />
+            </div>
+            <div className="space-y-2">
+              <Label>Note (optional)</Label>
+              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Feeling great!" className="bg-secondary border-border" />
+            </div>
+          </div>
+          <Button onClick={addCheckIn} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" /> Add Check-In
+          </Button>
+        </div>
+
+        {/* History */}
+        {sorted.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="font-display font-bold text-foreground mb-3">History</h3>
+            {[...sorted].reverse().map((c) => (
+              <div key={c.id} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-3 text-sm">
+                <div className="flex items-center gap-4">
+                  <span className="text-muted-foreground">{new Date(c.date).toLocaleDateString()}</span>
+                  <span className="text-foreground font-medium">{c.weight} kg</span>
+                  {c.note && <span className="text-muted-foreground italic">— {c.note}</span>}
+                </div>
+                <button onClick={() => removeCheckIn(c.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
