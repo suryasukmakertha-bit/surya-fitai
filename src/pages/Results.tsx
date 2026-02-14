@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, Sparkles, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, Sparkles, Save, Loader2, Download } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { exportPlanToPDF } from "@/lib/exportPdf";
 
 interface DayPlan {
   day: string;
@@ -87,10 +88,15 @@ export default function Results() {
           <button onClick={() => navigate("/programs")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Programs
           </button>
-          <Button onClick={handleSave} disabled={saving || saved} variant={saved ? "secondary" : "default"} size="sm">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
-            {saved ? "Saved" : "Save Plan"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name)} variant="secondary" size="sm">
+              <Download className="w-4 h-4 mr-1" /> Export PDF
+            </Button>
+            <Button onClick={handleSave} disabled={saving || saved} variant={saved ? "secondary" : "default"} size="sm">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+              {saved ? "Saved" : "Save Plan"}
+            </Button>
+          </div>
         </div>
 
         {/* Header */}
