@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Flame, Calendar, Trophy, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
 import {
   ResponsiveContainer,
@@ -20,6 +21,7 @@ interface DailyCount {
 
 export default function WorkoutProgressSummary() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [weeklyData, setWeeklyData] = useState<DailyCount[]>([]);
   const [streak, setStreak] = useState(0);
   const [totalCompleted, setTotalCompleted] = useState(0);
@@ -35,7 +37,6 @@ export default function WorkoutProgressSummary() {
     const today = new Date();
     const sevenDaysAgo = subDays(today, 6);
 
-    // Fetch last 7 days of checkins
     const { data } = await supabase
       .from("workout_checkins")
       .select("completed_date, exercise_name")
@@ -43,7 +44,6 @@ export default function WorkoutProgressSummary() {
       .lte("completed_date", format(today, "yyyy-MM-dd"));
 
     if (data) {
-      // Build daily counts
       const countMap = new Map<string, number>();
       data.forEach((d) => {
         countMap.set(d.completed_date, (countMap.get(d.completed_date) || 0) + 1);
@@ -64,7 +64,6 @@ export default function WorkoutProgressSummary() {
       setTotalCompleted(data.length);
     }
 
-    // Calculate streak - fetch all unique dates ordered desc
     const { data: allDates } = await supabase
       .from("workout_checkins")
       .select("completed_date")
@@ -81,7 +80,6 @@ export default function WorkoutProgressSummary() {
           currentStreak++;
           checkDate = subDays(checkDate, 1);
         } else if (dateStr < expected) {
-          // Check if it matches the previous day (allow skipping today if not yet done)
           if (currentStreak === 0) {
             checkDate = subDays(checkDate, 1);
             const prevExpected = format(checkDate, "yyyy-MM-dd");
@@ -108,16 +106,16 @@ export default function WorkoutProgressSummary() {
 
   return (
     <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
-      <h3 className="font-display font-bold text-foreground mb-4">Workout Activity</h3>
+      <h3 className="font-display font-bold text-foreground mb-4">{t.workoutActivity}</h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { icon: Flame, label: "Today", value: `${todayCount} exercises` },
-          { icon: Trophy, label: "Streak", value: `${streak} day${streak !== 1 ? "s" : ""}` },
-          { icon: Target, label: "This Week", value: `${totalCompleted} total` },
+          { icon: Flame, label: t.today, value: `${todayCount} ${t.exercises}` },
+          { icon: Trophy, label: t.streak, value: `${streak} ${streak !== 1 ? t.days : t.day}` },
+          { icon: Target, label: t.thisWeek, value: `${totalCompleted} ${t.total}` },
           {
             icon: Calendar,
-            label: "Active Days",
+            label: t.activeDays,
             value: `${weeklyData.filter((d) => d.count > 0).length}/7`,
           },
         ].map((stat) => (
@@ -134,41 +132,19 @@ export default function WorkoutProgressSummary() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={weeklyData} barSize={24}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 15%, 18%)" vertical={false} />
-              <XAxis
-                dataKey="date"
-                tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                allowDecimals={false}
-                tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-              />
+              <XAxis dataKey="date" tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(220, 18%, 10%)",
-                  border: "1px solid hsl(220, 15%, 18%)",
-                  borderRadius: 8,
-                  color: "hsl(0, 0%, 95%)",
-                }}
+                contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }}
                 labelStyle={{ color: "hsl(135, 100%, 60%)" }}
-                formatter={(value: number) => [`${value} exercises`, "Completed"]}
+                formatter={(value: number) => [`${value} ${t.exercises}`, t.completed]}
               />
-              <Bar
-                dataKey="count"
-                fill="hsl(135, 100%, 60%)"
-                radius={[4, 4, 0, 0]}
-                fillOpacity={0.85}
-              />
+              <Bar dataKey="count" fill="hsl(135, 100%, 60%)" radius={[4, 4, 0, 0]} fillOpacity={0.85} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          No workout completions yet. Save a plan and start checking off exercises!
-        </p>
+        <p className="text-sm text-muted-foreground text-center py-4">{t.noCompletions}</p>
       )}
     </div>
   );

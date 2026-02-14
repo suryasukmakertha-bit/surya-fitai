@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowLeft, Loader2, Dumbbell } from "lucide-react";
 
 export default function Auth() {
@@ -16,6 +17,7 @@ export default function Auth() {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +26,12 @@ export default function Auth() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        toast({ title: "Welcome back!" });
+        toast({ title: t.welcomeBackToast });
         navigate("/");
       } else {
         const { error } = await signUp(email, password, displayName);
         if (error) throw error;
-        toast({ title: "Account created!", description: "Please check your email to verify your account." });
+        toast({ title: t.accountCreated, description: t.checkEmail });
       }
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -42,7 +44,7 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> {t.back}
         </button>
 
         <div className="text-center mb-8">
@@ -50,37 +52,37 @@ export default function Auth() {
             <Dumbbell className="w-7 h-7 text-primary" />
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isLogin ? t.welcomeBack : t.createAccount}
           </h1>
           <p className="text-muted-foreground text-sm mt-2">
-            {isLogin ? "Sign in to access your saved plans" : "Sign up to save your plans and track progress"}
+            {isLogin ? t.signInAccess : t.signUpSave}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="card-gradient rounded-lg p-6 border border-border/50 space-y-4">
           {!isLogin && (
             <div className="space-y-2">
-              <Label>Display Name</Label>
+              <Label>{t.displayName}</Label>
               <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="John Doe" className="bg-secondary border-border" />
             </div>
           )}
           <div className="space-y-2">
-            <Label>Email *</Label>
+            <Label>{t.email}</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required className="bg-secondary border-border" />
           </div>
           <div className="space-y-2">
-            <Label>Password *</Label>
+            <Label>{t.password}</Label>
             <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="bg-secondary border-border" />
           </div>
 
           <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? "Sign In" : "Sign Up"}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : isLogin ? t.signIn : t.signUp}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+            {isLogin ? t.dontHaveAccount : t.alreadyHaveAccount}{" "}
             <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline font-medium">
-              {isLogin ? "Sign Up" : "Sign In"}
+              {isLogin ? t.signUp : t.signIn}
             </button>
           </p>
         </form>

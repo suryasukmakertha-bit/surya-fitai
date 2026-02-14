@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 
 interface Exercise {
@@ -23,6 +24,7 @@ interface WorkoutChecklistProps {
 
 export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutChecklistProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -90,7 +92,7 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-display font-bold text-foreground">{day.day}</h3>
               <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                {done}/{total} done
+                {done}/{total} {t.done}
               </span>
             </div>
             <div className="space-y-2">
@@ -111,7 +113,7 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
                         {ex.name}
                       </span>
                     </div>
-                    <span className="text-muted-foreground">{ex.sets} × {ex.reps} · {ex.rest} rest</span>
+                    <span className="text-muted-foreground">{ex.sets} × {ex.reps} · {ex.rest} {t.rest}</span>
                   </label>
                 );
               })}
