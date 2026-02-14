@@ -140,11 +140,11 @@ export default function Results() {
         </div>
 
         <Tabs defaultValue="workout" className="space-y-6">
-          <TabsList className="bg-secondary w-full justify-start">
-            <TabsTrigger value="workout">{t.workoutPlan}</TabsTrigger>
-            <TabsTrigger value="meals">{t.mealPlan}</TabsTrigger>
-            <TabsTrigger value="grocery">{t.groceryList}</TabsTrigger>
-            <TabsTrigger value="info">{t.infoSafety}</TabsTrigger>
+          <TabsList className="bg-secondary w-full justify-start overflow-x-auto flex-nowrap">
+            <TabsTrigger value="workout" className="whitespace-nowrap">{t.workoutPlan}</TabsTrigger>
+            <TabsTrigger value="meals" className="whitespace-nowrap">{t.mealPlan}</TabsTrigger>
+            <TabsTrigger value="grocery" className="whitespace-nowrap">{t.groceryList}</TabsTrigger>
+            <TabsTrigger value="info" className="whitespace-nowrap">{t.infoSafety}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="workout" className="space-y-4">
