@@ -32,6 +32,7 @@ export default function ProgramForm() {
     duration: "1 Month",
     experience: "Beginner",
     limitations: "",
+    allergies: "",
   });
 
   const set = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
