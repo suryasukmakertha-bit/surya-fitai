@@ -92,6 +92,44 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_checkins: {
+        Row: {
+          completed_date: string
+          created_at: string
+          day_label: string
+          exercise_name: string
+          id: string
+          plan_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_date?: string
+          created_at?: string
+          day_label: string
+          exercise_name: string
+          id?: string
+          plan_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_date?: string
+          created_at?: string
+          day_label?: string
+          exercise_name?: string
+          id?: string
+          plan_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_checkins_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "saved_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

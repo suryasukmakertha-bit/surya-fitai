@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { exportPlanToPDF } from "@/lib/exportPdf";
+import WorkoutChecklist from "@/components/WorkoutChecklist";
 
 interface DayPlan {
   day: string;
@@ -45,6 +46,7 @@ export default function Results() {
   const plan: PlanData | undefined = location.state?.plan;
   const userInfo = location.state?.userInfo;
   const programType = location.state?.programType;
+  const planId: string | undefined = location.state?.planId;
 
   if (!plan) {
     return (
@@ -65,14 +67,18 @@ export default function Results() {
     }
     setSaving(true);
     try {
-      const { error } = await supabase.from("saved_plans").insert({
+      const { data, error } = await supabase.from("saved_plans").insert({
         user_id: user.id,
         program_type: programType || "custom",
         user_info: userInfo as any,
         plan_data: plan as any,
-      });
+      }).select("id").single();
       if (error) throw error;
       setSaved(true);
+      // Update state so checklist becomes available
+      if (data) {
+        navigate("/results", { state: { plan, userInfo, programType, planId: data.id }, replace: true });
+      }
       toast({ title: "Plan saved!" });
     } catch (err: any) {
       toast({ title: "Error saving plan", description: err.message, variant: "destructive" });
@@ -142,19 +148,23 @@ export default function Results() {
           </TabsList>
 
           <TabsContent value="workout" className="space-y-4">
-            {plan.workout_plan?.map((day, i) => (
-              <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
-                <div className="space-y-2">
-                  {day.exercises.map((ex, j) => (
-                    <div key={j} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-2.5 text-sm">
-                      <span className="text-foreground font-medium">{ex.name}</span>
-                      <span className="text-muted-foreground">{ex.sets} × {ex.reps} · {ex.rest} rest</span>
-                    </div>
-                  ))}
+            {planId && user ? (
+              <WorkoutChecklist workoutPlan={plan.workout_plan} planId={planId} />
+            ) : (
+              plan.workout_plan?.map((day, i) => (
+                <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
+                  <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
+                  <div className="space-y-2">
+                    {day.exercises.map((ex, j) => (
+                      <div key={j} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-2.5 text-sm">
+                        <span className="text-foreground font-medium">{ex.name}</span>
+                        <span className="text-muted-foreground">{ex.sets} × {ex.reps} · {ex.rest} rest</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
             {plan.estimated_calories_burned > 0 && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <TrendingUp className="w-4 h-4 text-primary" />

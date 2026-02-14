@@ -81,7 +81,7 @@ export default function SavedPlans() {
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => navigate("/results", { state: { plan: p.plan_data, userInfo: p.user_info, programType: p.program_type } })}
+                    onClick={() => navigate("/results", { state: { plan: p.plan_data, userInfo: p.user_info, programType: p.program_type, planId: p.id } })}
                   >
                     <Eye className="w-4 h-4 mr-1" /> View
                   </Button>
