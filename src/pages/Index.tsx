@@ -1,13 +1,39 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, BarChart3 } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, BarChart3, LogIn, LogOut, User, FolderOpen } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import heroBg from "@/assets/hero-bg.jpg";
 
 export default function Index() {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Top nav */}
+      <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between max-w-5xl mx-auto px-4 py-4">
+        <span className="font-display font-bold text-foreground text-lg">FitAI</span>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <button onClick={() => navigate("/saved-plans")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <FolderOpen className="w-4 h-4" /> My Plans
+              </button>
+              <button onClick={() => navigate("/progress")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <BarChart3 className="w-4 h-4" /> Progress
+              </button>
+              <button onClick={() => signOut()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            </>
+          ) : (
+            <button onClick={() => navigate("/auth")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <LogIn className="w-4 h-4" /> Sign In
+            </button>
+          )}
+        </div>
+      </nav>
+
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
@@ -69,9 +95,6 @@ export default function Index() {
       <footer className="border-t border-border py-8 px-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
           <span className="font-display font-bold text-foreground">FitAI</span>
-          <button onClick={() => navigate("/progress")} className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <BarChart3 className="w-4 h-4" /> Progress Tracker
-          </button>
           <span>© 2026 All rights reserved</span>
         </div>
       </footer>
