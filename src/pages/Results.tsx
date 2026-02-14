@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, Sparkles } from "lucide-react";
+import { ArrowLeft, Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, Sparkles, Save, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface DayPlan {
   day: string;
@@ -32,6 +37,10 @@ interface PlanData {
 export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const plan: PlanData | undefined = location.state?.plan;
   const userInfo = location.state?.userInfo;
   const programType = location.state?.programType;
@@ -47,12 +56,42 @@ export default function Results() {
     );
   }
 
+  const handleSave = async () => {
+    if (!user) {
+      toast({ title: "Sign in to save your plan", description: "Create an account to save and access your plans anytime.", variant: "destructive" });
+      navigate("/auth");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("saved_plans").insert({
+        user_id: user.id,
+        program_type: programType || "custom",
+        user_info: userInfo as any,
+        plan_data: plan as any,
+      });
+      if (error) throw error;
+      setSaved(true);
+      toast({ title: "Plan saved!" });
+    } catch (err: any) {
+      toast({ title: "Error saving plan", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <button onClick={() => navigate("/programs")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back to Programs
-        </button>
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => navigate("/programs")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Programs
+          </button>
+          <Button onClick={handleSave} disabled={saving || saved} variant={saved ? "secondary" : "default"} size="sm">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+            {saved ? "Saved" : "Save Plan"}
+          </Button>
+        </div>
 
         {/* Header */}
         <div className="mb-8">
@@ -96,7 +135,6 @@ export default function Results() {
             <TabsTrigger value="info">Info & Safety</TabsTrigger>
           </TabsList>
 
-          {/* Workout */}
           <TabsContent value="workout" className="space-y-4">
             {plan.workout_plan?.map((day, i) => (
               <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
@@ -119,7 +157,6 @@ export default function Results() {
             )}
           </TabsContent>
 
-          {/* Meals */}
           <TabsContent value="meals" className="space-y-4">
             {plan.meal_plan?.map((meal, i) => (
               <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
@@ -136,7 +173,6 @@ export default function Results() {
             ))}
           </TabsContent>
 
-          {/* Grocery */}
           <TabsContent value="grocery">
             <div className="card-gradient rounded-lg p-5 border border-border/50">
               <div className="flex items-center gap-2 mb-4">
@@ -153,7 +189,6 @@ export default function Results() {
             </div>
           </TabsContent>
 
-          {/* Info */}
           <TabsContent value="info" className="space-y-4">
             {plan.weight_projection && (
               <div className="card-gradient rounded-lg p-5 border border-border/50">

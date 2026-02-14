@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, TrendingDown, TrendingUp, Scale } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, TrendingDown, TrendingUp, Scale, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CheckIn {
   id: string;
@@ -14,50 +16,63 @@ interface CheckIn {
   note?: string;
 }
 
-const STORAGE_KEY = "fitai-checkins";
-
-function loadCheckIns(): CheckIn[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveCheckIns(data: CheckIn[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
 export default function Progress() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [checkIns, setCheckIns] = useState<CheckIn[]>(loadCheckIns);
+  const { user } = useAuth();
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [weight, setWeight] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [loadingData, setLoadingData] = useState(true);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    saveCheckIns(checkIns);
-  }, [checkIns]);
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    fetchCheckIns();
+  }, [user]);
+
+  const fetchCheckIns = async () => {
+    const { data, error } = await supabase
+      .from("progress_checkins")
+      .select("id, date, weight, note")
+      .order("date", { ascending: true });
+    if (!error && data) {
+      setCheckIns(data.map((d) => ({ ...d, weight: Number(d.weight) })));
+    }
+    setLoadingData(false);
+  };
 
   const sorted = [...checkIns].sort((a, b) => a.date.localeCompare(b.date));
 
-  const addCheckIn = () => {
+  const addCheckIn = async () => {
     const w = parseFloat(weight);
     if (!w || w < 20 || w > 500) {
       toast({ title: "Enter a valid weight (20–500 kg)", variant: "destructive" });
       return;
     }
-    setCheckIns((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), date, weight: w, note: note.trim() || undefined },
-    ]);
-    setWeight("");
-    setNote("");
-    toast({ title: "Check-in logged!" });
+    setAdding(true);
+    const { data, error } = await supabase
+      .from("progress_checkins")
+      .insert({ user_id: user!.id, date, weight: w, note: note.trim() || null })
+      .select("id, date, weight, note")
+      .single();
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else if (data) {
+      setCheckIns((prev) => [...prev, { ...data, weight: Number(data.weight) }]);
+      setWeight("");
+      setNote("");
+      toast({ title: "Check-in logged!" });
+    }
+    setAdding(false);
   };
 
-  const removeCheckIn = (id: string) => {
+  const removeCheckIn = async (id: string) => {
+    await supabase.from("progress_checkins").delete().eq("id", id);
     setCheckIns((prev) => prev.filter((c) => c.id !== id));
   };
 
@@ -71,6 +86,14 @@ export default function Progress() {
     weight: c.weight,
   }));
 
+  if (loadingData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-4 py-12">
@@ -83,7 +106,6 @@ export default function Progress() {
         </h1>
         <p className="text-muted-foreground mb-8">Log your weekly weigh-ins and track your transformation.</p>
 
-        {/* Stats row */}
         {sorted.length >= 2 && (
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
@@ -97,11 +119,7 @@ export default function Progress() {
             <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
               <p className="text-xs text-muted-foreground mb-1">Change</p>
               <div className="flex items-center justify-center gap-1">
-                {trending === "down" ? (
-                  <TrendingDown className="w-4 h-4 text-primary" />
-                ) : trending === "up" ? (
-                  <TrendingUp className="w-4 h-4 text-destructive" />
-                ) : null}
+                {trending === "down" ? <TrendingDown className="w-4 h-4 text-primary" /> : trending === "up" ? <TrendingUp className="w-4 h-4 text-destructive" /> : null}
                 <p className={`text-lg font-bold ${trending === "down" ? "text-primary" : trending === "up" ? "text-destructive" : "text-foreground"}`}>
                   {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg
                 </p>
@@ -110,7 +128,6 @@ export default function Progress() {
           </div>
         )}
 
-        {/* Chart */}
         {chartData.length >= 2 && (
           <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
             <h3 className="font-display font-bold text-foreground mb-4">Weight Over Time</h3>
@@ -126,10 +143,7 @@ export default function Progress() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 15%, 18%)" />
                   <XAxis dataKey="date" tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
                   <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }}
-                    labelStyle={{ color: "hsl(135, 100%, 60%)" }}
-                  />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} labelStyle={{ color: "hsl(135, 100%, 60%)" }} />
                   <Area type="monotone" dataKey="weight" stroke="hsl(135, 100%, 60%)" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "hsl(135, 100%, 60%)", r: 4 }} />
                 </AreaChart>
               </ResponsiveContainer>
@@ -144,7 +158,6 @@ export default function Progress() {
           </div>
         )}
 
-        {/* Add check-in */}
         <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
           <h3 className="font-display font-bold text-foreground mb-4">Log Check-In</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
@@ -161,12 +174,11 @@ export default function Progress() {
               <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Feeling great!" className="bg-secondary border-border" />
             </div>
           </div>
-          <Button onClick={addCheckIn} className="w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" /> Add Check-In
+          <Button onClick={addCheckIn} disabled={adding} className="w-full sm:w-auto">
+            {adding ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />} Add Check-In
           </Button>
         </div>
 
-        {/* History */}
         {sorted.length > 0 && (
           <div className="space-y-2">
             <h3 className="font-display font-bold text-foreground mb-3">History</h3>

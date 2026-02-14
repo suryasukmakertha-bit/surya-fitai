@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      progress_checkins: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          user_id: string
+          weight: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      saved_plans: {
+        Row: {
+          created_at: string
+          id: string
+          plan_data: Json
+          program_type: string
+          user_id: string
+          user_info: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_data?: Json
+          program_type: string
+          user_id: string
+          user_info?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_data?: Json
+          program_type?: string
+          user_id?: string
+          user_info?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
