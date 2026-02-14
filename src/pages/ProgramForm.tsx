@@ -138,6 +138,11 @@ export default function ProgramForm() {
               <Label>{t.limitations}</Label>
               <Textarea value={form.limitations} onChange={(e) => set("limitations", e.target.value)} placeholder={t.limitationsPlaceholder} className="bg-secondary border-border" />
             </div>
+
+            <div className="space-y-2">
+              <Label>{t.allergies}</Label>
+              <Textarea value={form.allergies} onChange={(e) => set("allergies", e.target.value)} placeholder={t.allergiesPlaceholder} className="bg-secondary border-border" />
+            </div>
           </div>
 
           <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
