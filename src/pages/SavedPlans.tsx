@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SavedPlan {
   id: string;
@@ -18,6 +19,7 @@ export default function SavedPlans() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [plans, setPlans] = useState<SavedPlan[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +43,7 @@ export default function SavedPlans() {
   const deletePlan = async (id: string) => {
     await supabase.from("saved_plans").delete().eq("id", id);
     setPlans((prev) => prev.filter((p) => p.id !== id));
-    toast({ title: "Plan deleted" });
+    toast({ title: t.planDeleted });
   };
 
   if (loading) {
@@ -56,25 +58,25 @@ export default function SavedPlans() {
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-4 py-12">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> {t.back}
         </button>
 
         <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-          Saved <span className="text-gradient">Plans</span>
+          {t.savedPlans} <span className="text-gradient">{t.plans}</span>
         </h1>
-        <p className="text-muted-foreground mb-8">Your previously generated AI fitness plans.</p>
+        <p className="text-muted-foreground mb-8">{t.savedPlansDesc}</p>
 
         {plans.length === 0 ? (
           <div className="card-gradient rounded-lg p-8 border border-border/50 text-center">
-            <p className="text-muted-foreground mb-4">No saved plans yet.</p>
-            <Button onClick={() => navigate("/programs")}>Generate Your First Plan</Button>
+            <p className="text-muted-foreground mb-4">{t.noSavedPlans}</p>
+            <Button onClick={() => navigate("/programs")}>{t.generateFirst}</Button>
           </div>
         ) : (
           <div className="space-y-3">
             {plans.map((p) => (
               <div key={p.id} className="card-gradient rounded-lg p-5 border border-border/50 flex items-center justify-between">
                 <div>
-                  <h3 className="font-display font-bold text-foreground capitalize">{p.program_type} Program</h3>
+                  <h3 className="font-display font-bold text-foreground capitalize">{p.program_type} {t.program}</h3>
                   <p className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -83,7 +85,7 @@ export default function SavedPlans() {
                     variant="secondary"
                     onClick={() => navigate("/results", { state: { plan: p.plan_data, userInfo: p.user_info, programType: p.program_type, planId: p.id } })}
                   >
-                    <Eye className="w-4 h-4 mr-1" /> View
+                    <Eye className="w-4 h-4 mr-1" /> {t.view}
                   </Button>
                   <button onClick={() => deletePlan(p.id)} className="text-muted-foreground hover:text-destructive transition-colors p-2">
                     <Trash2 className="w-4 h-4" />
