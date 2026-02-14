@@ -9,7 +9,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType } = await req.json();
+    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language } = await req.json();
+    const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : "English";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -43,7 +44,8 @@ Rules:
 - Adjust intensity based on experience level and age
 - Include 5-6 training days with 1-2 rest days
 - Meal plan should have 4-5 meals per day
-- Grocery list should cover all meal plan ingredients`;
+- Grocery list should cover all meal plan ingredients
+- IMPORTANT: Generate ALL text content (meal names, exercise names, day labels, safety notes, motivational message, weight projection, grocery list items, weekly schedule) in ${lang}. The JSON keys must remain in English, but all string VALUES must be in ${lang}.`;
 
     const userPrompt = `User Data:
 - Name: ${name}

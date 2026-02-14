@@ -15,7 +15,7 @@ export default function ProgramForm() {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const program = programs.find((p) => p.id === type);
   const [loading, setLoading] = useState(false);
 
@@ -45,7 +45,7 @@ export default function ProgramForm() {
     setLoading(true);
     try {
       const res = await supabase.functions.invoke("generate-plan", {
-        body: { ...form, programType: type },
+        body: { ...form, programType: type, language: lang },
       });
       if (res.error) throw res.error;
       navigate("/results", { state: { plan: res.data, userInfo: form, programType: type } });
