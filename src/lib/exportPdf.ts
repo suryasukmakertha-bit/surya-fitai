@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 interface DayPlan {
   day: string;
@@ -57,12 +57,12 @@ export function exportPlanToPDF(plan: PlanData, programType?: string, userName?:
 
     for (const day of plan.workout_plan) {
       const rows = day.exercises.map((ex) => [ex.name, ex.sets, ex.reps, ex.rest]);
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: y,
         head: [[day.day, "Sets", "Reps", "Rest"]],
         body: rows,
         theme: "grid",
-        headStyles: { fillColor: [30, 30, 30], textColor: green, fontSize: 9 },
+        headStyles: { fillColor: [30, 30, 30], textColor: green as any, fontSize: 9 },
         bodyStyles: { fontSize: 8, textColor: [60, 60, 60] },
         margin: { left: 14, right: 14 },
         tableWidth: "auto",
@@ -81,12 +81,12 @@ export function exportPlanToPDF(plan: PlanData, programType?: string, userName?:
     y += 4;
 
     const mealRows = plan.meal_plan.map((m) => [m.meal, m.foods.join(", "), `${m.calories} kcal`]);
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y,
       head: [["Meal", "Foods", "Calories"]],
       body: mealRows,
       theme: "grid",
-      headStyles: { fillColor: [30, 30, 30], textColor: green, fontSize: 9 },
+      headStyles: { fillColor: [30, 30, 30], textColor: green as any, fontSize: 9 },
       bodyStyles: { fontSize: 8, textColor: [60, 60, 60] },
       columnStyles: { 1: { cellWidth: 110 } },
       margin: { left: 14, right: 14 },
