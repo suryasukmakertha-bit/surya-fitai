@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language } = await req.json();
+    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies } = await req.json();
     const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : "English";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -45,6 +45,7 @@ Rules:
 - Include 5-6 training days with 1-2 rest days
 - Meal plan should have 4-5 meals per day
 - Grocery list should cover all meal plan ingredients
+- If the user has food allergies, NEVER include those allergens in meals or grocery list. Substitute with safe alternatives.
 - IMPORTANT: Generate ALL text content (meal names, exercise names, day labels, safety notes, motivational message, weight projection, grocery list items, weekly schedule) in ${lang}. The JSON keys must remain in English, but all string VALUES must be in ${lang}.`;
 
     const userPrompt = `User Data:
@@ -59,6 +60,7 @@ Rules:
 - Duration: ${duration}
 - Experience: ${experience}
 - Limitations: ${limitations || "None"}
+- Food Allergies: ${allergies || "None"}
 
 Generate the complete plan now.`;
 
