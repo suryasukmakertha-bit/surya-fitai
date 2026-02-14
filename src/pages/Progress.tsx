@@ -8,6 +8,7 @@ import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tool
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
 
 interface CheckIn {
   id: string;
@@ -106,6 +107,7 @@ export default function Progress() {
         </h1>
         <p className="text-muted-foreground mb-8">Log your weekly weigh-ins and track your transformation.</p>
 
+        <WorkoutProgressSummary />
         {sorted.length >= 2 && (
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
