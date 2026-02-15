@@ -70,6 +70,7 @@ export type Database = {
           created_at: string
           id: string
           plan_data: Json
+          plan_name: string | null
           program_type: string
           user_id: string
           user_info: Json
@@ -78,6 +79,7 @@ export type Database = {
           created_at?: string
           id?: string
           plan_data?: Json
+          plan_name?: string | null
           program_type: string
           user_id: string
           user_info?: Json
@@ -86,6 +88,7 @@ export type Database = {
           created_at?: string
           id?: string
           plan_data?: Json
+          plan_name?: string | null
           program_type?: string
           user_id?: string
           user_info?: Json
