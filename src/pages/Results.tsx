@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, Sparkles, Save, Loader2, Download } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, Sparkles, Save, Loader2, Download, MessageCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { exportPlanToPDF } from "@/lib/exportPdf";
 import WorkoutChecklist from "@/components/WorkoutChecklist";
 import { useLanguage } from "@/contexts/LanguageContext";
+import HomeButton from "@/components/HomeButton";
 
 interface DayPlan {
   day: string;
@@ -92,13 +93,13 @@ export default function Results() {
     ? t.heyUser.replace("{name}", userInfo.name).replace("{type}", programType || "")
     : t.hereCustom.replace("{type}", programType || "");
 
+  const waLink = "https://wa.me/6281802003107?text=Hello%20Coach%20Surya,%20I%20would%20like%20assistance%20with%20my%20Surya-FitAi%20training%20plan%20for%20safer%20and%20more%20effective%20results.";
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => navigate("/programs")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="w-4 h-4" /> {t.backToPrograms}
-          </button>
+          <HomeButton />
           <div className="flex items-center gap-2">
             <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
@@ -238,6 +239,20 @@ export default function Results() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* WhatsApp CTA */}
+        <div className="mt-10">
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 w-full rounded-xl px-6 py-4 font-bold text-white text-base shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+            style={{ backgroundColor: "#25D366" }}
+          >
+            <MessageCircle className="w-6 h-6" />
+            {t.whatsappCta || "Get Personal Trainer Assistance from Coach Surya"}
+          </a>
+        </div>
       </div>
     </div>
   );

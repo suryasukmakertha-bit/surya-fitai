@@ -4,6 +4,7 @@ import { Dumbbell, Brain, Utensils, ChevronRight, BarChart3, LogIn, LogOut, Fold
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroBg from "@/assets/hero-bg.jpg";
+import logo from "@/assets/logo.png";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -14,9 +15,8 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       {/* Top nav */}
       <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between max-w-5xl mx-auto px-4 py-4">
-        <span className="font-display font-bold text-foreground text-lg">FitAI</span>
+        <span className="font-display font-bold text-foreground text-lg">Surya-FitAi</span>
         <div className="flex items-center gap-3">
-          {/* Language switcher */}
           <button
             onClick={() => setLang(lang === "en" ? "id" : "en")}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors bg-secondary/60 rounded-full px-3 py-1.5 border border-border/50"
@@ -50,6 +50,8 @@ export default function Index() {
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
+          {/* Logo */}
+          <img src={logo} alt="Surya-FitAi" className="h-16 md:h-20 mx-auto mb-6 object-contain" />
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
             <Brain className="w-4 h-4 text-primary" />
             <span className="text-xs text-primary font-medium tracking-wide uppercase">{t.aiPowered}</span>
@@ -105,7 +107,7 @@ export default function Index() {
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
-          <span className="font-display font-bold text-foreground">FitAI</span>
+          <span className="font-display font-bold text-foreground">Surya-FitAi</span>
           <span>{t.rights}</span>
         </div>
       </footer>

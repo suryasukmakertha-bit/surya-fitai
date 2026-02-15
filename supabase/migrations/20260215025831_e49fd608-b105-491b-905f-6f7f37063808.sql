@@ -1,0 +1,1 @@
+CREATE POLICY "Users can update own plans" ON public.saved_plans FOR UPDATE USING (auth.uid() = user_id);

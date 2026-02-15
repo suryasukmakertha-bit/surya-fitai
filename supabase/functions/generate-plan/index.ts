@@ -9,13 +9,15 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies } = await req.json();
+    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays } = await req.json();
     const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : "English";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const bmi = (parseFloat(weight) / ((parseFloat(height) / 100) ** 2)).toFixed(1);
+    const restDaysNum = parseInt(restDays) || 2;
+    const workoutDays = 7 - restDaysNum;
 
     const systemPrompt = `You are an expert AI personal trainer and nutritionist. Generate a complete, personalized fitness and nutrition plan based on user data. Return ONLY valid JSON matching the exact schema below, no markdown, no extra text.
 
@@ -42,10 +44,12 @@ Rules:
 - For "bulking" program: high volume, progressive overload, caloric surplus meals
 - For "cutting" program: caloric deficit, higher protein, include HIIT
 - Adjust intensity based on experience level and age
-- Include 5-6 training days with 1-2 rest days
+- The user wants ${workoutDays} training days and ${restDaysNum} rest day(s) per week. Distribute muscle groups evenly across ${workoutDays} workout days with balanced rotation and recovery optimization.
 - Meal plan should have 4-5 meals per day
 - Grocery list should cover all meal plan ingredients
 - If the user has food allergies, NEVER include those allergens in meals or grocery list. Substitute with safe alternatives.
+- Consider the user's occupation when adjusting intensity, calorie estimation, daily activity multiplier, fatigue and recovery estimation.
+- Plan duration should be ${duration} (generate a 4-week or 12-week cycle accordingly).
 - IMPORTANT: Generate ALL text content (meal names, exercise names, day labels, safety notes, motivational message, weight projection, grocery list items, weekly schedule) in ${lang}. The JSON keys must remain in English, but all string VALUES must be in ${lang}.`;
 
     const userPrompt = `User Data:
@@ -61,6 +65,8 @@ Rules:
 - Experience: ${experience}
 - Limitations: ${limitations || "None"}
 - Food Allergies: ${allergies || "None"}
+- Occupation: ${occupation || "Not specified"}
+- Preferred Rest Days: ${restDaysNum} day(s) per week
 
 Generate the complete plan now.`;
 
@@ -98,7 +104,6 @@ Generate the complete plan now.`;
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
-    // Parse JSON from response (strip markdown fences if present)
     let plan;
     try {
       const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
