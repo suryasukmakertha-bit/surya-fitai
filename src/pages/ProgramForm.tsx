@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { programs } from "@/components/ProgramCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import HomeButton from "@/components/HomeButton";
 
 export default function ProgramForm() {
   const { type } = useParams<{ type: string }>();
@@ -33,6 +34,9 @@ export default function ProgramForm() {
     experience: "Beginner",
     limitations: "",
     allergies: "",
+    occupation: "",
+    occupationOther: "",
+    restDays: "2",
   });
 
   const set = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
@@ -45,8 +49,9 @@ export default function ProgramForm() {
     }
     setLoading(true);
     try {
+      const occupation = form.occupation === "other" ? form.occupationOther : form.occupation;
       const res = await supabase.functions.invoke("generate-plan", {
-        body: { ...form, programType: type, language: lang },
+        body: { ...form, occupation, programType: type, language: lang },
       });
       if (res.error) throw res.error;
       navigate("/results", { state: { plan: res.data, userInfo: form, programType: type } });
@@ -60,9 +65,9 @@ export default function ProgramForm() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <button onClick={() => navigate("/programs")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" /> {t.backToPrograms}
-        </button>
+        <div className="mb-8">
+          <HomeButton />
+        </div>
 
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">{programTitle}</h1>
@@ -105,17 +110,39 @@ export default function ProgramForm() {
             </div>
 
             <div className="space-y-2">
+              <Label>{t.occupation || "Occupation"}</Label>
+              <Select value={form.occupation} onValueChange={(v) => set("occupation", v)}>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.occupationSelect || "Select occupation"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">{t.occupationStudent || "Student"}</SelectItem>
+                  <SelectItem value="office">{t.occupationOffice || "Office Worker (Mostly Sitting)"}</SelectItem>
+                  <SelectItem value="field">{t.occupationField || "Field Worker (Physically Active)"}</SelectItem>
+                  <SelectItem value="freelancer">{t.occupationFreelancer || "Freelancer"}</SelectItem>
+                  <SelectItem value="business">{t.occupationBusiness || "Business Owner"}</SelectItem>
+                  <SelectItem value="other">{t.other}</SelectItem>
+                </SelectContent>
+              </Select>
+              {form.occupation === "other" && (
+                <Input
+                  value={form.occupationOther}
+                  onChange={(e) => set("occupationOther", e.target.value)}
+                  placeholder={t.occupationOtherPlaceholder || "Enter your occupation"}
+                  className="bg-secondary border-border mt-2"
+                />
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label>{t.fitnessGoal}</Label>
               <Input value={form.goal} onChange={(e) => set("goal", e.target.value)} className="bg-secondary border-border" />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t.trainingDuration}</Label>
                 <Select value={form.duration} onValueChange={(v) => set("duration", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2 Weeks">{t.weeks2}</SelectItem>
                     <SelectItem value="1 Month">{t.month1}</SelectItem>
                     <SelectItem value="3 Months">{t.months3}</SelectItem>
                   </SelectContent>
@@ -129,6 +156,16 @@ export default function ProgramForm() {
                     <SelectItem value="Beginner">{t.beginner}</SelectItem>
                     <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
                     <SelectItem value="Advanced">{t.advanced}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t.restDays || "Rest Days / Week"}</Label>
+                <Select value={form.restDays} onValueChange={(v) => set("restDays", v)}>
+                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">{t.restDay1 || "1 Day"}</SelectItem>
+                    <SelectItem value="2">{t.restDay2 || "2 Days"}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

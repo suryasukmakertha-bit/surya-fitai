@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, TrendingDown, TrendingUp, Scale, Loader2 } from "lucide-react";
+import { Plus, Trash2, TrendingDown, TrendingUp, Scale, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
+import ProgressDownloadCard from "@/components/ProgressDownloadCard";
 import { useLanguage } from "@/contexts/LanguageContext";
+import HomeButton from "@/components/HomeButton";
 
 interface CheckIn {
   id: string;
@@ -84,6 +86,10 @@ export default function Progress() {
   const diff = firstWeight && lastWeight ? lastWeight - firstWeight : 0;
   const trending = diff > 0 ? "up" : diff < 0 ? "down" : "neutral";
 
+  const heightCm = 170; // fallback
+  const bmi = lastWeight ? (lastWeight / ((heightCm / 100) ** 2)).toFixed(1) : "—";
+  const progressPercent = sorted.length >= 2 ? Math.min(100, Math.round((sorted.length / 12) * 100)) : 0;
+
   const chartData = sorted.map((c) => ({
     date: new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     weight: c.weight,
@@ -100,9 +106,9 @@ export default function Progress() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" /> {t.back}
-        </button>
+        <div className="mb-8">
+          <HomeButton />
+        </div>
 
         <h1 className="text-3xl font-display font-bold text-foreground mb-2">
           {t.progressTracker} <span className="text-gradient">{t.tracker}</span>
@@ -112,25 +118,38 @@ export default function Progress() {
         <WorkoutProgressSummary />
 
         {sorted.length >= 2 && (
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
-              <p className="text-xs text-muted-foreground mb-1">{t.start}</p>
-              <p className="text-lg font-bold text-foreground">{firstWeight} kg</p>
-            </div>
-            <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
-              <p className="text-xs text-muted-foreground mb-1">{t.current}</p>
-              <p className="text-lg font-bold text-foreground">{lastWeight} kg</p>
-            </div>
-            <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
-              <p className="text-xs text-muted-foreground mb-1">{t.change}</p>
-              <div className="flex items-center justify-center gap-1">
-                {trending === "down" ? <TrendingDown className="w-4 h-4 text-primary" /> : trending === "up" ? <TrendingUp className="w-4 h-4 text-destructive" /> : null}
-                <p className={`text-lg font-bold ${trending === "down" ? "text-primary" : trending === "up" ? "text-destructive" : "text-foreground"}`}>
-                  {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg
-                </p>
+          <>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t.start}</p>
+                <p className="text-lg font-bold text-foreground">{firstWeight} kg</p>
+              </div>
+              <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t.current}</p>
+                <p className="text-lg font-bold text-foreground">{lastWeight} kg</p>
+              </div>
+              <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t.change}</p>
+                <div className="flex items-center justify-center gap-1">
+                  {trending === "down" ? <TrendingDown className="w-4 h-4 text-primary" /> : trending === "up" ? <TrendingUp className="w-4 h-4 text-destructive" /> : null}
+                  <p className={`text-lg font-bold ${trending === "down" ? "text-primary" : trending === "up" ? "text-destructive" : "text-foreground"}`}>
+                    {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+            <div className="mb-8">
+              <ProgressDownloadCard
+                userName={user?.user_metadata?.display_name || user?.email || "User"}
+                programName="Fitness"
+                duration="Ongoing"
+                weight={lastWeight || 0}
+                bmi={bmi}
+                calorieTarget={2000}
+                progressPercent={progressPercent}
+              />
+            </div>
+          </>
         )}
 
         {chartData.length >= 2 && (
