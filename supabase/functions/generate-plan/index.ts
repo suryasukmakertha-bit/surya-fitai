@@ -1,15 +1,108 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function validateInput(data: any): string[] {
+  const errors: string[] = [];
+
+  if (!data.name || typeof data.name !== 'string') {
+    errors.push('Name is required');
+  } else if (data.name.length > 100) {
+    errors.push('Name is too long (max 100 characters)');
+  }
+
+  const age = parseInt(data.age);
+  if (isNaN(age) || age < 13 || age > 120) {
+    errors.push('Age must be between 13 and 120');
+  }
+
+  const weight = parseFloat(data.weight);
+  if (isNaN(weight) || weight < 20 || weight > 400) {
+    errors.push('Weight must be between 20 and 400 kg');
+  }
+
+  const height = parseFloat(data.height);
+  if (isNaN(height) || height < 80 || height > 280) {
+    errors.push('Height must be between 80 and 280 cm');
+  }
+
+  const validGenders = ['male', 'female', 'other'];
+  if (!validGenders.includes(data.gender)) {
+    errors.push('Invalid gender value');
+  }
+
+  const validDurations = ['1 Month', '3 Months'];
+  if (!validDurations.includes(data.duration)) {
+    errors.push('Invalid duration value');
+  }
+
+  const validExperience = ['Beginner', 'Intermediate', 'Advanced'];
+  if (!validExperience.includes(data.experience)) {
+    errors.push('Invalid experience level');
+  }
+
+  const restDays = parseInt(data.restDays);
+  if (isNaN(restDays) || restDays < 1 || restDays > 3) {
+    errors.push('Rest days must be between 1 and 3');
+  }
+
+  if (data.goal && data.goal.length > 300) {
+    errors.push('Goal is too long (max 300 characters)');
+  }
+  if (data.limitations && data.limitations.length > 500) {
+    errors.push('Limitations is too long (max 500 characters)');
+  }
+  if (data.allergies && data.allergies.length > 500) {
+    errors.push('Allergies is too long (max 500 characters)');
+  }
+  if (data.occupation && data.occupation.length > 200) {
+    errors.push('Occupation is too long (max 200 characters)');
+  }
+
+  return errors;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays } = await req.json();
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Parse and validate input
+    const body = await req.json();
+    const validationErrors = validateInput(body);
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays } = body;
     const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : "English";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
