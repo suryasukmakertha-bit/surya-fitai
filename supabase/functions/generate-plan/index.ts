@@ -102,7 +102,7 @@ serve(async (req) => {
       );
     }
 
-    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays } = body;
+    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays, startDate, startDay } = body;
     const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : "English";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -112,12 +112,14 @@ serve(async (req) => {
     const restDaysNum = parseInt(restDays) || 2;
     const workoutDays = 7 - restDaysNum;
 
-    const systemPrompt = `You are an expert AI personal trainer and nutritionist. Generate a complete, personalized fitness and nutrition plan based on user data. Return ONLY valid JSON matching the exact schema below, no markdown, no extra text.
+    const systemPrompt = `You are a certified international-level personal trainer and sports nutritionist with expertise in evidence-based fitness coaching. You apply modern training science principles including progressive overload, periodization, and recovery optimization.
+
+Generate a complete, personalized fitness and nutrition plan. Return ONLY valid JSON matching the exact schema below, no markdown, no extra text.
 
 JSON Schema:
 {
-  "workout_plan": [{ "day": "string", "exercises": [{ "name": "string", "sets": "string", "reps": "string", "rest": "string" }] }],
-  "meal_plan": [{ "meal": "string (e.g. Breakfast)", "foods": ["string"], "calories": number }],
+  "workout_plan": [{ "day": "string (e.g. Week 1 - Monday, 2025-03-10)", "exercises": [{ "name": "string", "sets": "string", "reps": "string", "rest": "string", "weight_kg": "string (recommended load)", "notes": "string (form cues / safety tips)" }] }],
+  "meal_plan": [{ "meal": "string (e.g. Breakfast)", "foods": ["string (include portion size)"], "calories": number }],
   "calorie_target": number,
   "protein": number,
   "carbs": number,
@@ -126,24 +128,56 @@ JSON Schema:
   "weekly_schedule": ["Mon: Type", "Tue: Type", ...],
   "safety_notes": ["string"],
   "motivational_message": "string",
-  "grocery_list": ["string"],
+  "grocery_list": ["string (with quantity)"],
   "estimated_calories_burned": number,
   "weight_projection": "string"
 }
 
-Rules:
-- For "senior" program: use low-impact exercises, avoid heavy lifts, add balance/flexibility work, include extra safety notes
-- For "beginner" program: use simple exercises with clear form cues, moderate volume
-- For "bulking" program: high volume, progressive overload, caloric surplus meals
-- For "cutting" program: caloric deficit, higher protein, include HIIT
-- Adjust intensity based on experience level and age
-- The user wants ${workoutDays} training days and ${restDaysNum} rest day(s) per week. Distribute muscle groups evenly across ${workoutDays} workout days with balanced rotation and recovery optimization.
-- Meal plan should have 4-5 meals per day
-- Grocery list should cover all meal plan ingredients
-- If the user has food allergies, NEVER include those allergens in meals or grocery list. Substitute with safe alternatives.
-- Consider the user's occupation when adjusting intensity, calorie estimation, daily activity multiplier, fatigue and recovery estimation.
-- Plan duration should be ${duration} (generate a 4-week or 12-week cycle accordingly).
-- IMPORTANT: Generate ALL text content (meal names, exercise names, day labels, safety notes, motivational message, weight projection, grocery list items, weekly schedule) in ${lang}. The JSON keys must remain in English, but all string VALUES must be in ${lang}.`;
+TRAINING SCIENCE RULES:
+- Apply progressive overload: systematically increase weight, reps, or volume across weeks
+- Week 1: Adaptation phase (moderate intensity 60-70% capacity)
+- Week 2: Volume increase (add 1-2 reps or 1 extra set)
+- Week 3: Load increase (add 2.5-5kg on compound lifts, 1-2.5kg on isolation)
+- Week 4: Deload/variation week (reduce volume by 30-40%, introduce exercise variations)
+- For 3-month plans, repeat this 4-week mesocycle 3 times with progressive baseline increases
+- Include recommended weight load (kg) for EVERY exercise based on:
+  * Beginner: conservative loads focusing on form (e.g., Bench Press 20-30kg, Squat 20-40kg)
+  * Intermediate: moderate loads (e.g., Bench Press 40-60kg, Squat 60-80kg)
+  * Advanced: challenging loads (e.g., Bench Press 60-100kg, Squat 80-120kg)
+  * Adjust for gender and body weight
+- Include form cues and safety notes for each exercise
+- Vary exercises between weeks to prevent plateaus
+- Use proper training splits (Push/Pull/Legs, Upper/Lower, or Full Body based on frequency)
+
+PROGRAM-SPECIFIC RULES:
+- "senior" program: low-impact exercises, avoid heavy lifts, add balance/flexibility work, extra safety notes, bodyweight or light loads only
+- "beginner" program: simple exercises with detailed form cues, moderate volume, focus on compound movements
+- "bulking" program: high volume (4-5 sets), progressive overload priority, caloric surplus meals (+300-500 kcal above TDEE)
+- "cutting" program: caloric deficit (-300-500 kcal below TDEE), higher protein (2.2-2.5g/kg), include HIIT 2-3x/week, maintain training intensity
+
+SCHEDULING:
+- The user wants ${workoutDays} training days and ${restDaysNum} rest day(s) per week
+- Training starts on ${startDay || "Monday"}, ${startDate || "next week"}
+- The workout plan MUST start on this exact day and date
+- Label each day with the actual day name and date (e.g., "Week 1 - Monday, March 10")
+- Distribute muscle groups evenly with balanced rotation and recovery optimization
+- Plan duration: ${duration} (generate a 4-week or 12-week cycle accordingly)
+
+MEAL PLAN RULES:
+- Use foods and ingredients commonly available in Indonesia
+- Prioritize Indonesian staple foods: nasi putih/merah (white/brown rice), ayam dada (chicken breast), telur (eggs), tempe, tahu (tofu), ikan (fish like tongkol, salmon, lele), sayuran lokal (kangkung, bayam, brokoli, wortel), buah lokal (pisang, pepaya, jeruk)
+- Include portion sizes in grams or household measures (e.g., "1 piring nasi merah (150g)", "2 butir telur rebus")
+- 4-5 meals per day
+- Adjust calories and macros based on user goals and TDEE calculation
+- Grocery list should cover all meal plan ingredients with quantities
+- If user has food allergies, NEVER include those allergens — substitute with safe alternatives
+
+OCCUPATION & LIFESTYLE:
+- Consider the user's occupation when adjusting: intensity, calorie estimation, daily activity multiplier (NEAT), fatigue and recovery needs
+
+OUTPUT LANGUAGE:
+- Generate ALL text content (meal names, exercise names, day labels, safety notes, motivational message, weight projection, grocery list items, weekly schedule, form notes) in ${lang}
+- JSON keys must remain in English, but all string VALUES must be in ${lang}`;
 
     const userPrompt = `User Data:
 - Name: ${name}
@@ -160,6 +194,8 @@ Rules:
 - Food Allergies: ${allergies || "None"}
 - Occupation: ${occupation || "Not specified"}
 - Preferred Rest Days: ${restDaysNum} day(s) per week
+- Training Start Date: ${startDate || "Next Monday"}
+- Training Start Day: ${startDay || "Monday"}
 
 Generate the complete plan now.`;
 

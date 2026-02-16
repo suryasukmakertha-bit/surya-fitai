@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, BarChart3, LogIn, LogOut, FolderOpen, Globe } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, LogIn, LogOut, FolderOpen, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -30,9 +30,6 @@ export default function Index() {
               <button onClick={() => navigate("/saved-plans")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <FolderOpen className="w-4 h-4" /> {t.myPlans}
               </button>
-              <button onClick={() => navigate("/progress")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                <BarChart3 className="w-4 h-4" /> {t.progress}
-              </button>
               <button onClick={() => signOut()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <LogOut className="w-4 h-4" /> {t.signOut}
               </button>
@@ -50,7 +47,6 @@ export default function Index() {
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
-          {/* Logo */}
           <img src={logo} alt="Surya-FitAi" className="h-16 md:h-20 mx-auto mb-6 object-contain" />
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
             <Brain className="w-4 h-4 text-primary" />

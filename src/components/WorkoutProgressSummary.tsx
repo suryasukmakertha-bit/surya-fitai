@@ -19,7 +19,11 @@ interface DailyCount {
   count: number;
 }
 
-export default function WorkoutProgressSummary() {
+interface WorkoutProgressSummaryProps {
+  planId?: string;
+}
+
+export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummaryProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [weeklyData, setWeeklyData] = useState<DailyCount[]>([]);
@@ -31,17 +35,23 @@ export default function WorkoutProgressSummary() {
   useEffect(() => {
     if (!user) return;
     fetchData();
-  }, [user]);
+  }, [user, planId]);
 
   const fetchData = async () => {
     const today = new Date();
     const sevenDaysAgo = subDays(today, 6);
 
-    const { data } = await supabase
+    let query = supabase
       .from("workout_checkins")
       .select("completed_date, exercise_name")
       .gte("completed_date", format(sevenDaysAgo, "yyyy-MM-dd"))
       .lte("completed_date", format(today, "yyyy-MM-dd"));
+
+    if (planId) {
+      query = query.eq("plan_id", planId);
+    }
+
+    const { data } = await query;
 
     if (data) {
       const countMap = new Map<string, number>();
@@ -64,10 +74,16 @@ export default function WorkoutProgressSummary() {
       setTotalCompleted(data.length);
     }
 
-    const { data: allDates } = await supabase
+    let streakQuery = supabase
       .from("workout_checkins")
       .select("completed_date")
       .order("completed_date", { ascending: false });
+
+    if (planId) {
+      streakQuery = streakQuery.eq("plan_id", planId);
+    }
+
+    const { data: allDates } = await streakQuery;
 
     if (allDates && allDates.length > 0) {
       const uniqueDates = [...new Set(allDates.map((d) => d.completed_date))].sort().reverse();

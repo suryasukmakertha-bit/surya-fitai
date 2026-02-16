@@ -9,7 +9,6 @@ import Index from "./pages/Index";
 import Programs from "./pages/Programs";
 import ProgramForm from "./pages/ProgramForm";
 import Results from "./pages/Results";
-import Progress from "./pages/Progress";
 import Auth from "./pages/Auth";
 import SavedPlans from "./pages/SavedPlans";
 import NotFound from "./pages/NotFound";
@@ -30,7 +29,6 @@ const App = () => (
               <Route path="/programs" element={<Programs />} />
               <Route path="/program/:type" element={<ProgramForm />} />
               <Route path="/results" element={<Results />} />
-              <Route path="/progress" element={<Progress />} />
               <Route path="/saved-plans" element={<SavedPlans />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

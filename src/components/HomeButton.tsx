@@ -15,7 +15,7 @@ export default function HomeButton() {
       className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
     >
       <Home className="w-4 h-4" />
-      <span className="font-medium">Home</span>
+      <span className="font-medium">{t.home}</span>
     </button>
   );
 }
