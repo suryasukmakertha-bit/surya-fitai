@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, Sparkles, Save, Loader2, Download, MessageCircle } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { exportPlanToPDF } from "@/lib/exportPdf";
 import WorkoutChecklist from "@/components/WorkoutChecklist";
+import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
+import ProgressDownloadCard from "@/components/ProgressDownloadCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import HomeButton from "@/components/HomeButton";
+import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 
 interface DayPlan {
   day: string;
@@ -38,6 +43,13 @@ interface PlanData {
   weight_projection: string;
 }
 
+interface CheckIn {
+  id: string;
+  date: string;
+  weight: number;
+  note?: string;
+}
+
 export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,6 +62,60 @@ export default function Results() {
   const userInfo = location.state?.userInfo;
   const programType = location.state?.programType;
   const planId: string | undefined = location.state?.planId;
+
+  // Progress state (only for saved plans)
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [progressWeight, setProgressWeight] = useState("");
+  const [progressNote, setProgressNote] = useState("");
+  const [progressDate, setProgressDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [addingCheckIn, setAddingCheckIn] = useState(false);
+
+  useEffect(() => {
+    if (planId && user) {
+      fetchCheckIns();
+    }
+  }, [planId, user]);
+
+  const fetchCheckIns = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("progress_checkins")
+      .select("id, date, weight, note")
+      .eq("user_id", user.id)
+      .order("date", { ascending: true });
+    if (data) {
+      setCheckIns(data.map((d) => ({ ...d, weight: Number(d.weight) })));
+    }
+  };
+
+  const addCheckIn = async () => {
+    const w = parseFloat(progressWeight);
+    if (!w || w < 20 || w > 500) {
+      toast({ title: t.validWeight, variant: "destructive" });
+      return;
+    }
+    if (!user) return;
+    setAddingCheckIn(true);
+    const { data, error } = await supabase
+      .from("progress_checkins")
+      .insert({ user_id: user.id, date: progressDate, weight: w, note: progressNote.trim() || null })
+      .select("id, date, weight, note")
+      .single();
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else if (data) {
+      setCheckIns((prev) => [...prev, { ...data, weight: Number(data.weight) }]);
+      setProgressWeight("");
+      setProgressNote("");
+      toast({ title: t.checkInLogged });
+    }
+    setAddingCheckIn(false);
+  };
+
+  const removeCheckIn = async (id: string) => {
+    await supabase.from("progress_checkins").delete().eq("id", id);
+    setCheckIns((prev) => prev.filter((c) => c.id !== id));
+  };
 
   if (!plan) {
     return (
@@ -94,6 +160,20 @@ export default function Results() {
     : t.hereCustom.replace("{type}", programType || "");
 
   const waLink = "https://wa.me/6281802003107?text=Hello%20Coach%20Surya,%20I%20would%20like%20assistance%20with%20my%20Surya-FitAi%20training%20plan%20for%20safer%20and%20more%20effective%20results.";
+
+  // Progress calculations
+  const sorted = [...checkIns].sort((a, b) => a.date.localeCompare(b.date));
+  const firstWeight = sorted[0]?.weight;
+  const lastWeight = sorted[sorted.length - 1]?.weight;
+  const diff = firstWeight && lastWeight ? lastWeight - firstWeight : 0;
+  const trending = diff > 0 ? "up" : diff < 0 ? "down" : "neutral";
+  const heightCm = userInfo?.height ? parseInt(userInfo.height) : 170;
+  const bmi = lastWeight ? (lastWeight / ((heightCm / 100) ** 2)).toFixed(1) : "—";
+  const progressPercent = sorted.length >= 2 ? Math.min(100, Math.round((sorted.length / 12) * 100)) : 0;
+  const chartData = sorted.map((c) => ({
+    date: new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    weight: c.weight,
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,6 +226,9 @@ export default function Results() {
             <TabsTrigger value="meals" className="whitespace-nowrap">{t.mealPlan}</TabsTrigger>
             <TabsTrigger value="grocery" className="whitespace-nowrap">{t.groceryList}</TabsTrigger>
             <TabsTrigger value="info" className="whitespace-nowrap">{t.infoSafety}</TabsTrigger>
+            {planId && user && (
+              <TabsTrigger value="progress" className="whitespace-nowrap">{t.progressTab}</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="workout" className="space-y-4">
@@ -238,6 +321,113 @@ export default function Results() {
               </div>
             )}
           </TabsContent>
+
+          {/* Progress Tab - only for saved plans */}
+          {planId && user && (
+            <TabsContent value="progress" className="space-y-6">
+              <WorkoutProgressSummary planId={planId} />
+
+              {sorted.length >= 2 && (
+                <>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{t.start}</p>
+                      <p className="text-lg font-bold text-foreground">{firstWeight} kg</p>
+                    </div>
+                    <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{t.current}</p>
+                      <p className="text-lg font-bold text-foreground">{lastWeight} kg</p>
+                    </div>
+                    <div className="card-gradient rounded-lg p-4 border border-border/50 text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{t.change}</p>
+                      <div className="flex items-center justify-center gap-1">
+                        {trending === "down" ? <TrendingDown className="w-4 h-4 text-primary" /> : trending === "up" ? <TrendingUp className="w-4 h-4 text-destructive" /> : null}
+                        <p className={`text-lg font-bold ${trending === "down" ? "text-primary" : trending === "up" ? "text-destructive" : "text-foreground"}`}>
+                          {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <ProgressDownloadCard
+                    userName={user?.user_metadata?.display_name || user?.email || "User"}
+                    programName={programType || "Fitness"}
+                    duration={userInfo?.duration || "Ongoing"}
+                    weight={lastWeight || 0}
+                    bmi={bmi}
+                    calorieTarget={plan.calorie_target || 2000}
+                    progressPercent={progressPercent}
+                  />
+                </>
+              )}
+
+              {chartData.length >= 2 ? (
+                <div className="card-gradient rounded-lg p-5 border border-border/50">
+                  <h3 className="font-display font-bold text-foreground mb-4">{t.weightOverTime}</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData}>
+                        <defs>
+                          <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 15%, 18%)" />
+                        <XAxis dataKey="date" tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
+                        <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
+                        <Tooltip contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} labelStyle={{ color: "hsl(135, 100%, 60%)" }} />
+                        <Area type="monotone" dataKey="weight" stroke="hsl(135, 100%, 60%)" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "hsl(135, 100%, 60%)", r: 4 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ) : (
+                <div className="card-gradient rounded-lg p-8 border border-border/50 text-center">
+                  <Scale className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">{t.logAtLeast2}</p>
+                </div>
+              )}
+
+              <div className="card-gradient rounded-lg p-5 border border-border/50">
+                <h3 className="font-display font-bold text-foreground mb-4">{t.logCheckIn}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label>{t.date}</Label>
+                    <Input type="date" value={progressDate} onChange={(e) => setProgressDate(e.target.value)} className="bg-secondary border-border" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t.weightLabel}</Label>
+                    <Input type="number" value={progressWeight} onChange={(e) => setProgressWeight(e.target.value)} placeholder="75" className="bg-secondary border-border" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t.noteOptional}</Label>
+                    <Input value={progressNote} onChange={(e) => setProgressNote(e.target.value)} placeholder={t.notePlaceholder} className="bg-secondary border-border" />
+                  </div>
+                </div>
+                <Button onClick={addCheckIn} disabled={addingCheckIn} className="w-full sm:w-auto">
+                  {addingCheckIn ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />} {t.addCheckIn}
+                </Button>
+              </div>
+
+              {sorted.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-display font-bold text-foreground mb-3">{t.history}</h3>
+                  {[...sorted].reverse().map((c) => (
+                    <div key={c.id} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-3 text-sm">
+                      <div className="flex items-center gap-4">
+                        <span className="text-muted-foreground">{new Date(c.date).toLocaleDateString()}</span>
+                        <span className="text-foreground font-medium">{c.weight} kg</span>
+                        {c.note && <span className="text-muted-foreground italic">— {c.note}</span>}
+                      </div>
+                      <button onClick={() => removeCheckIn(c.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* WhatsApp CTA */}
@@ -250,7 +440,7 @@ export default function Results() {
             style={{ backgroundColor: "#25D366" }}
           >
             <MessageCircle className="w-6 h-6" />
-            {t.whatsappCta || "Get Personal Trainer Assistance from Coach Surya"}
+            {t.whatsappCta}
           </a>
         </div>
       </div>

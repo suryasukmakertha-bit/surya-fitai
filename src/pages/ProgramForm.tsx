@@ -5,12 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Loader2, CalendarIcon } from "lucide-react";
 import { programs } from "@/components/ProgramCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import HomeButton from "@/components/HomeButton";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function ProgramForm() {
   const { type } = useParams<{ type: string }>();
@@ -19,6 +23,7 @@ export default function ProgramForm() {
   const { t, lang } = useLanguage();
   const program = programs.find((p) => p.id === type);
   const [loading, setLoading] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 
   const titleKey = `${type}Title` as keyof typeof t;
   const programTitle = (t[titleKey] as string) || program?.title || "Program";
@@ -43,15 +48,17 @@ export default function ProgramForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.age || !form.gender || !form.weight || !form.height) {
+    if (!form.name || !form.age || !form.gender || !form.weight || !form.height || !startDate) {
       toast({ title: t.fillRequired, variant: "destructive" });
       return;
     }
     setLoading(true);
     try {
       const occupation = form.occupation === "other" ? form.occupationOther : form.occupation;
+      const startDateStr = format(startDate, "yyyy-MM-dd");
+      const startDayName = format(startDate, "EEEE");
       const res = await supabase.functions.invoke("generate-plan", {
-        body: { ...form, occupation, programType: type, language: lang },
+        body: { ...form, occupation, programType: type, language: lang, startDate: startDateStr, startDay: startDayName },
       });
       if (res.error) throw res.error;
       navigate("/results", { state: { plan: res.data, userInfo: form, programType: type } });
@@ -110,15 +117,15 @@ export default function ProgramForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>{t.occupation || "Occupation"}</Label>
+              <Label>{t.occupation}</Label>
               <Select value={form.occupation} onValueChange={(v) => set("occupation", v)}>
-                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.occupationSelect || "Select occupation"} /></SelectTrigger>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.occupationSelect} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="student">{t.occupationStudent || "Student"}</SelectItem>
-                  <SelectItem value="office">{t.occupationOffice || "Office Worker (Mostly Sitting)"}</SelectItem>
-                  <SelectItem value="field">{t.occupationField || "Field Worker (Physically Active)"}</SelectItem>
-                  <SelectItem value="freelancer">{t.occupationFreelancer || "Freelancer"}</SelectItem>
-                  <SelectItem value="business">{t.occupationBusiness || "Business Owner"}</SelectItem>
+                  <SelectItem value="student">{t.occupationStudent}</SelectItem>
+                  <SelectItem value="office">{t.occupationOffice}</SelectItem>
+                  <SelectItem value="field">{t.occupationField}</SelectItem>
+                  <SelectItem value="freelancer">{t.occupationFreelancer}</SelectItem>
+                  <SelectItem value="business">{t.occupationBusiness}</SelectItem>
                   <SelectItem value="other">{t.other}</SelectItem>
                 </SelectContent>
               </Select>
@@ -126,7 +133,7 @@ export default function ProgramForm() {
                 <Input
                   value={form.occupationOther}
                   onChange={(e) => set("occupationOther", e.target.value)}
-                  placeholder={t.occupationOtherPlaceholder || "Enter your occupation"}
+                  placeholder={t.occupationOtherPlaceholder}
                   className="bg-secondary border-border mt-2"
                 />
               )}
@@ -160,12 +167,12 @@ export default function ProgramForm() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>{t.restDays || "Rest Days / Week"}</Label>
+                <Label>{t.restDays}</Label>
                 <Select value={form.restDays} onValueChange={(v) => set("restDays", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">{t.restDay1 || "1 Day"}</SelectItem>
-                    <SelectItem value="2">{t.restDay2 || "2 Days"}</SelectItem>
+                    <SelectItem value="1">{t.restDay1}</SelectItem>
+                    <SelectItem value="2">{t.restDay2}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -179,6 +186,35 @@ export default function ProgramForm() {
             <div className="space-y-2">
               <Label>{t.allergies}</Label>
               <Textarea value={form.allergies} onChange={(e) => set("allergies", e.target.value)} placeholder={t.allergiesPlaceholder} className="bg-secondary border-border" />
+            </div>
+
+            {/* Training Start Date */}
+            <div className="space-y-2">
+              <Label>{t.trainingStartDate}</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-secondary border-border",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "EEEE, dd-MM-yyyy") : t.pickDate}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 

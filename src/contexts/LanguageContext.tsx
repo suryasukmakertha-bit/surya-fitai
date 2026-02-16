@@ -7,6 +7,7 @@ const translations = {
     // Common
     back: "Back",
     backToPrograms: "Back to Programs",
+    home: "Home",
 
     // Nav
     myPlans: "My Plans",
@@ -89,6 +90,8 @@ const translations = {
     generatePlan: "Generate My AI Plan",
     generating: "Generating Your Plan...",
     fillRequired: "Please fill all required fields",
+    trainingStartDate: "Training Start Date *",
+    pickDate: "Pick a date",
 
     // Results
     yourPersonalized: "Your Personalized",
@@ -119,6 +122,7 @@ const translations = {
     goBackPrograms: "Go back to programs",
     rest: "rest",
     done: "done",
+    progressTab: "Progress",
 
     // Progress
     progressTracker: "Progress",
@@ -191,11 +195,14 @@ const translations = {
     restDay2: "2 Days",
     downloadProgress: "Download Progress",
     shareProgress: "Share",
+    delete: "Delete",
+    confirmDelete: "Are you sure?",
   },
   id: {
     // Common
     back: "Kembali",
     backToPrograms: "Kembali ke Program",
+    home: "Beranda",
 
     // Nav
     myPlans: "Rencana Saya",
@@ -278,6 +285,8 @@ const translations = {
     generatePlan: "Buat Rencana AI Saya",
     generating: "Membuat Rencanamu...",
     fillRequired: "Harap isi semua kolom wajib",
+    trainingStartDate: "Tanggal Mulai Latihan *",
+    pickDate: "Pilih tanggal",
 
     // Results
     yourPersonalized: "Rencana",
@@ -308,6 +317,7 @@ const translations = {
     goBackPrograms: "Kembali ke program",
     rest: "istirahat",
     done: "selesai",
+    progressTab: "Progres",
 
     // Progress
     progressTracker: "Progres",
@@ -380,6 +390,8 @@ const translations = {
     restDay2: "2 Hari",
     downloadProgress: "Unduh Progres",
     shareProgress: "Bagikan",
+    delete: "Hapus",
+    confirmDelete: "Apakah Anda yakin?",
   },
 };
 
