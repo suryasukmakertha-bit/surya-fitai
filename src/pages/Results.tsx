@@ -348,7 +348,7 @@ export default function Results() {
                       </div>
                     </div>
                   </div>
-                  <ProgressDownloadCard
+              <ProgressDownloadCard
                     userName={user?.user_metadata?.display_name || user?.email || "User"}
                     programName={programType || "Fitness"}
                     duration={userInfo?.duration || "Ongoing"}
@@ -356,6 +356,7 @@ export default function Results() {
                     bmi={bmi}
                     calorieTarget={plan.calorie_target || 2000}
                     progressPercent={progressPercent}
+                    weeklyAdherence={Math.min(100, Math.round((sorted.length / 12) * 100))}
                   />
                 </>
               )}
