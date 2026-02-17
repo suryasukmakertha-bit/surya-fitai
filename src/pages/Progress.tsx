@@ -66,7 +66,8 @@ export default function Progress() {
       .select("id, date, weight, note")
       .single();
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Check-in error:', error);
+      toast({ title: t.errorSaving || "Error", variant: "destructive" });
     } else if (data) {
       setCheckIns((prev) => [...prev, { ...data, weight: Number(data.weight) }]);
       setWeight("");

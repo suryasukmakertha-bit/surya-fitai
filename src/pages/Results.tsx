@@ -102,7 +102,8 @@ export default function Results() {
       .select("id, date, weight, note")
       .single();
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Check-in error:', error);
+      toast({ title: t.errorSaving, variant: "destructive" });
     } else if (data) {
       setCheckIns((prev) => [...prev, { ...data, weight: Number(data.weight) }]);
       setProgressWeight("");
@@ -149,7 +150,8 @@ export default function Results() {
       }
       toast({ title: t.planSaved });
     } catch (err: any) {
-      toast({ title: t.errorSaving, description: err.message, variant: "destructive" });
+      console.error('Save plan error:', err);
+      toast({ title: t.errorSaving, variant: "destructive" });
     } finally {
       setSaving(false);
     }
