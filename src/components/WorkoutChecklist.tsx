@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 interface Exercise {
   name: string;
@@ -152,11 +153,17 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
         const { done, total } = getDayProgress(day);
         return (
           <div key={`day-${day.day}-${i}`} className="card-gradient rounded-lg p-5 border border-border/50">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="font-display font-bold text-foreground">{day.day}</h3>
               <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                 {done}/{total} {t.done}
               </span>
+            </div>
+            <div className="mb-3">
+              <Progress value={total > 0 ? (done / total) * 100 : 0} className="h-2" />
+              <p className="text-[11px] text-muted-foreground mt-1 text-right">
+                {total > 0 ? Math.round((done / total) * 100) : 0}% {t.completed}
+              </p>
             </div>
             <div className="space-y-2">
               {day.exercises.map((ex) => {
