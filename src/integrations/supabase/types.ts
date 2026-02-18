@@ -133,12 +133,100 @@ export type Database = {
           },
         ]
       }
+      workout_completion_audit: {
+        Row: {
+          action: string
+          changed_at: string | null
+          completion_id: string | null
+          id: string
+          new_state: boolean | null
+          previous_state: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string | null
+          completion_id?: string | null
+          id?: string
+          new_state?: boolean | null
+          previous_state?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string | null
+          completion_id?: string | null
+          id?: string
+          new_state?: boolean | null
+          previous_state?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      workout_completions: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string | null
+          day_label: string
+          exercise_id: string
+          id: string
+          plan_id: string
+          updated_at: string | null
+          user_id: string
+          version: number
+          workout_date: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string | null
+          day_label: string
+          exercise_id: string
+          id?: string
+          plan_id: string
+          updated_at?: string | null
+          user_id: string
+          version?: number
+          workout_date?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string | null
+          day_label?: string
+          exercise_id?: string
+          id?: string
+          plan_id?: string
+          updated_at?: string | null
+          user_id?: string
+          version?: number
+          workout_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_completions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "saved_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_workout_progress: {
+        Args: {
+          p_date: string
+          p_plan: string
+          p_total: number
+          p_user: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

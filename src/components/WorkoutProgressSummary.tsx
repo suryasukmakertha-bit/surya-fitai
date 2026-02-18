@@ -42,10 +42,11 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     const sevenDaysAgo = subDays(today, 6);
 
     let query = supabase
-      .from("workout_checkins")
-      .select("completed_date, exercise_name")
-      .gte("completed_date", format(sevenDaysAgo, "yyyy-MM-dd"))
-      .lte("completed_date", format(today, "yyyy-MM-dd"));
+      .from("workout_completions")
+      .select("workout_date, exercise_id")
+      .eq("completed", true)
+      .gte("workout_date", format(sevenDaysAgo, "yyyy-MM-dd"))
+      .lte("workout_date", format(today, "yyyy-MM-dd"));
 
     if (planId) {
       query = query.eq("plan_id", planId);
@@ -56,7 +57,7 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     if (data) {
       const countMap = new Map<string, number>();
       data.forEach((d) => {
-        countMap.set(d.completed_date, (countMap.get(d.completed_date) || 0) + 1);
+        countMap.set(d.workout_date, (countMap.get(d.workout_date) || 0) + 1);
       });
 
       const days = eachDayOfInterval({ start: sevenDaysAgo, end: today });
@@ -74,10 +75,12 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       setTotalCompleted(data.length);
     }
 
+    // Streak calculation
     let streakQuery = supabase
-      .from("workout_checkins")
-      .select("completed_date")
-      .order("completed_date", { ascending: false });
+      .from("workout_completions")
+      .select("workout_date")
+      .eq("completed", true)
+      .order("workout_date", { ascending: false });
 
     if (planId) {
       streakQuery = streakQuery.eq("plan_id", planId);
@@ -86,7 +89,7 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     const { data: allDates } = await streakQuery;
 
     if (allDates && allDates.length > 0) {
-      const uniqueDates = [...new Set(allDates.map((d) => d.completed_date))].sort().reverse();
+      const uniqueDates = [...new Set(allDates.map((d) => d.workout_date))].sort().reverse();
       let currentStreak = 0;
       let checkDate = startOfDay(new Date());
 
