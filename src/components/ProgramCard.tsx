@@ -36,7 +36,7 @@ export default function ProgramCard({ onSelect }: { onSelect?: (id: string) => v
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+    <div data-tour="program-cards" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
       {programDefs.map((program, i) => {
         const Icon = program.icon;
         const benefits = t[program.benefitsKey] as string[];

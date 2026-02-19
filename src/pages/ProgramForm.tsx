@@ -83,7 +83,7 @@ export default function ProgramForm() {
           <p className="text-muted-foreground">{t.tellUs}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" data-tour="program-form">
           <div className="card-gradient rounded-lg p-6 border border-border/50 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">

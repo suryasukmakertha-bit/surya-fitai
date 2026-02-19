@@ -412,7 +412,7 @@ export default function ProgressDownloadCard({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-tour="download-progress">
       <div className="flex flex-col sm:flex-row gap-2">
         <Button onClick={handleDownload} variant="secondary" size="sm">
           <Download className="w-4 h-4 mr-1" /> {t.downloadProgress || "Download Progress"}
