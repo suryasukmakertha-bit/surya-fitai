@@ -41,7 +41,7 @@ export default function ProgramForm() {
     allergies: "",
     occupation: "",
     occupationOther: "",
-    restDays: "2",
+    trainingDaysPerWeek: "4",
   });
 
   const set = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
@@ -57,8 +57,10 @@ export default function ProgramForm() {
       const occupation = form.occupation === "other" ? form.occupationOther : form.occupation;
       const startDateStr = format(startDate, "yyyy-MM-dd");
       const startDayName = format(startDate, "EEEE");
+      const trainingDaysPerWeek = parseInt(form.trainingDaysPerWeek) || 4;
+      const restDays = 7 - trainingDaysPerWeek;
       const res = await supabase.functions.invoke("generate-plan", {
-        body: { ...form, occupation, programType: type, language: lang, startDate: startDateStr, startDay: startDayName },
+        body: { ...form, occupation, programType: type, language: lang, startDate: startDateStr, startDay: startDayName, restDays: String(restDays), trainingDaysPerWeek },
       });
       if (res.error) throw res.error;
       navigate("/results", { state: { plan: res.data, userInfo: form, programType: type } });
@@ -167,12 +169,16 @@ export default function ProgramForm() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>{t.restDays}</Label>
-                <Select value={form.restDays} onValueChange={(v) => set("restDays", v)}>
+                <Label>{t.trainingFrequency}</Label>
+                <Select value={form.trainingDaysPerWeek} onValueChange={(v) => set("trainingDaysPerWeek", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">{t.restDay1}</SelectItem>
-                    <SelectItem value="2">{t.restDay2}</SelectItem>
+                    <SelectItem value="2">{t.freq2}</SelectItem>
+                    <SelectItem value="3">{t.freq3}</SelectItem>
+                    <SelectItem value="4">{t.freq4}</SelectItem>
+                    <SelectItem value="5">{t.freq5}</SelectItem>
+                    <SelectItem value="6">{t.freq6}</SelectItem>
+                    <SelectItem value="7">{t.freq7}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

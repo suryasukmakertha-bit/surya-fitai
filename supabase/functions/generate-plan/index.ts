@@ -45,9 +45,9 @@ function validateInput(data: any): string[] {
     errors.push('Invalid experience level');
   }
 
-  const restDays = parseInt(data.restDays);
-  if (isNaN(restDays) || restDays < 1 || restDays > 3) {
-    errors.push('Rest days must be between 1 and 3');
+  const trainingDays = parseInt(data.trainingDaysPerWeek);
+  if (isNaN(trainingDays) || trainingDays < 2 || trainingDays > 7) {
+    errors.push('Training days per week must be between 2 and 7');
   }
 
   if (data.goal && data.goal.length > 300) {
@@ -102,15 +102,16 @@ serve(async (req) => {
       );
     }
 
-    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays, startDate, startDay } = body;
+    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays, trainingDaysPerWeek, startDate, startDay } = body;
     const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : "English";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const bmi = (parseFloat(weight) / ((parseFloat(height) / 100) ** 2)).toFixed(1);
-    const restDaysNum = parseInt(restDays) || 2;
-    const workoutDays = 7 - restDaysNum;
+    const workoutDays = parseInt(trainingDaysPerWeek) || (restDays ? 7 - parseInt(restDays) : 4);
+    const restDaysNum = 7 - workoutDays;
+    const totalWeeks = duration === "3 Months" ? 12 : 4;
 
     const systemPrompt = `You are a certified international-level personal trainer and sports nutritionist with expertise in evidence-based fitness coaching. You apply modern training science principles including progressive overload, periodization, and recovery optimization.
 
@@ -161,7 +162,16 @@ SCHEDULING:
 - The workout plan MUST start on this exact day and date
 - Label each day with the actual day name and date (e.g., "Week 1 - Monday, March 10")
 - Distribute muscle groups evenly with balanced rotation and recovery optimization
-- Plan duration: ${duration} (generate a 4-week or 12-week cycle accordingly)
+- Plan duration: ${duration} — generate exactly ${totalWeeks} weeks of programming
+- CRITICAL: Structure the workout_plan as a WEEKLY program. Group workout days under week headers.
+  - Each entry's "day" field MUST start with "Week X - " prefix (e.g., "Week 1 - Monday, March 10")
+  - Include REST DAY entries labeled as "Week X - Rest Day (DayName, Date)" with an empty exercises array
+  - Generate ALL ${totalWeeks} weeks with progressive overload applied across weeks
+  - Week 1-2: Foundation/Adaptation phase
+  - Week 3-4: Progressive overload (increase weight/reps)
+  - Week 5-8: Intensity increase with exercise variation (for 3-month plans)
+  - Week 9-12: Advanced variation and peak phase (for 3-month plans)
+  - Every 4th week: Deload week (reduce volume 30-40%)
 
 MEAL PLAN RULES:
 - Use foods and ingredients commonly available in Indonesia
