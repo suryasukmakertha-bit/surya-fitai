@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dumbbell, Brain, Utensils, ChevronRight, LogIn, LogOut, FolderOpen, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTourState, TourOverlay, TourHelpButton } from "@/components/ProductTour";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
@@ -10,7 +11,7 @@ export default function Index() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { lang, setLang, t } = useLanguage();
-
+  const tour = useTourState();
   return (
     <div className="min-h-screen bg-background">
       {/* Top nav */}
@@ -107,6 +108,12 @@ export default function Index() {
           <span>{t.rights}</span>
         </div>
       </footer>
+
+      {/* Product Tour */}
+      {!tour.active && <TourHelpButton onClick={tour.startTour} />}
+      {tour.active && (
+        <TourOverlay step={tour.step} setStep={tour.setStep} onEnd={tour.endTour} />
+      )}
     </div>
   );
 }
