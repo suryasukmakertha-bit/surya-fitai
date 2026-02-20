@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import HomeButton from "@/components/HomeButton";
+import AppHeader from "@/components/AppHeader";
 
 interface SavedPlan {
   id: string;
@@ -74,11 +74,8 @@ export default function SavedPlans() {
 
   return (
     <div className="min-h-screen bg-background">
+      <AppHeader />
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <HomeButton />
-        </div>
-
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-display font-bold text-foreground">
             {t.savedPlans} <span className="text-gradient">{t.plans}</span>

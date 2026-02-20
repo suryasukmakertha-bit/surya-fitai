@@ -13,7 +13,7 @@ import WorkoutChecklist from "@/components/WorkoutChecklist";
 import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
 import ProgressDownloadCard from "@/components/ProgressDownloadCard";
 import { useLanguage } from "@/contexts/LanguageContext";
-import HomeButton from "@/components/HomeButton";
+import AppHeader from "@/components/AppHeader";
 import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 
 interface DayPlan {
@@ -179,9 +179,10 @@ export default function Results() {
 
   return (
     <div className="min-h-screen bg-background">
+      <AppHeader />
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <HomeButton />
+          <div />
           <div className="flex items-center gap-2">
             <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}

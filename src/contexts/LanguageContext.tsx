@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export type Lang = "en" | "id";
+export type Lang = "en" | "id" | "zh";
 
 const translations = {
   en: {
@@ -92,6 +92,16 @@ const translations = {
     fillRequired: "Please fill all required fields",
     trainingStartDate: "Training Start Date *",
     pickDate: "Pick a date",
+
+    // Food Style
+    foodStyleLabel: "Food Source Style *",
+    foodStylePlaceholder: "Select food style",
+    foodStyleLocal: "Local Traditional Foods (based on my country)",
+    foodStyleWestern: "Western Style",
+    foodStyleAsian: "Asian Style",
+    foodStyleHighProtein: "High-Protein Fitness Style",
+    foodStyleBudget: "Budget-Friendly Local Foods",
+    foodStylePremium: "Premium / Whole Foods Focus",
 
     // Results
     yourPersonalized: "Your Personalized",
@@ -224,6 +234,21 @@ const translations = {
     tourSkip: "Skip Tour",
     tourHelp: "Help",
     tourTakeAgain: "Take Tour Again",
+
+    // Settings
+    settings: "Settings",
+    settingsLanguage: "Language",
+    settingsMyPlans: "My Plans",
+    settingsClose: "Close",
+    active: "Active",
+    inactive: "Inactive",
+    switchPlan: "Switch to this plan",
+    createNewPlan: "Create New Plan",
+    noPlansYet: "No plans yet. Create your first AI fitness plan!",
+    planSwitched: "Plan switched!",
+    languageChanged: "Language changed!",
+    duration: "Duration",
+    foodStyle: "Food Style",
   },
   id: {
     // Common
@@ -314,6 +339,16 @@ const translations = {
     fillRequired: "Harap isi semua kolom wajib",
     trainingStartDate: "Tanggal Mulai Latihan *",
     pickDate: "Pilih tanggal",
+
+    // Food Style
+    foodStyleLabel: "Gaya Sumber Makanan *",
+    foodStylePlaceholder: "Pilih gaya makanan",
+    foodStyleLocal: "Makanan Tradisional Lokal (sesuai negara saya)",
+    foodStyleWestern: "Gaya Barat",
+    foodStyleAsian: "Gaya Asia",
+    foodStyleHighProtein: "Gaya Tinggi Protein Fitness",
+    foodStyleBudget: "Makanan Lokal Hemat",
+    foodStylePremium: "Premium / Fokus Whole Foods",
 
     // Results
     yourPersonalized: "Rencana",
@@ -446,6 +481,268 @@ const translations = {
     tourSkip: "Lewati Tur",
     tourHelp: "Bantuan",
     tourTakeAgain: "Tur Ulang",
+
+    // Settings
+    settings: "Pengaturan",
+    settingsLanguage: "Bahasa",
+    settingsMyPlans: "Rencana Saya",
+    settingsClose: "Tutup",
+    active: "Aktif",
+    inactive: "Tidak Aktif",
+    switchPlan: "Beralih ke rencana ini",
+    createNewPlan: "Buat Rencana Baru",
+    noPlansYet: "Belum ada rencana. Buat rencana kebugaran AI pertamamu!",
+    planSwitched: "Rencana dialihkan!",
+    languageChanged: "Bahasa diubah!",
+    duration: "Durasi",
+    foodStyle: "Gaya Makanan",
+  },
+  zh: {
+    // Common
+    back: "返回",
+    backToPrograms: "返回项目",
+    home: "首页",
+
+    // Nav
+    myPlans: "我的计划",
+    progress: "进度",
+    signOut: "退出",
+    signIn: "登录",
+
+    // Hero
+    aiPowered: "AI驱动训练",
+    heroTitle1: "你的私人",
+    heroTitle2: "AI教练",
+    heroDesc: "获取完全个性化的锻炼计划、营养指南和采购清单——由AI在几秒内生成，根据你的身体和目标量身定制。",
+    startProgram: "开始我的计划",
+
+    // Features
+    howItWorks: "如何",
+    works: "运作",
+    feature1Title: "选择你的项目",
+    feature1Desc: "从初学者、增肌、减脂或老年健身项目中选择适合你的需求。",
+    feature2Title: "AI分析你",
+    feature2Desc: "我们的AI引擎处理你的身体数据、目标和限制，创建完美计划。",
+    feature3Title: "获取你的计划",
+    feature3Desc: "获得完整的锻炼时间表、饮食计划、采购清单和进度目标。",
+
+    // CTA
+    readyTransform: "准备好改变了吗？",
+    ctaDesc: "加入数千名已经使用AI更快实现健身目标的人。",
+    getStarted: "免费开始",
+
+    // Footer
+    rights: "© 2026 版权所有",
+
+    // Programs page
+    chooseYour: "选择你的",
+    program: "项目",
+    programsDesc: "选择与你健身目标匹配的项目。我们的AI将为你创建完全个性化的计划。",
+
+    // Program cards
+    beginnerTitle: "初学者计划",
+    beginnerDesc: "适合刚接触健身和健康生活方式的人。通过指导练习建立坚实基础。",
+    beginnerBenefits: ["学习正确姿势", "建立基础力量", "建立习惯", "营养基础"],
+    beginnerGoal: "建立健身基础",
+    bulkingTitle: "增肌计划",
+    bulkingDesc: "通过高容量训练和热量盈余计划最大化肌肉增长。",
+    bulkingBenefits: ["肌肉肥大", "渐进超负荷", "高蛋白饮食", "恢复优化"],
+    bulkingGoal: "增加肌肉量",
+    cuttingTitle: "减脂计划",
+    cuttingDesc: "减少体脂同时保持肌肉。通过战略性训练和营养变得精瘦。",
+    cuttingBenefits: ["聚焦减脂", "保持肌肉", "热量赤字饮食", "HIIT整合"],
+    cuttingGoal: "减脂变精瘦",
+    seniorTitle: "老年健身",
+    seniorDesc: "为老年人设计的安全、适应性锻炼。专注于活动能力、平衡和功能性力量。",
+    seniorBenefits: ["关节友好练习", "平衡训练", "柔韧性重点", "安全进阶"],
+    seniorGoal: "提高活动能力和力量",
+
+    // ProgramForm
+    tellUs: "告诉我们关于你的信息，以便AI为你创建个性化计划。",
+    fullName: "全名 *",
+    age: "年龄 *",
+    gender: "性别 *",
+    genderSelect: "选择",
+    male: "男",
+    female: "女",
+    other: "其他",
+    weightKg: "体重 (kg) *",
+    heightCm: "身高 (cm) *",
+    fitnessGoal: "健身目标",
+    trainingDuration: "训练时长",
+    experienceLevel: "经验水平",
+    beginner: "初学者",
+    intermediate: "中级",
+    advanced: "高级",
+    weeks2: "2周",
+    month1: "1个月",
+    months3: "3个月",
+    limitations: "身体限制或伤病（可选）",
+    limitationsPlaceholder: "例如：膝盖受伤、腰痛...",
+    allergies: "食物过敏（可选）",
+    allergiesPlaceholder: "例如：坚果、乳制品、麸质...",
+    generatePlan: "生成我的AI计划",
+    generating: "正在生成你的计划...",
+    fillRequired: "请填写所有必填项",
+    trainingStartDate: "训练开始日期 *",
+    pickDate: "选择日期",
+
+    // Food Style
+    foodStyleLabel: "食物来源风格 *",
+    foodStylePlaceholder: "选择食物风格",
+    foodStyleLocal: "当地传统食物（基于我的国家）",
+    foodStyleWestern: "西式风格",
+    foodStyleAsian: "亚洲风格",
+    foodStyleHighProtein: "高蛋白健身风格",
+    foodStyleBudget: "经济实惠的当地食物",
+    foodStylePremium: "优质/全食物为主",
+
+    // Results
+    yourPersonalized: "你的个性化",
+    aiPlan: "AI计划",
+    heyUser: "你好 {name}！这是你的定制 {type} 计划。",
+    hereCustom: "这是你的定制 {type} 计划。",
+    dailyCalories: "每日热量",
+    protein: "蛋白质",
+    carbsFat: "碳水/脂肪",
+    water: "水",
+    exportPdf: "导出PDF",
+    savePlan: "保存计划",
+    saved: "已保存",
+    signInToSave: "登录以保存计划",
+    signInToSaveDesc: "创建账户以随时保存和访问你的计划。",
+    planSaved: "计划已保存！",
+    errorSaving: "保存计划出错",
+    workoutPlan: "锻炼计划",
+    mealPlan: "饮食计划",
+    groceryList: "采购清单",
+    infoSafety: "信息与安全",
+    weeklyGrocery: "每周采购清单",
+    progressProjection: "进度预测",
+    safetyNotes: "安全注意事项",
+    weeklySchedule: "每周时间表",
+    estimatedCalories: "预计每次训练燃烧 {count} 卡路里",
+    noPlanData: "未找到计划数据。",
+    goBackPrograms: "返回项目",
+    rest: "休息",
+    done: "完成",
+    progressTab: "进度",
+
+    // Progress
+    progressTracker: "进度",
+    tracker: "追踪器",
+    progressDesc: "记录每周体重并追踪你的变化。",
+    start: "起始",
+    current: "当前",
+    change: "变化",
+    weightOverTime: "体重趋势",
+    logAtLeast2: "记录至少2次打卡查看进度图表。",
+    logCheckIn: "记录打卡",
+    date: "日期",
+    weightLabel: "体重 (kg)",
+    noteOptional: "备注（可选）",
+    notePlaceholder: "感觉很棒！",
+    addCheckIn: "添加打卡",
+    checkInLogged: "打卡已记录！",
+    validWeight: "请输入有效体重（20-500 kg）",
+    history: "历史记录",
+
+    // Workout Activity
+    workoutActivity: "锻炼活动",
+    today: "今天",
+    exercises: "练习",
+    streak: "连续",
+    day: "天",
+    days: "天",
+    thisWeek: "本周",
+    total: "总计",
+    activeDays: "活跃天数",
+    noCompletions: "还没有完成的锻炼。保存计划并开始勾选练习！",
+    completed: "已完成",
+
+    // Auth
+    welcomeBack: "欢迎回来",
+    createAccount: "创建账户",
+    signInAccess: "登录以访问你的已保存计划",
+    signUpSave: "注册以保存计划和追踪进度",
+    displayName: "显示名称",
+    email: "邮箱 *",
+    password: "密码 *",
+    signUp: "注册",
+    dontHaveAccount: "没有账户？",
+    alreadyHaveAccount: "已有账户？",
+    welcomeBackToast: "欢迎回来！",
+    accountCreated: "账户已创建！",
+    checkEmail: "请查收邮件验证你的账户。",
+
+    // Saved Plans
+    savedPlans: "已保存",
+    plans: "计划",
+    savedPlansDesc: "你之前生成的AI健身计划。",
+    noSavedPlans: "还没有保存的计划。",
+    generateFirst: "生成你的第一个计划",
+    view: "查看",
+    planDeleted: "计划已删除",
+    planRenamed: "计划已重命名",
+    addPlan: "+ 添加计划",
+    whatsappCta: "获取Surya教练的私人训练协助",
+    occupation: "职业",
+    occupationSelect: "选择职业",
+    occupationStudent: "学生",
+    occupationOffice: "办公室职员（久坐）",
+    occupationField: "户外工作者（体力活跃）",
+    occupationFreelancer: "自由职业者",
+    occupationBusiness: "企业主",
+    occupationOtherPlaceholder: "输入你的职业",
+    trainingFrequency: "每周训练天数",
+    freq2: "2天",
+    freq3: "3天",
+    freq4: "4天",
+    freq5: "5天",
+    freq6: "6天",
+    freq7: "7天",
+    downloadProgress: "下载进度",
+    shareProgress: "分享",
+    delete: "删除",
+    confirmDelete: "你确定吗？",
+
+    // Tour
+    tourWelcomeTitle: "欢迎来到Surya-FitAi",
+    tourWelcomeText: "让我们快速浏览，向你展示如何创建AI锻炼计划并追踪你的进度。",
+    tourStartBtn: "开始导览",
+    tourProgramTitle: "选择你的项目",
+    tourProgramText: "选择与你目标匹配的健身项目。你选择的时长将决定训练周数。",
+    tourFormTitle: "回答智能问题",
+    tourFormText: "回答这些问题，AI将为你制定个性化计划。每周训练频率会自动调整你的锻炼分配。",
+    tourWorkoutTitle: "你的每周计划",
+    tourWorkoutText: "锻炼按周组织。每周像专业训练计划一样逐步增加强度和变化。",
+    tourChecklistTitle: "练习清单",
+    tourChecklistText: "完成每项练习后勾选。你的进度会自动更新并永久保存。",
+    tourProgressTitle: "进度追踪器",
+    tourProgressText: "此部分追踪你在所有训练周中的一致性和完成百分比。",
+    tourDownloadTitle: "下载进度",
+    tourDownloadText: "随时下载进度报告以追踪你的表现和成果。",
+    tourFinishBtn: "完成导览",
+    tourNext: "下一步",
+    tourBack: "上一步",
+    tourSkip: "跳过导览",
+    tourHelp: "帮助",
+    tourTakeAgain: "重新导览",
+
+    // Settings
+    settings: "设置",
+    settingsLanguage: "语言",
+    settingsMyPlans: "我的计划",
+    settingsClose: "关闭",
+    active: "活跃",
+    inactive: "未活跃",
+    switchPlan: "切换到此计划",
+    createNewPlan: "创建新计划",
+    noPlansYet: "还没有计划。创建你的第一个AI健身计划！",
+    planSwitched: "计划已切换！",
+    languageChanged: "语言已更改！",
+    duration: "时长",
+    foodStyle: "食物风格",
   },
 };
 
@@ -462,7 +759,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
     const saved = localStorage.getItem("fitai-lang");
-    return (saved === "id" ? "id" : "en") as Lang;
+    if (saved === "id" || saved === "zh") return saved;
+    return "en";
   });
 
   const handleSetLang = (newLang: Lang) => {
