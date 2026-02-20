@@ -102,8 +102,8 @@ serve(async (req) => {
       );
     }
 
-    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays, trainingDaysPerWeek, startDate, startDay } = body;
-    const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : "English";
+    const { name, age, gender, weight, height, goal, duration, experience, limitations, programType, language, allergies, occupation, restDays, trainingDaysPerWeek, startDate, startDay, foodStyle } = body;
+    const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : language === "zh" ? "Mandarin Chinese (简体中文)" : "English";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -174,9 +174,15 @@ SCHEDULING:
   - Every 4th week: Deload week (reduce volume 30-40%)
 
 MEAL PLAN RULES:
-- Use foods and ingredients commonly available in Indonesia
-- Prioritize Indonesian staple foods: nasi putih/merah (white/brown rice), ayam dada (chicken breast), telur (eggs), tempe, tahu (tofu), ikan (fish like tongkol, salmon, lele), sayuran lokal (kangkung, bayam, brokoli, wortel), buah lokal (pisang, pepaya, jeruk)
-- Include portion sizes in grams or household measures (e.g., "1 piring nasi merah (150g)", "2 butir telur rebus")
+- The user selected food style: "${foodStyle || 'local'}"
+- STRICTLY follow this food style preference:
+  * "local" = Use traditional local foods from the user's country/region (Indonesian: nasi, tempe, tahu, ayam kampung, ikan lele, kangkung, bayam, etc.)
+  * "western" = Western-style meals (oatmeal, chicken breast, salads, pasta, steak, bread, cheese, etc.)
+  * "asian" = Asian-style meals across various cuisines (rice, noodles, tofu, miso, stir-fry, dim sum, etc.)
+  * "high-protein" = High-protein fitness style (chicken breast, eggs, whey protein, Greek yogurt, lean beef, tuna, cottage cheese)
+  * "budget" = Budget-friendly local foods (affordable staples, seasonal vegetables, eggs, rice, beans, lentils)
+  * "premium" = Premium whole foods (organic vegetables, grass-fed meat, quinoa, avocado, salmon, chia seeds, acai)
+- Include portion sizes in grams or household measures
 - 4-5 meals per day
 - Adjust calories and macros based on user goals and TDEE calculation
 - Grocery list should cover all meal plan ingredients with quantities
@@ -206,6 +212,7 @@ OUTPUT LANGUAGE:
 - Preferred Rest Days: ${restDaysNum} day(s) per week
 - Training Start Date: ${startDate || "Next Monday"}
 - Training Start Day: ${startDay || "Monday"}
+- Food Source Style: ${foodStyle || "local"}
 
 Generate the complete plan now.`;
 

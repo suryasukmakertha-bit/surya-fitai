@@ -1,47 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, LogIn, LogOut, FolderOpen, Globe } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { Dumbbell, Brain, Utensils, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTourState, TourOverlay, TourHelpButton } from "@/components/ProductTour";
+import AppHeader from "@/components/AppHeader";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
 export default function Index() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  const { lang, setLang, t } = useLanguage();
+  const { t } = useLanguage();
   const tour = useTourState();
   return (
     <div className="min-h-screen bg-background">
-      {/* Top nav */}
-      <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between max-w-5xl mx-auto px-4 py-4">
-        <span className="font-display font-bold text-foreground text-lg">Surya-FitAi</span>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setLang(lang === "en" ? "id" : "en")}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors bg-secondary/60 rounded-full px-3 py-1.5 border border-border/50"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span className="font-medium">{lang === "en" ? "ID" : "EN"}</span>
-          </button>
-
-          {user ? (
-            <>
-              <button onClick={() => navigate("/saved-plans")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                <FolderOpen className="w-4 h-4" /> {t.myPlans}
-              </button>
-              <button onClick={() => signOut()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                <LogOut className="w-4 h-4" /> {t.signOut}
-              </button>
-            </>
-          ) : (
-            <button onClick={() => navigate("/auth")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-              <LogIn className="w-4 h-4" /> {t.signIn}
-            </button>
-          )}
-        </div>
-      </nav>
+      <AppHeader />
 
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">

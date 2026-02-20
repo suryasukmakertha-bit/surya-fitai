@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
 import ProgressDownloadCard from "@/components/ProgressDownloadCard";
 import { useLanguage } from "@/contexts/LanguageContext";
-import HomeButton from "@/components/HomeButton";
+import AppHeader from "@/components/AppHeader";
 
 interface CheckIn {
   id: string;
@@ -87,7 +87,7 @@ export default function Progress() {
   const diff = firstWeight && lastWeight ? lastWeight - firstWeight : 0;
   const trending = diff > 0 ? "up" : diff < 0 ? "down" : "neutral";
 
-  const heightCm = 170; // fallback
+  const heightCm = 170;
   const bmi = lastWeight ? (lastWeight / ((heightCm / 100) ** 2)).toFixed(1) : "—";
   const progressPercent = sorted.length >= 2 ? Math.min(100, Math.round((sorted.length / 12) * 100)) : 0;
 
@@ -106,11 +106,8 @@ export default function Progress() {
 
   return (
     <div className="min-h-screen bg-background">
+      <AppHeader />
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <HomeButton />
-        </div>
-
         <h1 className="text-3xl font-display font-bold text-foreground mb-2">
           {t.progressTracker} <span className="text-gradient">{t.tracker}</span>
         </h1>

@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowLeft, Loader2, Dumbbell } from "lucide-react";
+import AppHeader from "@/components/AppHeader";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -41,11 +42,10 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+      <div className="flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8">
-          <ArrowLeft className="w-4 h-4" /> {t.back}
-        </button>
 
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -86,6 +86,7 @@ export default function Auth() {
             </button>
           </p>
         </form>
+      </div>
       </div>
     </div>
   );

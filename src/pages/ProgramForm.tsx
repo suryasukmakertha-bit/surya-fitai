@@ -12,7 +12,7 @@ import { programs } from "@/components/ProgramCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import HomeButton from "@/components/HomeButton";
+import AppHeader from "@/components/AppHeader";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -42,13 +42,14 @@ export default function ProgramForm() {
     occupation: "",
     occupationOther: "",
     trainingDaysPerWeek: "4",
+    foodStyle: "",
   });
 
   const set = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.age || !form.gender || !form.weight || !form.height || !startDate) {
+    if (!form.name || !form.age || !form.gender || !form.weight || !form.height || !startDate || !form.foodStyle) {
       toast({ title: t.fillRequired, variant: "destructive" });
       return;
     }
@@ -60,10 +61,10 @@ export default function ProgramForm() {
       const trainingDaysPerWeek = parseInt(form.trainingDaysPerWeek) || 4;
       const restDays = 7 - trainingDaysPerWeek;
       const res = await supabase.functions.invoke("generate-plan", {
-        body: { ...form, occupation, programType: type, language: lang, startDate: startDateStr, startDay: startDayName, restDays: String(restDays), trainingDaysPerWeek },
+        body: { ...form, occupation, programType: type, language: lang, startDate: startDateStr, startDay: startDayName, restDays: String(restDays), trainingDaysPerWeek, foodStyle: form.foodStyle },
       });
       if (res.error) throw res.error;
-      navigate("/results", { state: { plan: res.data, userInfo: form, programType: type } });
+      navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle }, programType: type } });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -73,11 +74,8 @@ export default function ProgramForm() {
 
   return (
     <div className="min-h-screen bg-background">
+      <AppHeader />
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <HomeButton />
-        </div>
-
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">{programTitle}</h1>
           <p className="text-muted-foreground">{t.tellUs}</p>
@@ -192,6 +190,22 @@ export default function ProgramForm() {
             <div className="space-y-2">
               <Label>{t.allergies}</Label>
               <Textarea value={form.allergies} onChange={(e) => set("allergies", e.target.value)} placeholder={t.allergiesPlaceholder} className="bg-secondary border-border" />
+            </div>
+
+            {/* Food Style Question */}
+            <div className="space-y-2">
+              <Label>{t.foodStyleLabel}</Label>
+              <Select value={form.foodStyle} onValueChange={(v) => set("foodStyle", v)}>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.foodStylePlaceholder} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="local">{t.foodStyleLocal}</SelectItem>
+                  <SelectItem value="western">{t.foodStyleWestern}</SelectItem>
+                  <SelectItem value="asian">{t.foodStyleAsian}</SelectItem>
+                  <SelectItem value="high-protein">{t.foodStyleHighProtein}</SelectItem>
+                  <SelectItem value="budget">{t.foodStyleBudget}</SelectItem>
+                  <SelectItem value="premium">{t.foodStylePremium}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Training Start Date */}
