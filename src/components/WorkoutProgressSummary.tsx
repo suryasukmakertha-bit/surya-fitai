@@ -124,7 +124,7 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
   const hasData = totalCompleted > 0;
 
   return (
-    <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8" data-tour="progress-tracker">
+    <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
       <h3 className="font-display font-bold text-foreground mb-4">{t.workoutActivity}</h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

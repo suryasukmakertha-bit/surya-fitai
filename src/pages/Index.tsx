@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Brain, Utensils, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTourState, TourOverlay, TourHelpButton } from "@/components/ProductTour";
 import AppHeader from "@/components/AppHeader";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
@@ -10,7 +9,6 @@ import logo from "@/assets/logo.png";
 export default function Index() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const tour = useTourState();
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -80,12 +78,6 @@ export default function Index() {
           <span>{t.rights}</span>
         </div>
       </footer>
-
-      {/* Product Tour */}
-      {!tour.active && <TourHelpButton onClick={tour.startTour} />}
-      {tour.active && (
-        <TourOverlay step={tour.step} setStep={tour.setStep} onEnd={tour.endTour} />
-      )}
     </div>
   );
 }
