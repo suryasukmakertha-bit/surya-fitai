@@ -23,9 +23,9 @@ export default function AppHeader() {
 
   const isHome = location.pathname === "/";
 
-  // Close lang dropdown on outside click
+  // Close lang dropdown on outside click (desktop only)
   useEffect(() => {
-    if (!langOpen) return;
+    if (!langOpen || drawerOpen) return;
     const handler = (e: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
         setLangOpen(false);
@@ -33,7 +33,7 @@ export default function AppHeader() {
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [langOpen]);
+  }, [langOpen, drawerOpen]);
 
   const handleLangChange = (newLang: Lang) => {
     setLang(newLang);
