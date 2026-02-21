@@ -148,7 +148,7 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
   }
 
   return (
-    <div className="space-y-4" data-tour="workout-checklist">
+    <div className="space-y-4">
       {workoutPlan?.map((day, i) => {
         const { done, total } = getDayProgress(day);
         return (

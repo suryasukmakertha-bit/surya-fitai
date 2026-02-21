@@ -234,7 +234,7 @@ export default function Results() {
             )}
           </TabsList>
 
-          <TabsContent value="workout" className="space-y-4" data-tour="workout-plan">
+          <TabsContent value="workout" className="space-y-4">
             {planId && user ? (
               <WorkoutChecklist workoutPlan={plan.workout_plan} planId={planId} />
             ) : (
