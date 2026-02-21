@@ -44,6 +44,7 @@ export type Database = {
           date: string
           id: string
           note: string | null
+          plan_id: string | null
           user_id: string
           weight: number
         }
@@ -52,6 +53,7 @@ export type Database = {
           date?: string
           id?: string
           note?: string | null
+          plan_id?: string | null
           user_id: string
           weight: number
         }
@@ -60,10 +62,19 @@ export type Database = {
           date?: string
           id?: string
           note?: string | null
+          plan_id?: string | null
           user_id?: string
           weight?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "progress_checkins_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "saved_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_plans: {
         Row: {

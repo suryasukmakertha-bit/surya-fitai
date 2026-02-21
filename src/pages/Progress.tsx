@@ -41,9 +41,10 @@ export default function Progress() {
   }, [user]);
 
   const fetchCheckIns = async () => {
+    // Fetch all check-ins for the user (Progress page is a global overview)
     const { data, error } = await supabase
       .from("progress_checkins")
-      .select("id, date, weight, note")
+      .select("id, date, weight, note, plan_id")
       .order("date", { ascending: true });
     if (!error && data) {
       setCheckIns(data.map((d) => ({ ...d, weight: Number(d.weight) })));

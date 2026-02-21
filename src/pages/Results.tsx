@@ -71,17 +71,19 @@ export default function Results() {
   const [addingCheckIn, setAddingCheckIn] = useState(false);
 
   useEffect(() => {
+    setCheckIns([]); // Reset on plan switch
     if (planId && user) {
       fetchCheckIns();
     }
   }, [planId, user]);
 
   const fetchCheckIns = async () => {
-    if (!user) return;
+    if (!user || !planId) return;
     const { data } = await supabase
       .from("progress_checkins")
       .select("id, date, weight, note")
       .eq("user_id", user.id)
+      .eq("plan_id", planId)
       .order("date", { ascending: true });
     if (data) {
       setCheckIns(data.map((d) => ({ ...d, weight: Number(d.weight) })));
@@ -98,7 +100,7 @@ export default function Results() {
     setAddingCheckIn(true);
     const { data, error } = await supabase
       .from("progress_checkins")
-      .insert({ user_id: user.id, date: progressDate, weight: w, note: progressNote.trim() || null })
+      .insert({ user_id: user.id, plan_id: planId, date: progressDate, weight: w, note: progressNote.trim() || null })
       .select("id, date, weight, note")
       .single();
     if (error) {
