@@ -354,7 +354,7 @@ export default function Results() {
                     </div>
                   </div>
               <ProgressDownloadCard
-                    userName={user?.user_metadata?.display_name || user?.email || "User"}
+                    userName={userInfo?.name || user?.user_metadata?.display_name || user?.email || "User"}
                     programName={programType || "Fitness"}
                     duration={userInfo?.duration || "Ongoing"}
                     weight={lastWeight || 0}
