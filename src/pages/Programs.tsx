@@ -1,11 +1,27 @@
 import ProgramCard from "@/components/ProgramCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 
 export default function Programs() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const { t } = useLanguage();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" state={{ redirectTo: "/programs" }} replace />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />

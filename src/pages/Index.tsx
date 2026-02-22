@@ -2,13 +2,23 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Brain, Utensils, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
 export default function Index() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { t } = useLanguage();
+
+  const handleStartProgram = () => {
+    if (user) {
+      navigate("/programs");
+    } else {
+      navigate("/auth", { state: { redirectTo: "/programs" } });
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -30,7 +40,7 @@ export default function Index() {
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
             {t.heroDesc}
           </p>
-          <Button size="lg" onClick={() => navigate("/programs")} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
+          <Button size="lg" onClick={handleStartProgram} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
             {t.startProgram} <ChevronRight className="w-5 h-5 ml-1" />
           </Button>
         </div>
@@ -65,7 +75,7 @@ export default function Index() {
         <div className="max-w-3xl mx-auto text-center neon-border rounded-2xl p-12">
           <h2 className="text-3xl font-display font-bold text-foreground mb-4">{t.readyTransform}</h2>
           <p className="text-muted-foreground mb-6">{t.ctaDesc}</p>
-          <Button size="lg" onClick={() => navigate("/programs")} className="h-12 px-8 font-bold">
+          <Button size="lg" onClick={handleStartProgram} className="h-12 px-8 font-bold">
             {t.getStarted} <ChevronRight className="w-5 h-5 ml-1" />
           </Button>
         </div>
