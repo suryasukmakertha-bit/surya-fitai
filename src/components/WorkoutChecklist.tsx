@@ -124,7 +124,7 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
       // Rollback on failure
       setCompletionState((prev) => ({ ...prev, [key]: previousState }));
       console.error("Toggle error:", error);
-      toast({ title: "Failed to save", variant: "destructive" });
+      toast({ title: t.failedToSave, variant: "destructive" });
     }
   };
 
