@@ -34,19 +34,24 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
   const { toast } = useToast();
   const [completionState, setCompletionState] = useState<CompletionState>({});
   const [loading, setLoading] = useState(true);
-  const today = format(new Date(), "yyyy-MM-dd");
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Extract date from day label like "Week 1 - Friday, 2026-02-20" or fallback to today
+  const extractDate = (dayLabel: string): string => {
+    const match = dayLabel.match(/(\d{4}-\d{2}-\d{2})/);
+    return match ? match[1] : format(new Date(), "yyyy-MM-dd");
+  };
 
   const buildKey = (dayLabel: string, exerciseName: string) => `${dayLabel}::${exerciseName}`;
 
   const fetchWorkoutState = useCallback(async () => {
     if (!user || !planId) return;
+    // Fetch ALL completions for this plan (not just today) so past days persist
     const { data, error } = await supabase
       .from("workout_completions")
       .select("exercise_id, day_label, completed")
       .eq("user_id", user.id)
-      .eq("plan_id", planId)
-      .eq("workout_date", today);
+      .eq("plan_id", planId);
 
     if (error) {
       console.error("Fetch workout state error:", error);
@@ -59,7 +64,7 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
     });
     setCompletionState(state);
     setLoading(false);
-  }, [user, planId, today]);
+  }, [user, planId]);
 
   // Initial fetch
   useEffect(() => {
@@ -99,6 +104,7 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
   const handleToggle = async (dayLabel: string, exerciseName: string) => {
     if (!user || !planId) return;
     const key = buildKey(dayLabel, exerciseName);
+    const workoutDate = extractDate(dayLabel);
     const previousState = completionState[key] || false;
     const newState = !previousState;
 
@@ -111,7 +117,7 @@ export default function WorkoutChecklist({ workoutPlan, planId }: WorkoutCheckli
         {
           user_id: user.id,
           plan_id: planId,
-          workout_date: today,
+          workout_date: workoutDate,
           exercise_id: exerciseName,
           day_label: dayLabel,
           completed: newState,
