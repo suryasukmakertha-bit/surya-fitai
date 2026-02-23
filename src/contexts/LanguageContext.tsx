@@ -245,6 +245,65 @@ const translations = {
     notFoundTitle: "404",
     notFoundDesc: "Oops! Page not found",
     returnHome: "Return to Home",
+
+    // Enhanced Form - Sections
+    basicInfoSection: "Personal Information",
+    trainingConfigSection: "Training Configuration",
+    lifestyleSection: "Lifestyle & Recovery",
+    nutritionSection: "Nutrition Preferences",
+
+    // Enhanced Form - Session Duration
+    sessionDurationLabel: "Session Duration (minutes)",
+    whySessionDuration: "Helps us design workouts that fit your schedule and energy levels.",
+    minutes: "min",
+
+    // Enhanced Form - Equipment
+    equipmentLabel: "Available Equipment",
+    whyEquipment: "We'll only include exercises you can do with your available equipment.",
+    equipBodyweight: "Bodyweight Only",
+    equipDumbbell: "Dumbbell Only",
+    equipFullGym: "Full Gym",
+    equipHomeBarbell: "Home Gym + Barbell",
+    equipBands: "Resistance Bands",
+    equipNone: "None",
+
+    // Enhanced Form - Daily Steps
+    dailyStepsLabel: "Daily Steps / Activity Level",
+    whyDailySteps: "Your daily activity affects calorie needs (NEAT). More steps = higher TDEE.",
+    steps0: "< 4,000 steps (Sedentary)",
+    steps1: "4,000 – 8,000 steps (Light)",
+    steps2: "8,000 – 12,000 steps (Moderate)",
+    steps3: "> 12,000 steps (Very Active)",
+    stepsDesk: "Desk job 8+ hours",
+
+    // Enhanced Form - Sleep
+    sleepHoursLabel: "Average Sleep (hours)",
+    whySleep: "Sleep quality affects recovery, hormone balance, and training capacity.",
+    sleepQualityLabel: "Sleep Quality",
+
+    // Enhanced Form - Stress
+    stressLevelLabel: "Current Stress Level",
+    whyStress: "High stress increases cortisol, requiring adjusted volume and recovery.",
+    nightShiftLabel: "Night shift / overtime work",
+
+    // Enhanced Form - Nutrition
+    mealFrequencyLabel: "Preferred Meal Frequency",
+    meals3: "3 meals/day",
+    meals4: "4 meals/day",
+    meals5: "5 meals/day",
+    meals6: "6 meals/day",
+    ifLabel: "16/8 Intermittent Fasting",
+    whyIF: "Eating window 12:00 PM – 8:00 PM. Helps fat loss and insulin sensitivity.",
+
+    // Enhanced Form - Live Metrics
+    liveMetricsTitle: "Your Calculated Metrics",
+    targetCalories: "Target Cal",
+    carbsLabel: "Carbs",
+    fatLabel: "Fat",
+    bmiCatUnderweight: "Underweight",
+    bmiCatNormal: "Normal",
+    bmiCatOverweight: "Overweight",
+    bmiCatObese: "Obese",
   },
   id: {
     // Common
@@ -488,6 +547,65 @@ const translations = {
     notFoundTitle: "404",
     notFoundDesc: "Ups! Halaman tidak ditemukan",
     returnHome: "Kembali ke Beranda",
+
+    // Enhanced Form - Sections
+    basicInfoSection: "Informasi Pribadi",
+    trainingConfigSection: "Konfigurasi Latihan",
+    lifestyleSection: "Gaya Hidup & Pemulihan",
+    nutritionSection: "Preferensi Nutrisi",
+
+    // Enhanced Form - Session Duration
+    sessionDurationLabel: "Durasi Sesi (menit)",
+    whySessionDuration: "Membantu kami merancang latihan yang sesuai jadwal dan energi Anda.",
+    minutes: "mnt",
+
+    // Enhanced Form - Equipment
+    equipmentLabel: "Peralatan Tersedia",
+    whyEquipment: "Kami hanya akan memasukkan latihan yang bisa dilakukan dengan peralatan Anda.",
+    equipBodyweight: "Berat Badan Saja",
+    equipDumbbell: "Dumbbell Saja",
+    equipFullGym: "Gym Lengkap",
+    equipHomeBarbell: "Gym Rumah + Barbell",
+    equipBands: "Resistance Band",
+    equipNone: "Tidak Ada",
+
+    // Enhanced Form - Daily Steps
+    dailyStepsLabel: "Langkah Harian / Tingkat Aktivitas",
+    whyDailySteps: "Aktivitas harian mempengaruhi kebutuhan kalori (NEAT). Lebih banyak langkah = TDEE lebih tinggi.",
+    steps0: "< 4.000 langkah (Tidak Aktif)",
+    steps1: "4.000 – 8.000 langkah (Ringan)",
+    steps2: "8.000 – 12.000 langkah (Sedang)",
+    steps3: "> 12.000 langkah (Sangat Aktif)",
+    stepsDesk: "Kerja meja 8+ jam",
+
+    // Enhanced Form - Sleep
+    sleepHoursLabel: "Rata-rata Tidur (jam)",
+    whySleep: "Kualitas tidur mempengaruhi pemulihan, keseimbangan hormon, dan kapasitas latihan.",
+    sleepQualityLabel: "Kualitas Tidur",
+
+    // Enhanced Form - Stress
+    stressLevelLabel: "Tingkat Stres Saat Ini",
+    whyStress: "Stres tinggi meningkatkan kortisol, memerlukan penyesuaian volume dan pemulihan.",
+    nightShiftLabel: "Kerja shift malam / lembur",
+
+    // Enhanced Form - Nutrition
+    mealFrequencyLabel: "Frekuensi Makan Pilihan",
+    meals3: "3 kali/hari",
+    meals4: "4 kali/hari",
+    meals5: "5 kali/hari",
+    meals6: "6 kali/hari",
+    ifLabel: "Puasa Intermiten 16/8",
+    whyIF: "Jendela makan 12:00 – 20:00. Membantu pembakaran lemak dan sensitivitas insulin.",
+
+    // Enhanced Form - Live Metrics
+    liveMetricsTitle: "Metrik Terhitung Anda",
+    targetCalories: "Target Kal",
+    carbsLabel: "Karbo",
+    fatLabel: "Lemak",
+    bmiCatUnderweight: "Kurus",
+    bmiCatNormal: "Normal",
+    bmiCatOverweight: "Kelebihan Berat",
+    bmiCatObese: "Obesitas",
   },
   zh: {
     // Common
@@ -731,6 +849,65 @@ const translations = {
     notFoundTitle: "404",
     notFoundDesc: "哎呀！页面未找到",
     returnHome: "返回首页",
+
+    // Enhanced Form - Sections
+    basicInfoSection: "个人信息",
+    trainingConfigSection: "训练配置",
+    lifestyleSection: "生活方式与恢复",
+    nutritionSection: "营养偏好",
+
+    // Enhanced Form - Session Duration
+    sessionDurationLabel: "训练时长（分钟）",
+    whySessionDuration: "帮助我们设计适合您时间和精力的训练计划。",
+    minutes: "分钟",
+
+    // Enhanced Form - Equipment
+    equipmentLabel: "可用器材",
+    whyEquipment: "我们只会包含您可以用现有器材完成的练习。",
+    equipBodyweight: "仅自重",
+    equipDumbbell: "仅哑铃",
+    equipFullGym: "完整健身房",
+    equipHomeBarbell: "家庭健身房+杠铃",
+    equipBands: "弹力带",
+    equipNone: "无器材",
+
+    // Enhanced Form - Daily Steps
+    dailyStepsLabel: "每日步数 / 活动水平",
+    whyDailySteps: "日常活动影响热量需求（NEAT）。步数越多 = TDEE越高。",
+    steps0: "< 4,000 步（久坐）",
+    steps1: "4,000 – 8,000 步（轻度）",
+    steps2: "8,000 – 12,000 步（中度）",
+    steps3: "> 12,000 步（非常活跃）",
+    stepsDesk: "久坐办公 8+ 小时",
+
+    // Enhanced Form - Sleep
+    sleepHoursLabel: "平均睡眠（小时）",
+    whySleep: "睡眠质量影响恢复、激素平衡和训练能力。",
+    sleepQualityLabel: "睡眠质量",
+
+    // Enhanced Form - Stress
+    stressLevelLabel: "当前压力水平",
+    whyStress: "高压力增加皮质醇，需要调整训练量和恢复。",
+    nightShiftLabel: "夜班 / 加班工作",
+
+    // Enhanced Form - Nutrition
+    mealFrequencyLabel: "首选用餐频率",
+    meals3: "每天3餐",
+    meals4: "每天4餐",
+    meals5: "每天5餐",
+    meals6: "每天6餐",
+    ifLabel: "16/8间歇性禁食",
+    whyIF: "进食窗口12:00–20:00。有助于减脂和胰岛素敏感性。",
+
+    // Enhanced Form - Live Metrics
+    liveMetricsTitle: "您的计算指标",
+    targetCalories: "目标热量",
+    carbsLabel: "碳水",
+    fatLabel: "脂肪",
+    bmiCatUnderweight: "偏瘦",
+    bmiCatNormal: "正常",
+    bmiCatOverweight: "超重",
+    bmiCatObese: "肥胖",
   },
 };
 
