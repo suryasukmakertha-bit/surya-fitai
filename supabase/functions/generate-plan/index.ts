@@ -28,7 +28,6 @@ function validateInput(data: any): string[] {
   return errors;
 }
 
-// Server-side calculation functions
 function calculateBMR(weight: number, heightCm: number, age: number, gender: string): number {
   const base = 10 * weight + 6.25 * heightCm - 5 * age;
   return gender === "female" ? base - 161 : base + 5;
@@ -60,6 +59,18 @@ function calculateMacros(tdee: number, weight: number, programType: string) {
     const calories = Math.round(tdee * 1.05);
     return { calories, protein: Math.round(weight * 1.8), carbs: Math.round((calories * 0.50) / 4), fat: Math.round((calories * 0.30) / 9) };
   }
+}
+
+function calculateTargetSets(sessionDurationMinutes: number, experienceLevel: string): { targetLiftingMinutes: number; targetSets: number } {
+  const targetLiftingMinutes = sessionDurationMinutes - 10;
+  const avgMinutesPerSet = 2.3;
+  let targetSets = Math.floor(targetLiftingMinutes / avgMinutesPerSet);
+
+  if (experienceLevel === 'Beginner') targetSets = Math.max(targetSets, 10);
+  else if (experienceLevel === 'Intermediate') targetSets = Math.max(targetSets, 16);
+  else if (experienceLevel === 'Advanced') targetSets = Math.max(targetSets, 22);
+
+  return { targetLiftingMinutes, targetSets };
 }
 
 serve(async (req) => {
@@ -105,17 +116,18 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Server-side calculations
     const w = parseFloat(weight);
     const h = parseFloat(height);
     const a = parseInt(age);
     const td = parseInt(trainingDaysPerWeek) || 4;
+    const sessionMin = parseInt(sessionDuration) || 60;
 
     const bmi = (w / ((h / 100) ** 2)).toFixed(1);
     const bmr = Math.round(calculateBMR(w, h, a, gender));
     const actMult = getActivityMultiplier(td);
     const tdee = Math.round(calculateTDEE(bmr, actMult, dailySteps || "4000-8000"));
     const macros = calculateMacros(tdee, w, programType);
+    const { targetLiftingMinutes, targetSets } = calculateTargetSets(sessionMin, experience);
 
     const workoutDays = td;
     const restDaysNum = 7 - workoutDays;
@@ -124,14 +136,23 @@ serve(async (req) => {
 
     const systemPrompt = `You are Dr. SuryaFit — Senior Personal Trainer with 15+ years experience in Indonesia. Certified CSCS (NSCA) and Precision Nutrition Level 2.
 
-You ALWAYS prioritize SAFETY, injury prevention, realistic progressive overload, and programs that fit with user data.
+You ALWAYS:
+- Respond completely in the user's selected language: ${lang} (English default, Bahasa Indonesia, or Mandarin Simplified Chinese).
+- Match the exact session duration chosen by the user.
+- Adjust volume, intensity, rest, and form cues AUTOMATICALLY based on experienceLevel:
+  • Beginner: low volume (2-3 sets, 3-4 exercises), very detailed form cues, longer rests (90-120s), emphasize technique & safety, lighter intensity.
+  • Intermediate: moderate volume (3-4 sets, 4-5 exercises), balanced form cues, rests 75-105s, introduce progressive overload.
+  • Advanced: high volume (4-5 sets, 5-6 exercises), concise advanced cues, rests 60-90s for hypertrophy, maximum progressive overload.
 
 THINK STEP-BY-STEP internally:
-1. Analyze full profile (age, limitations, stress, sleep, NEAT, equipment)
-2. Choose safe volume, intensity, and ${totalWeeks <= 4 ? "4-week" : "12-week"} periodization with deload every 4th week
-3. Select only safe exercises matching equipment (${equipmentStr}) & limitations
-4. Build nutrition plan using the EXACT macro targets provided below
-5. Add mobility & recovery protocols based on sleep quality and stress level
+
+1. Analyze full profile (program: ${programType}, experienceLevel: ${experience}, sessionDuration: ${sessionMin} min, limitations: ${limitations || "None"}, equipment: ${equipmentStr}, stress: ${stressLevel || "N/A"}/10, sleep: ${sleepHours || "N/A"} hrs quality ${sleepQuality || "N/A"}/10, NEAT: ${dailySteps || "4000-8000"}).
+2. Calculate target lifting time = ${targetLiftingMinutes} min (${sessionMin} min session - 5 min warm-up - 5 min cool-down).
+3. Based on experienceLevel "${experience}", set appropriate number of exercises and sets so total working sets ≈ ${targetSets} sets and exactly fill the session time.
+4. For Beginner: prioritize perfect form, simple movements, extra mobility.
+   For Intermediate: add variety and basic progression.
+   For Advanced: compound lifts heavy, higher volume, advanced techniques.
+5. Prioritize SAFETY first, then progressive overload, local Indonesian foods, and realistic lifestyle.
 
 CALCULATED NUTRITION TARGETS (use these exact values):
 - BMI: ${bmi}
@@ -142,12 +163,37 @@ CALCULATED NUTRITION TARGETS (use these exact values):
 - Carbs: ${macros.carbs}g/day
 - Fat: ${macros.fat}g/day
 
-Generate a complete, personalized fitness and nutrition plan. Return ONLY valid JSON matching the exact schema below, no markdown, no extra text.
+OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
 
-JSON Schema:
 {
-  "workout_plan": [{ "day": "string (e.g. Week 1 - Monday, 2025-03-10)", "exercises": [{ "name": "string", "sets": "string", "reps": "string", "rest": "string", "weight_kg": "string (recommended load)", "notes": "string (form cues / safety tips)" }] }],
-  "meal_plan": [{ "meal": "string (e.g. Breakfast)", "foods": ["string (include portion size)"], "calories": number }],
+  "programOverview": "string (1 motivational paragraph with realistic ${totalWeeks}-week results)",
+  "durationWeeks": ${totalWeeks},
+  "weeklySplit": ["Day 1: Push Focus", "Day 2: Pull Focus", ...],
+  "estimatedSessionTimeMinutes": ${sessionMin},
+  "warmUp": "string (5 min warm-up routine)",
+  "workout_plan": [
+    {
+      "day": "string (e.g. Week 1 - Monday, 2025-03-10)",
+      "exercises": [
+        {
+          "name": "string",
+          "sets": "string (e.g. '3')",
+          "reps": "string (e.g. '8-12')",
+          "rest": "string (e.g. '90-120 seconds')",
+          "tempo": "string (e.g. '3010')",
+          "cues": "string (clear, level-appropriate form cues)",
+          "alternative": "string (alternative exercise if needed)",
+          "estimatedTimeMinutes": number,
+          "weight_kg": "string (recommended load)",
+          "notes": "string (form cues / safety tips)"
+        }
+      ]
+    }
+  ],
+  "coolDown": "string (5 min mobility/stretching routine)",
+  "meal_plan": [
+    { "meal": "string (e.g. Breakfast)", "time": "string (e.g. 07:00)", "foods": ["string (include portion size in grams)"], "calories": number }
+  ],
   "calorie_target": ${macros.calories},
   "protein": ${macros.protein},
   "carbs": ${macros.carbs},
@@ -155,14 +201,19 @@ JSON Schema:
   "water_liters": number,
   "weekly_schedule": ["Mon: Type", "Tue: Type", ...],
   "safety_notes": ["string"],
+  "warnings": ["string array"],
   "motivational_message": "string",
   "grocery_list": ["string (with quantity)"],
   "estimated_calories_burned": number,
-  "weight_projection": "string"
+  "weight_projection": "string",
+  "progressionRules": "string (adjusted to experience level ${experience})",
+  "deloadWeek": "string (when and how to deload)",
+  "recoveryTips": "string (personalized recovery advice)"
 }
 
 TRAINING SCIENCE RULES:
-- Session duration target: ${sessionDuration || 60} minutes per workout
+- Target total working sets per session: ${targetSets} sets (calculated from ${targetLiftingMinutes} min lifting time at 2.3 min/set avg)
+- Session duration target: ${sessionMin} minutes (5 min warm-up + ${targetLiftingMinutes} min lifting + 5 min cool-down)
 - Apply progressive overload: systematically increase weight, reps, or volume across weeks
 - Week 1: Adaptation phase (moderate intensity 60-70% capacity)
 - Week 2: Volume increase (add 1-2 reps or 1 extra set)
@@ -180,6 +231,11 @@ RECOVERY & LIFESTYLE ADJUSTMENTS:
 - If sleep quality < 6 or stress > 7: reduce total volume by 15-20%, add extra recovery notes
 - If night shift worker: recommend flexible meal timing, add sleep hygiene tips in safety notes
 - Daily steps/NEAT level: ${dailySteps || "Not specified"}
+
+EXPERIENCE-LEVEL SPECIFIC RULES:
+- Beginner: 2-3 sets per exercise, 3-4 exercises per session, very detailed form cues, rest 90-120s
+- Intermediate: 3-4 sets per exercise, 4-5 exercises per session, balanced cues, rest 75-105s
+- Advanced: 4-5 sets per exercise, 5-6 exercises per session, concise advanced cues, rest 60-90s
 
 PROGRAM-SPECIFIC RULES:
 - "senior" program: low-impact exercises, avoid heavy lifts, add balance/flexibility work, extra safety notes, bodyweight or light loads only
@@ -209,9 +265,8 @@ OCCUPATION & LIFESTYLE:
 - Occupation: ${occupation || "Not specified"}
 - Consider occupation when adjusting: intensity, calorie estimation, daily activity multiplier, fatigue and recovery needs
 
-OUTPUT LANGUAGE:
-- Generate ALL text content in ${lang}
-- JSON keys must remain in English, but all string VALUES must be in ${lang}`;
+Tone: confident, empathetic, professional. Never promise unrealistic results. Every level must feel perfectly tailored and high-quality.
+Generate ALL text content in ${lang}. JSON keys must remain in English.`;
 
     const userPrompt = `Complete User Profile:
 - Name: ${name}
@@ -223,10 +278,12 @@ OUTPUT LANGUAGE:
 - BMR: ${bmr} kcal/day
 - TDEE: ${tdee} kcal/day
 - Program: ${programType}
+- Experience Level: ${experience}
 - Goal: ${goal || "General fitness"}
 - Duration: ${duration}
-- Experience: ${experience}
-- Session Duration: ${sessionDuration || 60} minutes
+- Session Duration: ${sessionMin} minutes
+- Target Lifting Time: ${targetLiftingMinutes} minutes
+- Target Total Sets: ${targetSets} sets
 - Equipment: ${equipmentStr}
 - Limitations: ${limitations || "None"}
 - Food Allergies: ${allergies || "None"}
