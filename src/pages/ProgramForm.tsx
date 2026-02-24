@@ -149,6 +149,22 @@ export default function ProgramForm() {
         },
       });
       if (res.error) throw res.error;
+
+      // Auto-save the generated plan to database
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error: saveError } = await supabase.from("saved_plans").insert({
+          user_id: user.id,
+          program_type: type || "custom",
+          plan_data: res.data,
+          user_info: { ...form, foodStyle: form.foodStyle },
+          plan_name: `${form.name} - ${(type || "custom").charAt(0).toUpperCase() + (type || "custom").slice(1)}`,
+        });
+        if (!saveError) {
+          toast({ title: t.planSaved });
+        }
+      }
+
       navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle }, programType: type } });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
