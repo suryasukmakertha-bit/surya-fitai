@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2 } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,16 +18,40 @@ import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tool
 
 interface DayPlan {
   day: string;
-  exercises: { name: string; sets: string; reps: string; rest: string }[];
+  exercises: {
+    name: string;
+    sets: string;
+    reps: string;
+    rest: string;
+    tempo?: string;
+    cues?: string;
+    alternative?: string;
+    estimatedTimeMinutes?: number;
+    weight_kg?: string;
+    notes?: string;
+  }[];
 }
 
 interface MealPlan {
   meal: string;
+  time?: string;
   foods: string[];
   calories: number;
 }
 
 interface PlanData {
+  // New enhanced fields
+  programOverview?: string;
+  durationWeeks?: number;
+  weeklySplit?: string[];
+  estimatedSessionTimeMinutes?: number;
+  warmUp?: string;
+  coolDown?: string;
+  progressionRules?: string;
+  deloadWeek?: string;
+  recoveryTips?: string;
+  warnings?: string[];
+  // Existing fields
   workout_plan: DayPlan[];
   meal_plan: MealPlan[];
   calorie_target: number;
@@ -71,7 +95,7 @@ export default function Results() {
   const [addingCheckIn, setAddingCheckIn] = useState(false);
 
   useEffect(() => {
-    setCheckIns([]); // Reset on plan switch
+    setCheckIns([]);
     if (planId && user) {
       fetchCheckIns();
     }
@@ -203,7 +227,27 @@ export default function Results() {
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
 
-        {plan.motivational_message && (
+        {/* Session Time Banner */}
+        {plan.estimatedSessionTimeMinutes && (
+          <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
+            <Clock className="w-6 h-6 text-primary shrink-0" />
+            <p className="text-foreground font-semibold text-sm md:text-base">
+              ✅ {(t as any).sessionTimeBanner
+                ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
+                : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
+            </p>
+          </div>
+        )}
+
+        {/* Program Overview */}
+        {plan.programOverview && (
+          <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+          </div>
+        )}
+
+        {!plan.programOverview && plan.motivational_message && (
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
             <p className="text-foreground text-sm italic">{plan.motivational_message}</p>
@@ -237,6 +281,29 @@ export default function Results() {
           </TabsList>
 
           <TabsContent value="workout" className="space-y-4">
+            {/* Warm-Up */}
+            {plan.warmUp && (
+              <div className="card-gradient rounded-lg p-5 border border-primary/30">
+                <h3 className="font-display font-bold text-primary mb-2 flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4" /> {(t as any).warmUpLabel || "Warm-Up"}
+                </h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.warmUp}</p>
+              </div>
+            )}
+
+            {/* Weekly Split Overview */}
+            {plan.weeklySplit && plan.weeklySplit.length > 0 && (
+              <div className="card-gradient rounded-lg p-5 border border-border/50">
+                <h3 className="font-display font-bold text-foreground mb-3">{(t as any).weeklySplitLabel || "Weekly Split"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {plan.weeklySplit.map((split, i) => (
+                    <span key={i} className="bg-primary/10 text-primary text-xs px-3 py-1.5 rounded-full font-medium">{split}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Workout Days */}
             {planId && user ? (
               <WorkoutChecklist workoutPlan={plan.workout_plan} planId={planId} />
             ) : (
@@ -245,15 +312,40 @@ export default function Results() {
                   <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
                   <div className="space-y-2">
                     {day.exercises.map((ex, j) => (
-                      <div key={j} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-2.5 text-sm">
-                        <span className="text-foreground font-medium">{ex.name}</span>
-                        <span className="text-muted-foreground">{ex.sets} × {ex.reps} · {ex.rest} {t.rest}</span>
+                      <div key={j} className="bg-secondary/50 rounded-md px-4 py-3 text-sm space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-foreground font-medium">{ex.name}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {ex.sets} × {ex.reps} · {ex.rest} {t.rest}
+                            {ex.tempo && ` · ${(t as any).tempoLabel || "Tempo"}: ${ex.tempo}`}
+                          </span>
+                        </div>
+                        {ex.cues && (
+                          <p className="text-xs text-muted-foreground/80 italic">💡 {ex.cues}</p>
+                        )}
+                        {ex.alternative && (
+                          <p className="text-xs text-muted-foreground/70">↔ {(t as any).alternativeLabel || "Alt"}: {ex.alternative}</p>
+                        )}
+                        {ex.weight_kg && (
+                          <p className="text-xs text-primary/80">🏋️ {ex.weight_kg}</p>
+                        )}
                       </div>
                     ))}
                   </div>
                 </div>
               ))
             )}
+
+            {/* Cool-Down */}
+            {plan.coolDown && (
+              <div className="card-gradient rounded-lg p-5 border border-primary/30">
+                <h3 className="font-display font-bold text-primary mb-2 flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4" /> {(t as any).coolDownLabel || "Cool-Down"}
+                </h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.coolDown}</p>
+              </div>
+            )}
+
             {plan.estimated_calories_burned > 0 && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <TrendingUp className="w-4 h-4 text-primary" />
@@ -266,7 +358,10 @@ export default function Results() {
             {plan.meal_plan?.map((meal, i) => (
               <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-display font-bold text-foreground">{meal.meal}</h3>
+                  <div>
+                    <h3 className="font-display font-bold text-foreground">{meal.meal}</h3>
+                    {meal.time && <p className="text-xs text-muted-foreground">{meal.time}</p>}
+                  </div>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{meal.calories} kcal</span>
                 </div>
                 <ul className="space-y-1">
@@ -295,6 +390,40 @@ export default function Results() {
           </TabsContent>
 
           <TabsContent value="info" className="space-y-4">
+            {/* Warnings */}
+            {plan.warnings && plan.warnings.length > 0 && (
+              <div className="card-gradient rounded-lg p-5 border border-destructive/30">
+                <h3 className="font-display font-bold text-destructive mb-3 flex items-center gap-2">
+                  <Shield className="w-4 h-4" /> {(t as any).warningsLabel || "Warnings"}
+                </h3>
+                <ul className="space-y-2">
+                  {plan.warnings.map((w, i) => (
+                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                      <span className="text-destructive mt-0.5">⚠</span> {w}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Recovery Tips */}
+            {plan.recoveryTips && (
+              <div className="card-gradient rounded-lg p-5 border border-border/50">
+                <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-primary" /> {(t as any).recoveryTipsLabel || "Recovery Tips"}
+                </h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.recoveryTips}</p>
+              </div>
+            )}
+
+            {/* Deload Week */}
+            {plan.deloadWeek && (
+              <div className="card-gradient rounded-lg p-5 border border-border/50">
+                <h3 className="font-display font-bold text-foreground mb-2">{(t as any).deloadWeekLabel || "Deload Week"}</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.deloadWeek}</p>
+              </div>
+            )}
+
             {plan.weight_projection && (
               <div className="card-gradient rounded-lg p-5 border border-border/50">
                 <h3 className="font-display font-bold text-foreground mb-2">{t.progressProjection}</h3>
@@ -332,6 +461,24 @@ export default function Results() {
             <TabsContent value="progress" className="space-y-6">
               <WorkoutProgressSummary planId={planId} />
 
+              {/* Progression Rules */}
+              {plan.progressionRules && (
+                <div className="card-gradient rounded-lg p-5 border border-primary/30">
+                  <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" /> {(t as any).progressionRulesLabel || "Progression Rules"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.progressionRules}</p>
+                </div>
+              )}
+
+              {/* Duration */}
+              {plan.durationWeeks && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <Clock className="w-4 h-4 text-primary" />
+                  {(t as any).programDuration || "Program Duration"}: <span className="font-bold text-foreground">{plan.durationWeeks} {(t as any).weeksLabel || "weeks"}</span>
+                </div>
+              )}
+
               {sorted.length >= 2 && (
                 <>
                   <div className="grid grid-cols-3 gap-4">
@@ -353,7 +500,7 @@ export default function Results() {
                       </div>
                     </div>
                   </div>
-              <ProgressDownloadCard
+                  <ProgressDownloadCard
                     userName={userInfo?.name || user?.user_metadata?.display_name || user?.email || "User"}
                     programName={programType || "Fitness"}
                     duration={userInfo?.duration || "Ongoing"}

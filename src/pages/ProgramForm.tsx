@@ -123,6 +123,14 @@ export default function ProgramForm() {
       const startDayName = format(startDate, "EEEE");
       const trainingDaysPerWeek = parseInt(form.trainingDaysPerWeek) || 4;
       const restDays = 7 - trainingDaysPerWeek;
+      // Experience-aware time validator
+      const targetLiftingMinutes = form.sessionDuration - 10;
+      const avgMinutesPerSet = 2.3;
+      let targetSets = Math.floor(targetLiftingMinutes / avgMinutesPerSet);
+      if (form.experience === 'Beginner') targetSets = Math.max(targetSets, 10);
+      else if (form.experience === 'Intermediate') targetSets = Math.max(targetSets, 16);
+      else if (form.experience === 'Advanced') targetSets = Math.max(targetSets, 22);
+
       const res = await supabase.functions.invoke("generate-plan", {
         body: {
           ...form,
@@ -134,7 +142,6 @@ export default function ProgramForm() {
           restDays: String(restDays),
           trainingDaysPerWeek,
           foodStyle: form.foodStyle,
-          // New fields
           sessionDuration: form.sessionDuration,
           equipment: form.equipment,
           dailySteps: form.dailySteps,
@@ -144,8 +151,9 @@ export default function ProgramForm() {
           nightShift: form.nightShift,
           mealFrequency: form.mealFrequency,
           intermittentFasting: form.intermittentFasting,
-          // Pre-calculated metrics
           calculatedMetrics: metrics,
+          targetLiftingMinutes,
+          targetTotalSets: targetSets,
         },
       });
       if (res.error) throw res.error;

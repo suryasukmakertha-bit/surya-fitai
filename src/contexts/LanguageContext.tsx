@@ -307,6 +307,20 @@ const translations = {
     bmiCatNormal: "Normal",
     bmiCatOverweight: "Overweight",
     bmiCatObese: "Obese",
+
+    // Enhanced Results
+    sessionTimeBanner: "Session time matched: {minutes} minutes (5 min warm-up + lifting + 5 min cool-down)",
+    warmUpLabel: "Warm-Up",
+    coolDownLabel: "Cool-Down",
+    weeklySplitLabel: "Weekly Split",
+    tempoLabel: "Tempo",
+    alternativeLabel: "Alternative",
+    warningsLabel: "Warnings",
+    recoveryTipsLabel: "Recovery Tips",
+    deloadWeekLabel: "Deload Week",
+    progressionRulesLabel: "Progression Rules",
+    programDuration: "Program Duration",
+    weeksLabel: "weeks",
   },
   id: {
     // Common
@@ -612,6 +626,20 @@ const translations = {
     bmiCatNormal: "Normal",
     bmiCatOverweight: "Kelebihan Berat",
     bmiCatObese: "Obesitas",
+
+    // Enhanced Results
+    sessionTimeBanner: "Waktu sesi cocok: {minutes} menit (5 mnt pemanasan + angkat beban + 5 mnt pendinginan)",
+    warmUpLabel: "Pemanasan",
+    coolDownLabel: "Pendinginan",
+    weeklySplitLabel: "Pembagian Mingguan",
+    tempoLabel: "Tempo",
+    alternativeLabel: "Alternatif",
+    warningsLabel: "Peringatan",
+    recoveryTipsLabel: "Tips Pemulihan",
+    deloadWeekLabel: "Minggu Deload",
+    progressionRulesLabel: "Aturan Progres",
+    programDuration: "Durasi Program",
+    weeksLabel: "minggu",
   },
   zh: {
     // Common
@@ -917,6 +945,20 @@ const translations = {
     bmiCatNormal: "正常",
     bmiCatOverweight: "超重",
     bmiCatObese: "肥胖",
+
+    // Enhanced Results
+    sessionTimeBanner: "训练时间匹配：{minutes} 分钟（5分钟热身 + 力量训练 + 5分钟拉伸）",
+    warmUpLabel: "热身",
+    coolDownLabel: "拉伸放松",
+    weeklySplitLabel: "每周安排",
+    tempoLabel: "节奏",
+    alternativeLabel: "替代动作",
+    warningsLabel: "警告",
+    recoveryTipsLabel: "恢复建议",
+    deloadWeekLabel: "减负周",
+    progressionRulesLabel: "进阶规则",
+    programDuration: "计划时长",
+    weeksLabel: "周",
   },
 };
 
