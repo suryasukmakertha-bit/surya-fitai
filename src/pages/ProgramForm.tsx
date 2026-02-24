@@ -31,15 +31,23 @@ const EQUIPMENT_OPTIONS = [
 ] as const;
 
 function WhyTooltip({ text }: { text: string }) {
+  const { t } = useLanguage();
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <HelpCircle className="w-3.5 h-3.5 text-muted-foreground inline ml-1 cursor-help" />
-        </TooltipTrigger>
-        <TooltipContent className="max-w-[240px] text-xs">{text}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="inline-flex items-center align-middle ml-1 focus:outline-none" aria-label="Why we ask this">
+          <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors cursor-pointer" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="center"
+        className="max-w-[280px] rounded-xl border border-primary/30 bg-card p-4 shadow-lg shadow-primary/10"
+      >
+        <p className="text-xs font-semibold text-primary mb-1.5">{t.whyWeAsk}</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">{text}</p>
+      </PopoverContent>
+    </Popover>
   );
 }
 

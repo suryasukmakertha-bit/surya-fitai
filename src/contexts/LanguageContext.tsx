@@ -252,14 +252,17 @@ const translations = {
     lifestyleSection: "Lifestyle & Recovery",
     nutritionSection: "Nutrition Preferences",
 
+    // Enhanced Form - Why tooltip header
+    whyWeAsk: "Why we ask this?",
+
     // Enhanced Form - Session Duration
     sessionDurationLabel: "Session Duration (minutes)",
-    whySessionDuration: "Helps us design workouts that fit your schedule and energy levels.",
+    whySessionDuration: "This helps us calculate the exact number of exercises and sets so your workout fits perfectly in the time you have available. 60 minutes is ideal for most people.",
     minutes: "min",
 
     // Enhanced Form - Equipment
     equipmentLabel: "Available Equipment",
-    whyEquipment: "We'll only include exercises you can do with your available equipment.",
+    whyEquipment: "We will only suggest exercises you can actually do with the equipment you have at home or gym. Choose all that apply.",
     equipBodyweight: "Bodyweight Only",
     equipDumbbell: "Dumbbell Only",
     equipFullGym: "Full Gym",
@@ -554,14 +557,17 @@ const translations = {
     lifestyleSection: "Gaya Hidup & Pemulihan",
     nutritionSection: "Preferensi Nutrisi",
 
+    // Enhanced Form - Why tooltip header
+    whyWeAsk: "Mengapa kami menanyakan ini?",
+
     // Enhanced Form - Session Duration
     sessionDurationLabel: "Durasi Sesi (menit)",
-    whySessionDuration: "Membantu kami merancang latihan yang sesuai jadwal dan energi Anda.",
+    whySessionDuration: "Ini membantu kami menghitung jumlah latihan dan set yang tepat agar workout kamu pas dengan waktu yang tersedia. 60 menit adalah durasi ideal untuk kebanyakan orang.",
     minutes: "mnt",
 
     // Enhanced Form - Equipment
     equipmentLabel: "Peralatan Tersedia",
-    whyEquipment: "Kami hanya akan memasukkan latihan yang bisa dilakukan dengan peralatan Anda.",
+    whyEquipment: "Kami hanya akan sarankan latihan yang benar-benar bisa kamu lakukan dengan peralatan yang tersedia. Pilih semua yang berlaku.",
     equipBodyweight: "Berat Badan Saja",
     equipDumbbell: "Dumbbell Saja",
     equipFullGym: "Gym Lengkap",
@@ -856,14 +862,17 @@ const translations = {
     lifestyleSection: "生活方式与恢复",
     nutritionSection: "营养偏好",
 
+    // Enhanced Form - Why tooltip header
+    whyWeAsk: "为什么我们要问这个？",
+
     // Enhanced Form - Session Duration
     sessionDurationLabel: "训练时长（分钟）",
-    whySessionDuration: "帮助我们设计适合您时间和精力的训练计划。",
+    whySessionDuration: "这能帮助我们精确计算练习数量和组数，让你的训练完美适配可用时间。60分钟是大多数人的理想时长。",
     minutes: "分钟",
 
     // Enhanced Form - Equipment
     equipmentLabel: "可用器材",
-    whyEquipment: "我们只会包含您可以用现有器材完成的练习。",
+    whyEquipment: "我们只会推荐你实际能用现有器材完成的动作。请勾选所有适用的选项。",
     equipBodyweight: "仅自重",
     equipDumbbell: "仅哑铃",
     equipFullGym: "完整健身房",
