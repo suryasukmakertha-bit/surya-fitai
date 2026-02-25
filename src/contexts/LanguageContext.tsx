@@ -321,6 +321,7 @@ const translations = {
     progressionRulesLabel: "Progression Rules",
     programDuration: "Program Duration",
     weeksLabel: "weeks",
+    draftRestored: "Recovered your last generated plan.",
   },
   id: {
     // Common
@@ -640,6 +641,7 @@ const translations = {
     progressionRulesLabel: "Aturan Progres",
     programDuration: "Durasi Program",
     weeksLabel: "minggu",
+    draftRestored: "Rencana terakhir berhasil dipulihkan.",
   },
   zh: {
     // Common
@@ -959,6 +961,7 @@ const translations = {
     progressionRulesLabel: "进阶规则",
     programDuration: "计划时长",
     weeksLabel: "周",
+    draftRestored: "已恢复您上次生成的计划。",
   },
 };
 
