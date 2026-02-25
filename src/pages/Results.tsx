@@ -74,6 +74,8 @@ interface CheckIn {
   note?: string;
 }
 
+const DRAFT_KEY = "suryaFitDraft";
+
 export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -82,10 +84,51 @@ export default function Results() {
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const plan: PlanData | undefined = location.state?.plan;
-  const userInfo = location.state?.userInfo;
-  const programType = location.state?.programType;
-  const planId: string | undefined = location.state?.planId;
+  const [restoredFromDraft, setRestoredFromDraft] = useState(false);
+
+  // Resolve plan: from navigation state, or restore from draft
+  const stateplan: PlanData | undefined = location.state?.plan;
+  const stateUserInfo = location.state?.userInfo;
+  const stateProgramType = location.state?.programType;
+  const stateClientGeneratedId: string | undefined = location.state?.clientGeneratedId;
+  const statePlanId: string | undefined = location.state?.planId;
+
+  const [plan, setPlan] = useState<PlanData | undefined>(stateplan);
+  const [userInfo, setUserInfo] = useState(stateUserInfo);
+  const [programType, setProgramType] = useState(stateProgramType);
+  const [clientGeneratedId, setClientGeneratedId] = useState(stateClientGeneratedId || crypto.randomUUID());
+  const [planId, setPlanId] = useState<string | undefined>(statePlanId);
+
+  // Draft restore on mount
+  useEffect(() => {
+    if (!stateplan && !statePlanId) {
+      try {
+        const draft = localStorage.getItem(DRAFT_KEY);
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          setPlan(parsed.plan);
+          setUserInfo(parsed.userInfo);
+          setProgramType(parsed.programType);
+          setClientGeneratedId(parsed.clientGeneratedId || crypto.randomUUID());
+          setRestoredFromDraft(true);
+          toast({ title: (t as any).draftRestored || "Recovered your last generated plan." });
+        }
+      } catch {}
+    }
+  }, []);
+
+  // Draft auto-save: save to localStorage when we have a preview (no planId = not saved yet)
+  useEffect(() => {
+    if (plan && !planId) {
+      const draft = JSON.stringify({ plan, userInfo, programType, clientGeneratedId });
+      localStorage.setItem(DRAFT_KEY, draft);
+    }
+  }, [plan, userInfo, programType, clientGeneratedId, planId]);
+
+  // Mark as saved if viewing from saved plans
+  useEffect(() => {
+    if (statePlanId) setSaved(true);
+  }, [statePlanId]);
 
   // Progress state (only for saved plans)
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
@@ -161,17 +204,32 @@ export default function Results() {
       navigate("/auth");
       return;
     }
+    if (saving || saved) return; // prevent double saves
     setSaving(true);
     try {
+      const planName = `${userInfo?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)}`;
       const { data, error } = await supabase.from("saved_plans").insert({
         user_id: user.id,
         program_type: programType || "custom",
         user_info: userInfo as any,
         plan_data: plan as any,
-      }).select("id").single();
-      if (error) throw error;
+        plan_name: planName,
+        client_generated_id: clientGeneratedId,
+      } as any).select("id").single();
+      if (error) {
+        // If conflict (duplicate), treat as success
+        if (error.code === '23505') {
+          setSaved(true);
+          toast({ title: t.planSaved });
+          localStorage.removeItem(DRAFT_KEY);
+          return;
+        }
+        throw error;
+      }
       setSaved(true);
+      localStorage.removeItem(DRAFT_KEY);
       if (data) {
+        setPlanId(data.id);
         navigate("/results", { state: { plan, userInfo, programType, planId: data.id }, replace: true });
       }
       toast({ title: t.planSaved });

@@ -78,6 +78,7 @@ export type Database = {
       }
       saved_plans: {
         Row: {
+          client_generated_id: string | null
           created_at: string
           id: string
           plan_data: Json
@@ -87,6 +88,7 @@ export type Database = {
           user_info: Json
         }
         Insert: {
+          client_generated_id?: string | null
           created_at?: string
           id?: string
           plan_data?: Json
@@ -96,6 +98,7 @@ export type Database = {
           user_info?: Json
         }
         Update: {
+          client_generated_id?: string | null
           created_at?: string
           id?: string
           plan_data?: Json
