@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,8 @@ import ProgressDownloadCard from "@/components/ProgressDownloadCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AppHeader from "@/components/AppHeader";
 import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
+import { addDays, format as fnsFormat } from "date-fns";
+import { id as idLocale, zhCN } from "date-fns/locale";
 
 interface DayPlan {
   day: string;
@@ -81,10 +84,14 @@ export default function Results() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [restoredFromDraft, setRestoredFromDraft] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<number>(() => {
+    const stored = localStorage.getItem("suryaFitSelectedWeek");
+    return stored ? parseInt(stored) : 0;
+  });
 
   // Resolve plan: from navigation state, or restore from draft
   const stateplan: PlanData | undefined = location.state?.plan;
@@ -186,6 +193,34 @@ export default function Results() {
     await supabase.from("progress_checkins").delete().eq("id", id);
     setCheckIns((prev) => prev.filter((c) => c.id !== id));
   };
+  // Week computation (must be before early return for hooks rules)
+  const totalWeeks = plan?.durationWeeks || (plan?.workout_plan ? Math.max(1, Math.ceil(plan.workout_plan.length / 7)) : 4);
+  const trainingDaysPerWeek = plan?.workout_plan ? Math.ceil(plan.workout_plan.length / totalWeeks) : 5;
+
+  const weekOptions = useMemo(() => {
+    const opts: { value: number; label: string }[] = [];
+    const startDateStr = userInfo?.startDate || userInfo?.trainingStartDate;
+    const startDate = startDateStr ? new Date(startDateStr) : new Date();
+    const dateLocale = lang === "id" ? idLocale : lang === "zh" ? zhCN : undefined;
+    for (let w = 0; w < totalWeeks; w++) {
+      const weekStart = addDays(startDate, w * 7);
+      const dayName = fnsFormat(weekStart, "EEEE", { locale: dateLocale });
+      const dateStr = fnsFormat(weekStart, "yyyy-MM-dd");
+      const prefix = lang === "zh" ? `${(t as any).weekLabel} ${w + 1} ${(t as any).weeksLabel}` : `${(t as any).weekLabel} ${w + 1}`;
+      opts.push({ value: w, label: `${prefix} - ${dayName}, ${dateStr}` });
+    }
+    return opts;
+  }, [totalWeeks, userInfo, lang, t]);
+
+  const weekWorkoutDays = useMemo(() => {
+    if (!plan?.workout_plan) return [];
+    const start = selectedWeek * trainingDaysPerWeek;
+    return plan.workout_plan.slice(start, start + trainingDaysPerWeek);
+  }, [plan?.workout_plan, selectedWeek, trainingDaysPerWeek]);
+
+  useEffect(() => {
+    localStorage.setItem("suryaFitSelectedWeek", String(selectedWeek));
+  }, [selectedWeek]);
 
   if (!plan) {
     return (
@@ -339,6 +374,23 @@ export default function Results() {
           </TabsList>
 
           <TabsContent value="workout" className="space-y-4">
+            {/* Week Selector */}
+            {totalWeeks > 1 && (
+              <div className="card-gradient rounded-lg p-4 border border-primary/30">
+                <label className="text-sm font-medium text-foreground mb-2 block">{(t as any).selectWeekLabel}</label>
+                <Select value={String(selectedWeek)} onValueChange={(v) => setSelectedWeek(parseInt(v))}>
+                  <SelectTrigger className="bg-secondary border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {weekOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Warm-Up */}
             {plan.warmUp && (
               <div className="card-gradient rounded-lg p-5 border border-primary/30">
@@ -363,9 +415,9 @@ export default function Results() {
 
             {/* Workout Days */}
             {planId && user ? (
-              <WorkoutChecklist workoutPlan={plan.workout_plan} planId={planId} />
+              <WorkoutChecklist workoutPlan={weekWorkoutDays} planId={planId} selectedWeek={selectedWeek} />
             ) : (
-              plan.workout_plan?.map((day, i) => (
+              weekWorkoutDays.map((day, i) => (
                 <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
                   <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
                   <div className="space-y-2">

@@ -308,6 +308,21 @@ const translations = {
     bmiCatOverweight: "Overweight",
     bmiCatObese: "Obese",
 
+    // Diet Type
+    dietTypeLabel: "Diet Type *",
+    dietTypePlaceholder: "Select diet type",
+    dietOmnivore: "Omnivore",
+    dietVegetarian: "Vegetarian",
+    dietVegan: "Vegan",
+
+    // Week Selector
+    selectWeekLabel: "Select Week",
+    weekLabel: "Week",
+
+    // Exercise Detail Popup
+    tipsLabel: "Tips",
+    weightRecommendation: "Weight Recommendation",
+
     // Enhanced Results
     sessionTimeBanner: "Session time matched: {minutes} minutes (5 min warm-up + lifting + 5 min cool-down)",
     warmUpLabel: "Warm-Up",
@@ -628,6 +643,21 @@ const translations = {
     bmiCatOverweight: "Kelebihan Berat",
     bmiCatObese: "Obesitas",
 
+    // Diet Type
+    dietTypeLabel: "Tipe Diet *",
+    dietTypePlaceholder: "Pilih tipe diet",
+    dietOmnivore: "Omnivora",
+    dietVegetarian: "Vegetarian",
+    dietVegan: "Vegan",
+
+    // Week Selector
+    selectWeekLabel: "Pilih Minggu",
+    weekLabel: "Minggu",
+
+    // Exercise Detail Popup
+    tipsLabel: "Tips",
+    weightRecommendation: "Rekomendasi Beban",
+
     // Enhanced Results
     sessionTimeBanner: "Waktu sesi cocok: {minutes} menit (5 mnt pemanasan + angkat beban + 5 mnt pendinginan)",
     warmUpLabel: "Pemanasan",
@@ -947,6 +977,21 @@ const translations = {
     bmiCatNormal: "正常",
     bmiCatOverweight: "超重",
     bmiCatObese: "肥胖",
+
+    // Diet Type
+    dietTypeLabel: "饮食类型 *",
+    dietTypePlaceholder: "选择饮食类型",
+    dietOmnivore: "杂食者",
+    dietVegetarian: "素食者",
+    dietVegan: "纯素者",
+
+    // Week Selector
+    selectWeekLabel: "选择周",
+    weekLabel: "第",
+
+    // Exercise Detail Popup
+    tipsLabel: "技巧",
+    weightRecommendation: "重量建议",
 
     // Enhanced Results
     sessionTimeBanner: "训练时间匹配：{minutes} 分钟（5分钟热身 + 力量训练 + 5分钟拉伸）",

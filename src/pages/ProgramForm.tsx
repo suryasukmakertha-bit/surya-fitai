@@ -78,6 +78,7 @@ export default function ProgramForm() {
     occupationOther: "",
     trainingDaysPerWeek: "4",
     foodStyle: "",
+    dietType: "",
     // New fields
     sessionDuration: 60,
     equipment: [] as string[],
@@ -161,7 +162,7 @@ export default function ProgramForm() {
       // Generate a client ID for idempotent saves — do NOT auto-save
       const clientGeneratedId = crypto.randomUUID();
 
-      navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle }, programType: type, clientGeneratedId } });
+      navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle, startDate: startDateStr }, programType: type, clientGeneratedId } });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -397,6 +398,17 @@ export default function ProgramForm() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label>{(t as any).dietTypeLabel}</Label>
+                <Select value={form.dietType} onValueChange={(v) => set("dietType", v)}>
+                  <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={(t as any).dietTypePlaceholder} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="omnivore">{(t as any).dietOmnivore}</SelectItem>
+                    <SelectItem value="vegetarian">{(t as any).dietVegetarian}</SelectItem>
+                    <SelectItem value="vegan">{(t as any).dietVegan}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>{t.foodStyleLabel}</Label>
                 <Select value={form.foodStyle} onValueChange={(v) => set("foodStyle", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.foodStylePlaceholder} /></SelectTrigger>
@@ -410,6 +422,8 @@ export default function ProgramForm() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t.mealFrequencyLabel}</Label>
                 <Select value={form.mealFrequency} onValueChange={(v) => set("mealFrequency", v)}>
