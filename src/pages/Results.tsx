@@ -197,26 +197,70 @@ export default function Results() {
   const totalWeeks = plan?.durationWeeks || (plan?.workout_plan ? Math.max(1, Math.ceil(plan.workout_plan.length / 7)) : 4);
   const trainingDaysPerWeek = plan?.workout_plan ? Math.ceil(plan.workout_plan.length / totalWeeks) : 5;
 
+  // Resolve the EXACT training start date from user profile
+  const trainingStartDate = useMemo(() => {
+    const startDateStr = userInfo?.startDate || userInfo?.trainingStartDate;
+    if (!startDateStr) return new Date();
+    // Parse as local date (avoid timezone shift)
+    const parts = startDateStr.split("-");
+    if (parts.length === 3) return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    return new Date(startDateStr);
+  }, [userInfo]);
+
+  const dateLocale = lang === "id" ? idLocale : lang === "zh" ? zhCN : undefined;
+
   const weekOptions = useMemo(() => {
     const opts: { value: number; label: string }[] = [];
-    const startDateStr = userInfo?.startDate || userInfo?.trainingStartDate;
-    const startDate = startDateStr ? new Date(startDateStr) : new Date();
-    const dateLocale = lang === "id" ? idLocale : lang === "zh" ? zhCN : undefined;
     for (let w = 0; w < totalWeeks; w++) {
-      const weekStart = addDays(startDate, w * 7);
+      const weekStart = addDays(trainingStartDate, w * 7);
       const dayName = fnsFormat(weekStart, "EEEE", { locale: dateLocale });
       const dateStr = fnsFormat(weekStart, "yyyy-MM-dd");
       const prefix = lang === "zh" ? `${(t as any).weekLabel} ${w + 1} ${(t as any).weeksLabel}` : `${(t as any).weekLabel} ${w + 1}`;
       opts.push({ value: w, label: `${prefix} - ${dayName}, ${dateStr}` });
     }
     return opts;
-  }, [totalWeeks, userInfo, lang, t]);
+  }, [totalWeeks, trainingStartDate, lang, t, dateLocale]);
 
+  // Build 7 daily cards for the selected week, with correct dates and Week X header
   const weekWorkoutDays = useMemo(() => {
     if (!plan?.workout_plan) return [];
-    const start = selectedWeek * trainingDaysPerWeek;
-    return plan.workout_plan.slice(start, start + trainingDaysPerWeek);
-  }, [plan?.workout_plan, selectedWeek, trainingDaysPerWeek]);
+    const weekStartDate = addDays(trainingStartDate, selectedWeek * 7);
+    const weekNum = selectedWeek + 1;
+    const prefixWeek = lang === "zh" ? `${(t as any).weekLabel} ${weekNum} ${(t as any).weeksLabel}` : `${(t as any).weekLabel} ${weekNum}`;
+
+    // We have trainingDaysPerWeek exercises from the plan for this week
+    const planStart = selectedWeek * trainingDaysPerWeek;
+    const weekExercises = plan.workout_plan.slice(planStart, planStart + trainingDaysPerWeek);
+
+    // Build 7 day cards; map exercises to training days, rest for others
+    const days: DayPlan[] = [];
+    let exerciseIdx = 0;
+    for (let d = 0; d < 7; d++) {
+      const dayDate = addDays(weekStartDate, d);
+      const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
+      const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
+
+      if (exerciseIdx < weekExercises.length) {
+        const original = weekExercises[exerciseIdx];
+        // Extract focus label from original day name (e.g. "Full Body Upper Focus")
+        const focusMatch = original.day.match(/\(([^)]+)\)/);
+        const focus = focusMatch ? ` (${focusMatch[1]})` : "";
+        days.push({
+          ...original,
+          day: `${prefixWeek} - ${dayName}, ${dateStr}${focus}`,
+        });
+        exerciseIdx++;
+      } else {
+        // Rest day
+        const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
+        days.push({
+          day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
+          exercises: [],
+        });
+      }
+    }
+    return days;
+  }, [plan?.workout_plan, selectedWeek, trainingDaysPerWeek, trainingStartDate, lang, t, dateLocale]);
 
   useEffect(() => {
     localStorage.setItem("suryaFitSelectedWeek", String(selectedWeek));

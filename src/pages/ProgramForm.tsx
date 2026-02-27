@@ -236,7 +236,7 @@ export default function ProgramForm() {
 
             <div className="space-y-2">
               <Label>{t.fitnessGoal}</Label>
-              <Input value={form.goal} onChange={(e) => set("goal", e.target.value)} className="bg-secondary border-border" />
+              <Input value={form.goal} onChange={(e) => set("goal", e.target.value)} placeholder={(t as any).fitnessGoalPlaceholder} className="bg-secondary border-border" />
             </div>
           </div>
 
