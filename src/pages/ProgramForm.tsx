@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,7 @@ export default function ProgramForm() {
     gender: "",
     weight: "",
     height: "",
-    goal: program?.goal || "",
+    goal: (t as any)[`${type}Goal`] || program?.goal || "",
     duration: "1 Month",
     experience: "Beginner",
     limitations: "",
@@ -90,6 +90,15 @@ export default function ProgramForm() {
     mealFrequency: "4",
     intermittentFasting: false,
   });
+
+  // Sync goal text when language changes
+  useEffect(() => {
+    const goalKey = `${type}Goal` as keyof typeof t;
+    const localizedGoal = (t as any)[goalKey];
+    if (localizedGoal) {
+      setForm((p) => ({ ...p, goal: localizedGoal }));
+    }
+  }, [lang, type, t]);
 
   const set = (key: string, val: any) => setForm((p) => ({ ...p, [key]: val }));
 
