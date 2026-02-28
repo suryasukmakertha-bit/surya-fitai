@@ -323,6 +323,7 @@ const translations = {
     // Exercise Detail Popup
     tipsLabel: "Tips",
     weightRecommendation: "Weight Recommendation",
+    notesLabel: "Notes",
 
     // Enhanced Results
     sessionTimeBanner: "Session time matched: {minutes} minutes (5 min warm-up + lifting + 5 min cool-down)",
@@ -659,6 +660,7 @@ const translations = {
     // Exercise Detail Popup
     tipsLabel: "Tips",
     weightRecommendation: "Rekomendasi Beban",
+    notesLabel: "Catatan",
 
     // Enhanced Results
     sessionTimeBanner: "Waktu sesi cocok: {minutes} menit (5 mnt pemanasan + angkat beban + 5 mnt pendinginan)",
@@ -995,6 +997,7 @@ const translations = {
     // Exercise Detail Popup
     tipsLabel: "技巧",
     weightRecommendation: "重量建议",
+    notesLabel: "备注",
 
     // Enhanced Results
     sessionTimeBanner: "训练时间匹配：{minutes} 分钟（5分钟热身 + 力量训练 + 5分钟拉伸）",
