@@ -81,7 +81,7 @@ export default function SavedPlans() {
             {t.savedPlans} <span className="text-gradient">{t.plans}</span>
           </h1>
           <Button onClick={() => navigate("/programs")} size="sm">
-            <Plus className="w-4 h-4 mr-1" /> {t.addPlan || "Add Plan"}
+            + {t.addPlan || "Add Plan"}
           </Button>
         </div>
         <p className="text-muted-foreground mb-8">{t.savedPlansDesc}</p>
