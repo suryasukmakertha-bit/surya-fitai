@@ -255,7 +255,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
             {/* Notes */}
             {selectedExercise?.notes && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📝 Notes</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📝 {(t as any).notesLabel || "Notes"}</p>
                 <p className="text-sm text-muted-foreground">{selectedExercise.notes}</p>
               </div>
             )}
