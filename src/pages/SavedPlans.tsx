@@ -20,7 +20,7 @@ interface SavedPlan {
 
 export default function SavedPlans() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [plans, setPlans] = useState<SavedPlan[]>([]);
@@ -29,12 +29,13 @@ export default function SavedPlans() {
   const [editName, setEditName] = useState("");
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate("/auth");
       return;
     }
     fetchPlans();
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchPlans = async () => {
     const { data, error } = await supabase
