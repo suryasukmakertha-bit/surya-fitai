@@ -77,6 +77,104 @@ interface CheckIn {
   note?: string;
 }
 
+type DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+const DAY_INDEX_LOOKUP: Record<string, DayIndex> = {
+  sunday: 0,
+  sun: 0,
+  minggu: 0,
+  ahad: 0,
+  "星期日": 0,
+  "周日": 0,
+  monday: 1,
+  mon: 1,
+  senin: 1,
+  "星期一": 1,
+  "周一": 1,
+  tuesday: 2,
+  tue: 2,
+  tues: 2,
+  selasa: 2,
+  "星期二": 2,
+  "周二": 2,
+  wednesday: 3,
+  wed: 3,
+  rabu: 3,
+  "星期三": 3,
+  "周三": 3,
+  thursday: 4,
+  thu: 4,
+  thur: 4,
+  thurs: 4,
+  kamis: 4,
+  "星期四": 4,
+  "周四": 4,
+  friday: 5,
+  fri: 5,
+  jumat: 5,
+  "星期五": 5,
+  "周五": 5,
+  saturday: 6,
+  sat: 6,
+  sabtu: 6,
+  "星期六": 6,
+  "周六": 6,
+};
+
+const getDayIndexFromText = (value: string): DayIndex | null => {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[，、]/g, ",")
+    .replace(/[()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  for (const [token, idx] of Object.entries(DAY_INDEX_LOOKUP)) {
+    if (normalized.includes(token)) return idx;
+  }
+
+  return null;
+};
+
+const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
+  const workoutByDay = new Map<DayIndex, string>();
+  const restDays = new Set<DayIndex>();
+
+  const lines = (weeklySplit ?? [])
+    .flatMap((entry) => entry.split(/\n+/))
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    const content = line.includes(":") ? line.split(":").slice(1).join(":").trim() : line;
+
+    if (/(rest\s*days?|istirahat|休息)/i.test(lower)) {
+      const dayTokens = content
+        .replace(/\band\b/gi, ",")
+        .split(/[,/|]/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      dayTokens.forEach((token) => {
+        const idx = getDayIndexFromText(token);
+        if (idx !== null) restDays.add(idx);
+      });
+      continue;
+    }
+
+    const match = content.match(/^([^-–—]+?)\s*[-–—]\s*(.+)$/);
+    if (!match) continue;
+
+    const dayToken = match[1].trim();
+    const workoutLabel = match[2].trim();
+    const idx = getDayIndexFromText(dayToken);
+    if (idx !== null) workoutByDay.set(idx, workoutLabel);
+  }
+
+  return { workoutByDay, restDays };
+};
+
 const DRAFT_KEY = "suryaFitDraft";
 
 export default function Results() {
@@ -221,46 +319,94 @@ export default function Results() {
     return opts;
   }, [totalWeeks, trainingStartDate, lang, t, dateLocale]);
 
-  // Build 7 daily cards for the selected week, with correct dates and Week X header
+  // Build 7 daily cards from Weekly Split (single source of truth)
   const weekWorkoutDays = useMemo(() => {
     if (!plan?.workout_plan) return [];
+
     const weekStartDate = addDays(trainingStartDate, selectedWeek * 7);
     const weekNum = selectedWeek + 1;
     const prefixWeek = lang === "zh" ? `${(t as any).weekLabel} ${weekNum} ${(t as any).weeksLabel}` : `${(t as any).weekLabel} ${weekNum}`;
 
-    // We have trainingDaysPerWeek exercises from the plan for this week
-    const planStart = selectedWeek * trainingDaysPerWeek;
-    const weekExercises = plan.workout_plan.slice(planStart, planStart + trainingDaysPerWeek);
+    const split = parseWeeklySplit(plan.weeklySplit);
+    const hasSplitMapping = split.workoutByDay.size > 0 || split.restDays.size > 0;
 
-    // Build 7 day cards; map exercises to training days, rest for others
+    const workoutTemplates = plan.workout_plan.filter((entry) => entry.exercises.length > 0);
+    const workoutTemplateByDay = new Map<DayIndex, DayPlan>();
+
+    for (const template of workoutTemplates) {
+      const idx = getDayIndexFromText(template.day);
+      if (idx !== null && !workoutTemplateByDay.has(idx)) {
+        workoutTemplateByDay.set(idx, template);
+      }
+    }
+
+    // Fallback mapping when AI day labels cannot be parsed from workout_plan
+    const unmatchedTemplates = workoutTemplates.filter((template) => {
+      const idx = getDayIndexFromText(template.day);
+      return idx === null || !split.workoutByDay.has(idx);
+    });
+
+    Array.from(split.workoutByDay.keys()).forEach((splitDayIdx) => {
+      if (!workoutTemplateByDay.has(splitDayIdx)) {
+        const fallback = unmatchedTemplates.shift() ?? workoutTemplates[0];
+        if (fallback) workoutTemplateByDay.set(splitDayIdx, fallback);
+      }
+    });
+
     const days: DayPlan[] = [];
-    let exerciseIdx = 0;
+
     for (let d = 0; d < 7; d++) {
       const dayDate = addDays(weekStartDate, d);
       const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
       const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
+      const dayIndex = dayDate.getDay() as DayIndex;
 
-      if (exerciseIdx < weekExercises.length) {
-        const original = weekExercises[exerciseIdx];
-        // Extract focus label from original day name (e.g. "Full Body Upper Focus")
-        const focusMatch = original.day.match(/\(([^)]+)\)/);
+      if (hasSplitMapping) {
+        const workoutLabel = split.workoutByDay.get(dayIndex);
+        const isRest = split.restDays.has(dayIndex) || !workoutLabel;
+
+        if (isRest) {
+          const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
+          days.push({
+            day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
+            exercises: [],
+          });
+          continue;
+        }
+
+        const template = workoutTemplateByDay.get(dayIndex) ?? workoutTemplates[0];
+        days.push({
+          day: `${prefixWeek} - ${dayName}, ${dateStr} (${workoutLabel})`,
+          exercises: template?.exercises ?? [],
+        });
+        continue;
+      }
+
+      // Legacy fallback for old plans without weeklySplit
+      const planStart = selectedWeek * trainingDaysPerWeek;
+      const weekExercises = plan.workout_plan.slice(planStart, planStart + trainingDaysPerWeek);
+      const dayWorkout = weekExercises[d];
+      if (dayWorkout) {
+        const focusMatch = dayWorkout.day.match(/\(([^)]+)\)/);
         const focus = focusMatch ? ` (${focusMatch[1]})` : "";
-        days.push({
-          ...original,
-          day: `${prefixWeek} - ${dayName}, ${dateStr}${focus}`,
-        });
-        exerciseIdx++;
+        days.push({ ...dayWorkout, day: `${prefixWeek} - ${dayName}, ${dateStr}${focus}` });
       } else {
-        // Rest day
         const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
-        days.push({
-          day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
-          exercises: [],
-        });
+        days.push({ day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`, exercises: [] });
       }
     }
+
     return days;
-  }, [plan?.workout_plan, selectedWeek, trainingDaysPerWeek, trainingStartDate, lang, t, dateLocale]);
+  }, [
+    plan?.workout_plan,
+    plan?.weeklySplit,
+    selectedWeek,
+    trainingDaysPerWeek,
+    trainingStartDate,
+    lang,
+    t,
+    dateLocale,
+  ]);
 
   useEffect(() => {
     localStorage.setItem("suryaFitSelectedWeek", String(selectedWeek));
