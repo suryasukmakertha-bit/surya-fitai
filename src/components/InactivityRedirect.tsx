@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const STORAGE_KEY = "suryaFitLastActivity";
+const SESSION_KEY = "suryaFitSessionActive";
 const INACTIVITY_THRESHOLD = 3600000; // 1 hour
 const DEBOUNCE_MS = 30000; // 30 seconds
 
@@ -10,13 +11,21 @@ export default function InactivityRedirect({ children }: { children: React.React
   const location = useLocation();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Check on mount if user was inactive > 1 hour
+  // On every fresh page load (new tab / refresh), redirect to homepage
   useEffect(() => {
+    const isExistingSession = sessionStorage.getItem(SESSION_KEY);
+    if (!isExistingSession && location.pathname !== "/") {
+      sessionStorage.setItem(SESSION_KEY, "1");
+      navigate("/", { replace: true });
+      return;
+    }
+    sessionStorage.setItem(SESSION_KEY, "1");
+
+    // Also check inactivity
     const last = localStorage.getItem(STORAGE_KEY);
     if (last && Date.now() - Number(last) > INACTIVITY_THRESHOLD && location.pathname !== "/") {
       navigate("/", { replace: true });
     }
-    // Always update on mount
     localStorage.setItem(STORAGE_KEY, String(Date.now()));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
