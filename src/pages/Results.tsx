@@ -210,6 +210,24 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
       continue;
     }
 
+    // Format: "Day 1: Full Body Strength & Form (Monday)" — day name in trailing parentheses
+    const numberedTrailingDay = line.match(/^(?:day|hari)\s*\d+\s*:\s*(.+?)\s*\(([^)]+)\)\s*$/i);
+    if (numberedTrailingDay) {
+      const [, label, dayToken] = numberedTrailingDay;
+      if (assignDay(dayToken, label)) continue;
+    }
+
+    // Format: "Day 3-7: Recovery & Sleep Focus" — day range as rest
+    const numberedRange = line.match(/^(?:day|hari)\s*(\d+)\s*-\s*(\d+)\s*:\s*(.+)$/i);
+    if (numberedRange) {
+      const [, , , label] = numberedRange;
+      if (isRestLabel(label)) {
+        // We can't map numbered ranges to specific weekdays without more context,
+        // so skip — the gap-filling logic will mark unmapped days as rest
+      }
+      continue;
+    }
+
     // Format: "Day 1: Saturday - Full Body ..." / "Hari 2: Rabu - Istirahat"
     const numberedWithDash = line.match(/^(?:day|hari)\s*\d+\s*:\s*([^-:]+?)\s*-\s*(.+)$/i);
     if (numberedWithDash) {
