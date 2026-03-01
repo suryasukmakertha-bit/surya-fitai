@@ -42,6 +42,7 @@ const getMondayBasedDayIndex = (date: Date): DayIndex => {
 const parseWeeklySplit = (weeklySplit: string[]) => {
   const workoutByDay = new Map<DayIndex, string>();
   const restDays = new Set<DayIndex>();
+  const orderedWorkoutLabels: string[] = [];
   const lines = weeklySplit.flatMap((e) => e.split(/\n+/)).map((e) => e.trim()).filter(Boolean);
 
   const isRestLabel = (value: string) => {
@@ -63,6 +64,17 @@ const parseWeeklySplit = (weeklySplit: string[]) => {
     const line = rawLine.replace(/[–—]/g, "-").trim();
     const numberedParenthesized = line.match(/^(?:day|hari)\s*\d+\s*\(([^)]+)\)\s*:\s*(.+)$/i);
     if (numberedParenthesized) { assignDay(numberedParenthesized[1], numberedParenthesized[2]); continue; }
+    const numberedTrailingDay = line.match(/^(?:day|hari)\s*\d+\s*:\s*(.+?)\s*\(([^)]+)\)\s*$/i);
+    if (numberedTrailingDay) { if (assignDay(numberedTrailingDay[2], numberedTrailingDay[1])) continue; }
+    const numberedRange = line.match(/^(?:day|hari)\s*(\d+)\s*-\s*(\d+)\s*:\s*(.+)$/i);
+    if (numberedRange) { continue; }
+    const numberedNoWeekday = line.match(/^(?:day|hari)\s*(\d+)\s*:\s*(.+)$/i);
+    if (numberedNoWeekday) {
+      const order = Number(numberedNoWeekday[1]);
+      const label = numberedNoWeekday[2];
+      if (Number.isFinite(order) && order > 0 && !isRestLabel(label)) orderedWorkoutLabels[order - 1] = label.trim();
+      continue;
+    }
     const numberedWithDash = line.match(/^(?:day|hari)\s*\d+\s*:\s*([^-:]+?)\s*-\s*(.+)$/i);
     if (numberedWithDash) { assignDay(numberedWithDash[1], numberedWithDash[2]); continue; }
     const restList = line.match(/^(?:rest\s*days?|hari\s*istirahat)\s*:\s*(.+)$/i);
@@ -74,7 +86,7 @@ const parseWeeklySplit = (weeklySplit: string[]) => {
     const fallbackIdx = getDayIndexFromText(line);
     if (fallbackIdx !== null && isRestLabel(line)) { restDays.add(fallbackIdx); workoutByDay.delete(fallbackIdx); }
   }
-  return { workoutByDay, restDays };
+  return { workoutByDay, restDays, orderedWorkoutLabels: orderedWorkoutLabels.filter(Boolean) };
 };
 
 // ---- Tests ----
@@ -136,6 +148,29 @@ describe("parseWeeklySplit", () => {
     const split = parseWeeklySplit(["Sabtu: Active Recovery (Jalan Santai)"]);
     expect(split.restDays.has(5)).toBe(true);
     expect(split.workoutByDay.has(5)).toBe(false);
+  });
+
+  it("captures ordered workout labels when weekly split has numbered days without weekday names", () => {
+    const split = parseWeeklySplit([
+      "Day 1: Full Body A (fokus Compound Dasar)",
+      "Day 2: Full Body B (fokus Aksesoris & Stabilitas)",
+    ]);
+
+    expect(split.workoutByDay.size).toBe(0);
+    expect(split.orderedWorkoutLabels).toEqual([
+      "Full Body A (fokus Compound Dasar)",
+      "Full Body B (fokus Aksesoris & Stabilitas)",
+    ]);
+
+    const templateDayOrder: DayIndex[] = [0, 2]; // Monday, Wednesday from workout_plan template days
+    const inferred = new Map<DayIndex, string>();
+    split.orderedWorkoutLabels.forEach((label, order) => {
+      const dayIdx = templateDayOrder[order];
+      if (dayIdx !== undefined) inferred.set(dayIdx, label);
+    });
+
+    expect(inferred.get(0)).toContain("Full Body A");
+    expect(inferred.get(2)).toContain("Full Body B");
   });
 });
 
