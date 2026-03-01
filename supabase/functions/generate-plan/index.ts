@@ -107,7 +107,7 @@ serve(async (req) => {
     const {
       name, age, gender, weight, height, goal, duration, experience, limitations,
       programType, language, allergies, occupation, restDays, trainingDaysPerWeek,
-      startDate, startDay, foodStyle,
+      startDate, startDay, foodStyle, dietType,
       sessionDuration, equipment, dailySteps, sleepHours, sleepQuality,
       stressLevel, nightShift, mealFrequency, intermittentFasting
     } = body;
@@ -253,8 +253,20 @@ SCHEDULING:
 
 MEAL PLAN RULES:
 - Food style: "${foodStyle || 'local'}"
+- Diet type: "${dietType || 'omnivore'}"
 - Meal frequency: ${mealFrequency || 4} meals per day
 ${intermittentFasting ? '- Apply 16/8 Intermittent Fasting: first meal at 12:00 PM, last meal by 8:00 PM' : ''}
+
+CRITICAL DIET TYPE RESTRICTIONS (MUST BE STRICTLY ENFORCED):
+${dietType === 'vegetarian' ? `- VEGETARIAN DIET: ABSOLUTELY NO meat, poultry, fish, or seafood of any kind.
+- PROHIBITED ingredients (never include): chicken, beef, pork, lamb, turkey, duck, fish (tuna, salmon, tilapia, ikan kembung, etc.), shrimp, crab, squid, any other animal flesh.
+- ALLOWED protein sources ONLY: eggs, dairy (milk, cheese, yogurt), tofu, tempeh, tahu, lentils, chickpeas, beans (kacang merah, kacang hitam), edamame, nuts, seeds, quinoa, seitan, paneer, cottage cheese.
+- Every meal MUST use plant-based or lacto-ovo protein sources. Double-check every ingredient before including it.` : ''}
+${dietType === 'vegan' ? `- VEGAN DIET: ABSOLUTELY NO animal products of any kind.
+- PROHIBITED ingredients (never include): all meat, poultry, fish, seafood, eggs, dairy (milk, cheese, butter, yogurt, whey), honey, gelatin, any animal-derived ingredient.
+- ALLOWED protein sources ONLY: tofu, tempeh, tahu, seitan, lentils, chickpeas, beans, edamame, nuts, seeds, quinoa, nutritional yeast, plant milks (soy, almond, oat), plant-based protein powder.
+- Every meal MUST be 100% plant-based. Double-check every ingredient before including it.` : ''}
+${!dietType || dietType === 'omnivore' ? '- Omnivore diet: all food sources allowed including meat, fish, eggs, dairy, and plant-based.' : ''}
 - STRICTLY follow the food style preference
 - Include portion sizes in grams or household measures
 - Adjust calories and macros based on the exact calculated targets above
@@ -291,6 +303,7 @@ Generate ALL text content in ${lang}. JSON keys must remain in English.`;
 - Training Days: ${workoutDays}/week, Rest Days: ${restDaysNum}/week
 - Start Date: ${startDate || "Next Monday"} (${startDay || "Monday"})
 - Food Style: ${foodStyle || "local"}
+- Diet Type: ${dietType || "omnivore"} ${dietType === 'vegetarian' ? '(NO meat/fish/poultry allowed)' : dietType === 'vegan' ? '(NO animal products at all)' : ''}
 - Meal Frequency: ${mealFrequency || 4} meals/day
 - Intermittent Fasting: ${intermittentFasting ? "Yes (16/8)" : "No"}
 - Daily Steps/NEAT: ${dailySteps || "4000-8000"}
