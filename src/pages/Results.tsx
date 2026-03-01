@@ -176,10 +176,17 @@ const isRestLabelText = (value: string) => {
   return hasRestHint && !hasWorkoutHint;
 };
 
+type NumberedDayEntry = {
+  order: number;
+  label: string;
+  isRest: boolean;
+};
+
 const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
   const workoutByDay = new Map<DayIndex, string>();
   const restDays = new Set<DayIndex>();
   const orderedWorkoutLabels: string[] = [];
+  const numberedDayEntriesMap = new Map<number, NumberedDayEntry>();
 
   const lines = (weeklySplit ?? [])
     .flatMap((entry) => entry.split(/\n+/))
@@ -223,19 +230,8 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
     if (numberedRange) {
       const [, , , label] = numberedRange;
       if (isRestLabelText(label)) {
-        // We can't map numbered ranges to specific weekdays without more context,
-        // so skip — the gap-filling logic will mark unmapped days as rest.
-      }
-      continue;
-    }
-
-    // Format: "Day 1: Full Body A" (no weekday token) — keep order for later inference
-    const numberedNoWeekday = line.match(/^(?:day|hari)\s*(\d+)\s*:\s*(.+)$/i);
-    if (numberedNoWeekday) {
-      const [, orderToken, label] = numberedNoWeekday;
-      const order = Number(orderToken);
-      if (Number.isFinite(order) && order > 0 && !isRestLabelText(label)) {
-        orderedWorkoutLabels[order - 1] = label.trim();
+        // We can't map numbered ranges to specific weekdays without more context.
+        // Leave this to gap-filling and other signals.
       }
       continue;
     }
@@ -244,7 +240,22 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
     const numberedWithDash = line.match(/^(?:day|hari)\s*\d+\s*:\s*([^-:]+?)\s*-\s*(.+)$/i);
     if (numberedWithDash) {
       const [, dayToken, label] = numberedWithDash;
-      assignDay(dayToken, label);
+      if (assignDay(dayToken, label)) continue;
+    }
+
+    // Format: "Day 1: Full Body A" (no weekday token) — keep order for day-index inference
+    const numberedNoWeekday = line.match(/^(?:day|hari)\s*(\d+)\s*:\s*(.+)$/i);
+    if (numberedNoWeekday) {
+      const [, orderToken, label] = numberedNoWeekday;
+      const order = Number(orderToken);
+      if (Number.isFinite(order) && order > 0) {
+        const trimmedLabel = label.trim();
+        const isRest = isRestLabelText(trimmedLabel);
+        numberedDayEntriesMap.set(order, { order, label: trimmedLabel, isRest });
+        if (!isRest) {
+          orderedWorkoutLabels[order - 1] = trimmedLabel;
+        }
+      }
       continue;
     }
 
@@ -293,6 +304,7 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
     workoutByDay,
     restDays,
     orderedWorkoutLabels: orderedWorkoutLabels.filter(Boolean),
+    numberedDayEntries: Array.from(numberedDayEntriesMap.values()).sort((a, b) => a.order - b.order),
   };
 };
 
@@ -462,7 +474,37 @@ export default function Results() {
       console.log("[WeeklySplitDebug] Raw weeklySplit:", JSON.stringify(plan.weeklySplit));
       const split = parseWeeklySplit(plan.weeklySplit);
 
-      // Inference fallback for formats like: "Day 1: Full Body A" (no weekday token)
+      // Primary fallback for formats like "Day 1: ..." without explicit weekday token.
+      // We map Day 1..7 to the calendar week anchored by the user's training start date.
+      if (
+        split.workoutByDay.size === 0 &&
+        split.restDays.size === 0 &&
+        split.numberedDayEntries.length > 0
+      ) {
+        const weekStartDayIndex = getMondayBasedDayIndex(trainingStartDate);
+
+        split.numberedDayEntries.forEach((entry) => {
+          const dayOffset = (entry.order - 1) % 7;
+          const mappedDayIdx = ((weekStartDayIndex + dayOffset + 7) % 7) as DayIndex;
+
+          if (entry.isRest) {
+            split.restDays.add(mappedDayIdx);
+            split.workoutByDay.delete(mappedDayIdx);
+          } else {
+            split.workoutByDay.set(mappedDayIdx, entry.label);
+            split.restDays.delete(mappedDayIdx);
+          }
+        });
+
+        console.log(
+          "[WeeklySplitDebug] Mapped numbered Day N entries using training start day:",
+          Object.fromEntries(split.workoutByDay),
+          "restDays:",
+          [...split.restDays]
+        );
+      }
+
+      // Secondary fallback for old/irregular formats where only workout labels can be ordered.
       if (split.workoutByDay.size === 0 && split.orderedWorkoutLabels.length > 0) {
         const templateDayOrder = plan.workout_plan
           .filter((entry) => entry.exercises.length > 0)
@@ -482,7 +524,9 @@ export default function Results() {
           })
           .filter((idx, index, arr) => arr.indexOf(idx) === index);
 
-        const inferredDayOrder = templateDayOrder.length > 0 ? templateDayOrder : scheduleDayOrder;
+        // Pick the order source with broader coverage so we don't truncate workout days.
+        const inferredDayOrder =
+          scheduleDayOrder.length > templateDayOrder.length ? scheduleDayOrder : templateDayOrder;
 
         split.orderedWorkoutLabels.forEach((label, order) => {
           const dayIdx = inferredDayOrder[order];
