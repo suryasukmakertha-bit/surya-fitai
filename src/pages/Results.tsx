@@ -77,49 +77,62 @@ interface CheckIn {
   note?: string;
 }
 
-type DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+type DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6; // Monday=0 ... Sunday=6
 
-const DAY_INDEX_LOOKUP: Record<string, DayIndex> = {
-  sunday: 0,
-  sun: 0,
-  minggu: 0,
-  ahad: 0,
-  "星期日": 0,
-  "周日": 0,
-  monday: 1,
-  mon: 1,
-  senin: 1,
-  "星期一": 1,
-  "周一": 1,
-  tuesday: 2,
-  tue: 2,
-  tues: 2,
-  selasa: 2,
-  "星期二": 2,
-  "周二": 2,
-  wednesday: 3,
-  wed: 3,
-  rabu: 3,
-  "星期三": 3,
-  "周三": 3,
-  thursday: 4,
-  thu: 4,
-  thur: 4,
-  thurs: 4,
-  kamis: 4,
-  "星期四": 4,
-  "周四": 4,
-  friday: 5,
-  fri: 5,
-  jumat: 5,
-  "星期五": 5,
-  "周五": 5,
-  saturday: 6,
-  sat: 6,
-  sabtu: 6,
-  "星期六": 6,
-  "周六": 6,
+type DayToken = {
+  token: string;
+  idx: DayIndex;
+  ambiguous?: boolean;
 };
+
+const DAY_TOKEN_LOOKUP: DayToken[] = [
+  { token: "monday", idx: 0 },
+  { token: "mon", idx: 0 },
+  { token: "senin", idx: 0 },
+  { token: "星期一", idx: 0 },
+  { token: "周一", idx: 0 },
+
+  { token: "tuesday", idx: 1 },
+  { token: "tues", idx: 1 },
+  { token: "tue", idx: 1 },
+  { token: "selasa", idx: 1 },
+  { token: "星期二", idx: 1 },
+  { token: "周二", idx: 1 },
+
+  { token: "wednesday", idx: 2 },
+  { token: "wed", idx: 2 },
+  { token: "rabu", idx: 2 },
+  { token: "星期三", idx: 2 },
+  { token: "周三", idx: 2 },
+
+  { token: "thursday", idx: 3 },
+  { token: "thurs", idx: 3 },
+  { token: "thur", idx: 3 },
+  { token: "thu", idx: 3 },
+  { token: "kamis", idx: 3 },
+  { token: "星期四", idx: 3 },
+  { token: "周四", idx: 3 },
+
+  { token: "friday", idx: 4 },
+  { token: "fri", idx: 4 },
+  { token: "jumat", idx: 4 },
+  { token: "星期五", idx: 4 },
+  { token: "周五", idx: 4 },
+
+  { token: "saturday", idx: 5 },
+  { token: "sat", idx: 5 },
+  { token: "sabtu", idx: 5 },
+  { token: "星期六", idx: 5 },
+  { token: "周六", idx: 5 },
+
+  // "minggu" can mean Sunday OR "week" in Indonesian context, so mark ambiguous.
+  { token: "sunday", idx: 6 },
+  { token: "sun", idx: 6 },
+  { token: "minggu", idx: 6, ambiguous: true },
+  { token: "ahad", idx: 6 },
+  { token: "星期日", idx: 6 },
+  { token: "周日", idx: 6 },
+];
 
 const getDayIndexFromText = (value: string): DayIndex | null => {
   const normalized = value
@@ -129,11 +142,30 @@ const getDayIndexFromText = (value: string): DayIndex | null => {
     .replace(/\s+/g, " ")
     .trim();
 
-  for (const [token, idx] of Object.entries(DAY_INDEX_LOOKUP)) {
-    if (normalized.includes(token)) return idx;
-  }
+  const matches: Array<{ idx: DayIndex; position: number; ambiguous: boolean }> = [];
 
-  return null;
+  DAY_TOKEN_LOOKUP.forEach(({ token, idx, ambiguous }) => {
+    const isAscii = /^[a-z]+$/.test(token);
+    const pattern = isAscii ? new RegExp(`\\b${token}\\b`, "g") : new RegExp(token, "g");
+
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(normalized)) !== null) {
+      matches.push({ idx, position: match.index, ambiguous: Boolean(ambiguous) });
+    }
+  });
+
+  if (matches.length === 0) return null;
+
+  const hasNonAmbiguous = matches.some((m) => !m.ambiguous);
+  const relevantMatches = hasNonAmbiguous ? matches.filter((m) => !m.ambiguous) : matches;
+
+  relevantMatches.sort((a, b) => b.position - a.position);
+  return relevantMatches[0].idx;
+};
+
+const getMondayBasedDayIndex = (date: Date): DayIndex => {
+  // date-fns ISO day: 1=Monday ... 7=Sunday
+  return (Number(fnsFormat(date, "i")) - 1) as DayIndex;
 };
 
 const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
@@ -147,8 +179,10 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
 
   const isRestLabel = (value: string) => {
     const lower = value.toLowerCase();
-    return /(rest\s*(?:&\s*recover(?:y)?|days?)?|istirahat|pemulihan|休息|恢复)/i.test(lower)
-      && !/(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body|mobilitas|kekuatan|functional|balance|core|push|pull|legs?)/i.test(lower);
+    const hasWorkoutHint = /(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body|mobilitas|kekuatan|functional|balance|core|push|pull|legs?|endurance|otot|massa|fat\s*loss)/i.test(lower);
+    const hasRestHint = /(\brest\b(?:\s*[/&-]\s*recover(?:y)?)?|\brest\s*day(?:s)?\b|istirahat|pemulihan|active\s*recovery|recovery|休息|恢复)/i.test(lower);
+
+    return hasRestHint && !hasWorkoutHint;
   };
 
   const assignDay = (dayToken: string, label: string) => {
@@ -201,6 +235,13 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
         }
       });
       continue;
+    }
+
+    // Format: "Senin: Full Body ..." / "Wednesday: Upper Body"
+    const directDayColon = line.match(/^([^:]+?)\s*:\s*(.+)$/);
+    if (directDayColon) {
+      const [, dayToken, label] = directDayColon;
+      if (assignDay(dayToken, label)) continue;
     }
 
     // Format: "Wednesday - Upper Body"
@@ -344,11 +385,19 @@ export default function Results() {
   // Resolve the EXACT training start date from user profile
   const trainingStartDate = useMemo(() => {
     const startDateStr = userInfo?.startDate || userInfo?.trainingStartDate;
-    if (!startDateStr) return new Date();
-    // Parse as local date (avoid timezone shift)
+    if (!startDateStr) {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0, 0);
+    }
+
+    // Parse as local date at noon to avoid timezone/day-boundary drift.
     const parts = startDateStr.split("-");
-    if (parts.length === 3) return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    return new Date(startDateStr);
+    if (parts.length === 3) {
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0, 0);
+    }
+
+    const parsed = new Date(startDateStr);
+    return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12, 0, 0, 0);
   }, [userInfo]);
 
   const dateLocale = lang === "id" ? idLocale : lang === "zh" ? zhCN : undefined;
@@ -373,45 +422,63 @@ export default function Results() {
     const weekNum = selectedWeek + 1;
     const prefixWeek = lang === "zh" ? `${(t as any).weekLabel} ${weekNum} ${(t as any).weeksLabel}` : `${(t as any).weekLabel} ${weekNum}`;
 
-    const split = parseWeeklySplit(plan.weeklySplit);
-    const hasSplitMapping = split.workoutByDay.size > 0 || split.restDays.size > 0;
+    const splitConfigured = Array.isArray(plan.weeklySplit) && plan.weeklySplit.length > 0;
 
-    const workoutTemplates = plan.workout_plan.filter((entry) => entry.exercises.length > 0);
-    const workoutTemplateByDay = new Map<DayIndex, DayPlan>();
+    if (splitConfigured) {
+      const split = parseWeeklySplit(plan.weeklySplit);
 
-    for (const template of workoutTemplates) {
-      const idx = getDayIndexFromText(template.day);
-      if (idx !== null && !workoutTemplateByDay.has(idx)) {
-        workoutTemplateByDay.set(idx, template);
+      if (split.workoutByDay.size === 0 && split.restDays.size === 0) {
+        throw new Error("[WeeklySplitMismatch] Weekly Split exists but no valid weekday mapping could be parsed.");
       }
-    }
 
-    // Fallback mapping when AI day labels cannot be parsed from workout_plan
-    const unmatchedTemplates = workoutTemplates.filter((template) => {
-      const idx = getDayIndexFromText(template.day);
-      return idx === null || !split.workoutByDay.has(idx);
-    });
+      const workoutTemplates = plan.workout_plan.filter((entry) => entry.exercises.length > 0);
+      const workoutTemplateByDay = new Map<DayIndex, DayPlan>();
 
-    Array.from(split.workoutByDay.keys()).forEach((splitDayIdx) => {
-      if (!workoutTemplateByDay.has(splitDayIdx)) {
-        const fallback = unmatchedTemplates.shift() ?? workoutTemplates[0];
-        if (fallback) workoutTemplateByDay.set(splitDayIdx, fallback);
+      for (const template of workoutTemplates) {
+        const idx = getDayIndexFromText(template.day);
+        if (idx !== null && !workoutTemplateByDay.has(idx)) {
+          workoutTemplateByDay.set(idx, template);
+        }
       }
-    });
 
-    const days: DayPlan[] = [];
+      // Controlled fallback: assign unmatched templates by split training-day order.
+      const splitTrainingDays = Array.from(split.workoutByDay.keys()).sort((a, b) => a - b);
+      const unmatchedTemplates = workoutTemplates.filter((template) => {
+        const idx = getDayIndexFromText(template.day);
+        return idx === null || !split.workoutByDay.has(idx);
+      });
 
-    for (let d = 0; d < 7; d++) {
-      const dayDate = addDays(weekStartDate, d);
-      const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
-      const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
-      const dayIndex = dayDate.getDay() as DayIndex;
+      for (const splitDayIdx of splitTrainingDays) {
+        if (!workoutTemplateByDay.has(splitDayIdx)) {
+          const nextTemplate = unmatchedTemplates.shift();
+          if (nextTemplate) workoutTemplateByDay.set(splitDayIdx, nextTemplate);
+        }
+      }
 
-      if (hasSplitMapping) {
+      const days: DayPlan[] = [];
+
+      for (let d = 0; d < 7; d++) {
+        const dayDate = addDays(weekStartDate, d);
+        const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
+        const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
+        const dayIndex = getMondayBasedDayIndex(dayDate);
+
         const workoutLabel = split.workoutByDay.get(dayIndex);
-        const isRest = split.restDays.has(dayIndex) || !workoutLabel;
+        const isRest = split.restDays.has(dayIndex);
+        const splitType: "workout" | "rest" | null = workoutLabel ? "workout" : isRest ? "rest" : null;
 
-        if (isRest) {
+        console.log("[WeeklySplitDebug]", {
+          date: dateStr,
+          resolvedWeekday: dayName,
+          matchedSplitType: splitType,
+          workoutLabel: workoutLabel ?? null,
+        });
+
+        if (!splitType) {
+          throw new Error(`[WeeklySplitMismatch] No split mapping for ${dayName} (${dateStr}). Weekly Split must explicitly define this weekday.`);
+        }
+
+        if (splitType === "rest") {
           const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
           days.push({
             day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
@@ -420,18 +487,31 @@ export default function Results() {
           continue;
         }
 
-        const template = workoutTemplateByDay.get(dayIndex) ?? workoutTemplates[0];
+        const template = workoutTemplateByDay.get(dayIndex);
+        if (!template) {
+          throw new Error(`[WeeklySplitMismatch] Missing workout template for ${dayName} (${dateStr}) with split label "${workoutLabel}".`);
+        }
+
         days.push({
           day: `${prefixWeek} - ${dayName}, ${dateStr} (${workoutLabel})`,
-          exercises: template?.exercises ?? [],
+          exercises: template.exercises,
         });
-        continue;
       }
 
-      // Legacy fallback for old plans without weeklySplit
-      const planStart = selectedWeek * trainingDaysPerWeek;
-      const weekExercises = plan.workout_plan.slice(planStart, planStart + trainingDaysPerWeek);
+      return days;
+    }
+
+    // Legacy fallback for old plans without weeklySplit
+    const days: DayPlan[] = [];
+    const planStart = selectedWeek * trainingDaysPerWeek;
+    const weekExercises = plan.workout_plan.slice(planStart, planStart + trainingDaysPerWeek);
+
+    for (let d = 0; d < 7; d++) {
+      const dayDate = addDays(weekStartDate, d);
+      const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
+      const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
       const dayWorkout = weekExercises[d];
+
       if (dayWorkout) {
         const focusMatch = dayWorkout.day.match(/\(([^)]+)\)/);
         const focus = focusMatch ? ` (${focusMatch[1]})` : "";
