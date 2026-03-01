@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import logoSrc from "@/assets/logo.png";
+
 
 interface Exercise {
   name: string;
@@ -63,8 +63,8 @@ export default function DailyProgressImage({
   const handleDownload = useCallback(async () => {
     const canvas = document.createElement("canvas");
     const W = 800;
-    const itemH = 52;
-    const headerH = 260;
+    const itemH = 44;
+    const headerH = 220;
     const footerH = 80;
     const H = headerH + completedList.length * itemH + footerH + 40;
     canvas.width = W;
@@ -74,26 +74,21 @@ export default function DailyProgressImage({
     // Transparent background
     ctx.clearRect(0, 0, W, H);
 
-    // Load logo
-    const logo = new Image();
-    logo.crossOrigin = "anonymous";
-    await new Promise<void>((resolve) => {
-      logo.onload = () => resolve();
-      logo.onerror = () => resolve();
-      logo.src = logoSrc;
-    });
-
-    // Draw logo centered
-    const logoSize = 80;
-    if (logo.complete && logo.naturalWidth > 0) {
-      ctx.drawImage(logo, (W - logoSize) / 2, 20, logoSize, logoSize);
-    }
+    // Draw "Surya-FitAi" text logo
+    ctx.textAlign = "center";
+    ctx.font = "bold 44px 'Space Grotesk', system-ui, sans-serif";
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 3;
+    ctx.strokeText("Surya-FitAi", W / 2, 70);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("Surya-FitAi", W / 2, 70);
 
     // "THIS IS YOU VS YOU!" header
     ctx.textAlign = "center";
     ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#1a1a2e";
-    const headerY = 130;
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 2;
+    const headerY = 120;
 
     // Split "YOU VS YOU" to highlight
     if (lang === "en") {
@@ -166,7 +161,7 @@ export default function DailyProgressImage({
     const listX = 110;
     ctx.textAlign = "left";
     completedList.forEach((ex, i) => {
-      const y = headerH + i * itemH + 32;
+      const y = headerH + i * itemH + 28;
 
       // Green checkmark circle
       ctx.beginPath();
@@ -184,19 +179,13 @@ export default function DailyProgressImage({
       ctx.lineTo(listX + 6, y - 12);
       ctx.stroke();
 
-      // Exercise name
+      // Exercise name — white with black stroke
       ctx.font = "600 20px 'Space Grotesk', system-ui, sans-serif";
-      ctx.fillStyle = "#1a1a2e";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 2;
+      ctx.strokeText(ex.name, listX + 28, y);
+      ctx.fillStyle = "#ffffff";
       ctx.fillText(ex.name, listX + 28, y);
-
-      // Sets x Reps - Rest
-      ctx.font = "14px 'Space Grotesk', system-ui, sans-serif";
-      ctx.fillStyle = "#9ca3af";
-      ctx.fillText(
-        `${ex.sets} × ${ex.reps} · ${ex.rest} ${t.rest}`,
-        listX + 28,
-        y + 20
-      );
     });
 
     // Date at bottom
