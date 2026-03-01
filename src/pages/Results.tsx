@@ -145,31 +145,77 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
     .map((entry) => entry.trim())
     .filter(Boolean);
 
-  for (const line of lines) {
-    const lower = line.toLowerCase();
-    const content = line.includes(":") ? line.split(":").slice(1).join(":").trim() : line;
+  const isRestLabel = (value: string) => {
+    const lower = value.toLowerCase();
+    return /(rest\s*(?:&\s*recover(?:y)?|days?)?|istirahat|pemulihan|休息|恢复)/i.test(lower)
+      && !/(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body|mobilitas|kekuatan|functional|balance|core|push|pull|legs?)/i.test(lower);
+  };
 
-    if (/(rest\s*(?:&\s*recover|days?)?|istirahat|pemulihan|休息)/i.test(lower) && !/(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body)/i.test(lower)) {
-      const dayTokens = content
+  const assignDay = (dayToken: string, label: string) => {
+    const idx = getDayIndexFromText(dayToken);
+    if (idx === null) return false;
+
+    if (isRestLabel(label)) {
+      restDays.add(idx);
+      workoutByDay.delete(idx);
+    } else {
+      workoutByDay.set(idx, label.trim());
+      restDays.delete(idx);
+    }
+    return true;
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/[–—]/g, "-").trim();
+
+    // Format: "Day 1 (Minggu): Kekuatan ..." / "Hari 2 (Rabu): ..."
+    const numberedParenthesized = line.match(/^(?:day|hari)\s*\d+\s*\(([^)]+)\)\s*:\s*(.+)$/i);
+    if (numberedParenthesized) {
+      const [, dayToken, label] = numberedParenthesized;
+      assignDay(dayToken, label);
+      continue;
+    }
+
+    // Format: "Day 1: Saturday - Full Body ..." / "Hari 2: Rabu - Istirahat"
+    const numberedWithDash = line.match(/^(?:day|hari)\s*\d+\s*:\s*([^-:]+?)\s*-\s*(.+)$/i);
+    if (numberedWithDash) {
+      const [, dayToken, label] = numberedWithDash;
+      assignDay(dayToken, label);
+      continue;
+    }
+
+    // Format: "Rest days: Tuesday, Thursday" / "Hari istirahat: Selasa, Kamis"
+    const restList = line.match(/^(?:rest\s*days?|hari\s*istirahat)\s*:\s*(.+)$/i);
+    if (restList) {
+      const tokens = restList[1]
         .replace(/\band\b/gi, ",")
         .split(/[,/|]/)
         .map((part) => part.trim())
         .filter(Boolean);
 
-      dayTokens.forEach((token) => {
+      tokens.forEach((token) => {
         const idx = getDayIndexFromText(token);
-        if (idx !== null) restDays.add(idx);
+        if (idx !== null) {
+          restDays.add(idx);
+          workoutByDay.delete(idx);
+        }
       });
       continue;
     }
 
-    const match = content.match(/^([^-–—]+?)\s*[-–—]\s*(.+)$/);
-    if (!match) continue;
+    // Format: "Wednesday - Upper Body"
+    const directDayDash = line.match(/^([^-:]+?)\s*-\s*(.+)$/);
+    if (directDayDash) {
+      const [, dayToken, label] = directDayDash;
+      if (assignDay(dayToken, label)) continue;
+    }
 
-    const dayToken = match[1].trim();
-    const workoutLabel = match[2].trim();
-    const idx = getDayIndexFromText(dayToken);
-    if (idx !== null) workoutByDay.set(idx, workoutLabel);
+    // Fallback: line contains a day token + rest keyword
+    const fallbackIdx = getDayIndexFromText(line);
+    if (fallbackIdx !== null && isRestLabel(line)) {
+      restDays.add(fallbackIdx);
+      workoutByDay.delete(fallbackIdx);
+    }
   }
 
   return { workoutByDay, restDays };
