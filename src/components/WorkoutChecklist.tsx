@@ -51,13 +51,20 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
     return match ? match[1] : format(new Date(), "yyyy-MM-dd");
   };
 
-  const buildKey = (dayLabel: string, exerciseName: string) => `${dayLabel}::${exerciseName}`;
+  // Use date-based key for locale-independent persistence
+  const buildKey = (dayLabel: string, exerciseName: string) => {
+    const date = extractDate(dayLabel);
+    return `${date}::${exerciseName}`;
+  };
+
+  // Build key from DB row (uses workout_date directly)
+  const buildDbKey = (workoutDate: string, exerciseId: string) => `${workoutDate}::${exerciseId}`;
 
   const fetchWorkoutState = useCallback(async () => {
     if (!user || !planId) return;
     const { data, error } = await supabase
       .from("workout_completions")
-      .select("exercise_id, day_label, completed")
+      .select("exercise_id, day_label, workout_date, completed")
       .eq("user_id", user.id)
       .eq("plan_id", planId);
 
@@ -68,7 +75,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
 
     const state: CompletionState = {};
     data?.forEach((row) => {
-      state[buildKey(row.day_label, row.exercise_id)] = row.completed;
+      state[buildDbKey(row.workout_date, row.exercise_id)] = row.completed;
     });
     setCompletionState(state);
     setLoading(false);
@@ -161,6 +168,26 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
     <>
       <div className="space-y-4">
         {workoutPlan?.map((day, i) => {
+          const isRestDay = day.exercises.length === 0;
+
+          if (isRestDay) {
+            return (
+              <div key={`day-${day.day}-${i}`} className="card-gradient rounded-lg p-5 border border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-display font-bold text-foreground">{day.day}</h3>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">🌿</span>
+                </div>
+                <div className="flex items-center gap-3 bg-secondary/50 rounded-md px-4 py-4 text-sm">
+                  <span className="text-2xl">😌</span>
+                  <div>
+                    <p className="text-foreground font-medium">{(t as any).restDayTitle || "Rest & Recovery"}</p>
+                    <p className="text-muted-foreground text-xs mt-0.5">{(t as any).restDayTip || "Focus on mobility, nutrition, or light walks today."}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
           const { done, total } = getDayProgress(day);
           return (
             <div key={`day-${day.day}-${i}`} className="card-gradient rounded-lg p-5 border border-border/50">

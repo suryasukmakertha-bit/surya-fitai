@@ -149,7 +149,7 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
     const lower = line.toLowerCase();
     const content = line.includes(":") ? line.split(":").slice(1).join(":").trim() : line;
 
-    if (/(rest\s*days?|istirahat|休息)/i.test(lower)) {
+    if (/(rest\s*(?:&\s*recover|days?)?|istirahat|pemulihan|休息)/i.test(lower) && !/(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body)/i.test(lower)) {
       const dayTokens = content
         .replace(/\band\b/gi, ",")
         .split(/[,/|]/)
@@ -607,33 +607,50 @@ export default function Results() {
             {planId && user ? (
               <WorkoutChecklist workoutPlan={weekWorkoutDays} planId={planId} selectedWeek={selectedWeek} />
             ) : (
-              weekWorkoutDays.map((day, i) => (
-                <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
-                  <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
-                  <div className="space-y-2">
-                    {day.exercises.map((ex, j) => (
-                      <div key={j} className="bg-secondary/50 rounded-md px-4 py-3 text-sm space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-foreground font-medium">{ex.name}</span>
-                          <span className="text-muted-foreground text-xs">
-                            {ex.sets} × {ex.reps} · {ex.rest} {t.rest}
-                            {ex.tempo && ` · ${(t as any).tempoLabel || "Tempo"}: ${ex.tempo}`}
-                          </span>
+              weekWorkoutDays.map((day, i) => {
+                const isRestDay = day.exercises.length === 0;
+                if (isRestDay) {
+                  return (
+                    <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
+                      <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
+                      <div className="flex items-center gap-3 bg-secondary/50 rounded-md px-4 py-4 text-sm">
+                        <span className="text-2xl">😌</span>
+                        <div>
+                          <p className="text-foreground font-medium">{(t as any).restDayTitle || "Rest & Recovery"}</p>
+                          <p className="text-muted-foreground text-xs mt-0.5">{(t as any).restDayTip || "Focus on mobility, nutrition, or light walks today."}</p>
                         </div>
-                        {ex.cues && (
-                          <p className="text-xs text-muted-foreground/80 italic">💡 {ex.cues}</p>
-                        )}
-                        {ex.alternative && (
-                          <p className="text-xs text-muted-foreground/70">↔ {(t as any).alternativeLabel || "Alt"}: {ex.alternative}</p>
-                        )}
-                        {ex.weight_kg && (
-                          <p className="text-xs text-primary/80">🏋️ {ex.weight_kg}</p>
-                        )}
                       </div>
-                    ))}
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
+                    <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
+                    <div className="space-y-2">
+                      {day.exercises.map((ex, j) => (
+                        <div key={j} className="bg-secondary/50 rounded-md px-4 py-3 text-sm space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-foreground font-medium">{ex.name}</span>
+                            <span className="text-muted-foreground text-xs">
+                              {ex.sets} × {ex.reps} · {ex.rest} {t.rest}
+                              {ex.tempo && ` · ${(t as any).tempoLabel || "Tempo"}: ${ex.tempo}`}
+                            </span>
+                          </div>
+                          {ex.cues && (
+                            <p className="text-xs text-muted-foreground/80 italic">💡 {ex.cues}</p>
+                          )}
+                          {ex.alternative && (
+                            <p className="text-xs text-muted-foreground/70">↔ {(t as any).alternativeLabel || "Alt"}: {ex.alternative}</p>
+                          )}
+                          {ex.weight_kg && (
+                            <p className="text-xs text-primary/80">🏋️ {ex.weight_kg}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
 
             {/* Cool-Down */}
