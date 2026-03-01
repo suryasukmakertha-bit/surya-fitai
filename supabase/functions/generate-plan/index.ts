@@ -255,23 +255,48 @@ MEAL PLAN RULES:
 - Food style: "${foodStyle || 'local'}"
 - Diet type: "${dietType || 'omnivore'}"
 - Meal frequency: ${mealFrequency || 4} meals per day
-${intermittentFasting ? '- Apply 16/8 Intermittent Fasting: first meal at 12:00 PM, last meal by 8:00 PM' : ''}
+${intermittentFasting ? '- Apply 16/8 Intermittent Fasting: first meal at 12:00 PM, last meal by 8:00 PM. Cluster ALL meals within the 12:00-20:00 eating window. No meals outside this window. Add a note about the fasting period (20:00-12:00) with hydration tips.' : '- Distribute meals evenly throughout the day starting from breakfast (e.g., 07:00) with 3-4 hour gaps between meals.'}
 
-CRITICAL DIET TYPE RESTRICTIONS (MUST BE STRICTLY ENFORCED):
+MEAL FREQUENCY STRUCTURE (MUST match exactly ${mealFrequency || 4} meals):
+${(mealFrequency || '4') === '3' ? '- Generate exactly 3 meals: Breakfast, Lunch, Dinner.' : ''}
+${(mealFrequency || '4') === '4' ? '- Generate exactly 4 meals: Breakfast, Mid-morning Snack, Lunch, Dinner.' : ''}
+${(mealFrequency || '4') === '5' ? '- Generate exactly 5 meals: Breakfast, Mid-morning Snack, Lunch, Afternoon Snack, Dinner.' : ''}
+${(mealFrequency || '4') === '6' ? '- Generate exactly 6 meals: Breakfast, Mid-morning Snack, Lunch, Afternoon Snack, Dinner, Evening Snack.' : ''}
+- The meal_plan array MUST contain exactly ${mealFrequency || 4} entries. No more, no less.
+- Each meal must have appropriate calorie distribution (e.g., main meals ~25-35% each, snacks ~10-15% each of daily target).
+
+CRITICAL DIET TYPE RESTRICTIONS (MUST BE STRICTLY ENFORCED — ZERO TOLERANCE):
 ${dietType === 'vegetarian' ? `- VEGETARIAN DIET: ABSOLUTELY NO meat, poultry, fish, or seafood of any kind.
 - PROHIBITED ingredients (never include): chicken, beef, pork, lamb, turkey, duck, fish (tuna, salmon, tilapia, ikan kembung, etc.), shrimp, crab, squid, any other animal flesh.
 - ALLOWED protein sources ONLY: eggs, dairy (milk, cheese, yogurt), tofu, tempeh, tahu, lentils, chickpeas, beans (kacang merah, kacang hitam), edamame, nuts, seeds, quinoa, seitan, paneer, cottage cheese.
-- Every meal MUST use plant-based or lacto-ovo protein sources. Double-check every ingredient before including it.` : ''}
+- Every meal MUST use plant-based or lacto-ovo protein sources. Double-check every single ingredient before including it.
+- SELF-CHECK: Before finalizing, re-read every food item and confirm NONE contain meat, poultry, or fish.` : ''}
 ${dietType === 'vegan' ? `- VEGAN DIET: ABSOLUTELY NO animal products of any kind.
 - PROHIBITED ingredients (never include): all meat, poultry, fish, seafood, eggs, dairy (milk, cheese, butter, yogurt, whey), honey, gelatin, any animal-derived ingredient.
 - ALLOWED protein sources ONLY: tofu, tempeh, tahu, seitan, lentils, chickpeas, beans, edamame, nuts, seeds, quinoa, nutritional yeast, plant milks (soy, almond, oat), plant-based protein powder.
-- Every meal MUST be 100% plant-based. Double-check every ingredient before including it.` : ''}
+- Every meal MUST be 100% plant-based. Double-check every single ingredient before including it.
+- SELF-CHECK: Before finalizing, re-read every food item and confirm NONE contain any animal product.` : ''}
 ${!dietType || dietType === 'omnivore' ? '- Omnivore diet: all food sources allowed including meat, fish, eggs, dairy, and plant-based.' : ''}
-- STRICTLY follow the food style preference
-- Include portion sizes in grams or household measures
-- Adjust calories and macros based on the exact calculated targets above
-- Grocery list should cover all meal plan ingredients with quantities
-- If user has food allergies (${allergies || "None"}), NEVER include those allergens
+
+FOOD SOURCE STYLE ENFORCEMENT (MUST match "${foodStyle || 'local'}" exactly):
+${foodStyle === 'local' || !foodStyle ? `- LOCAL TRADITIONAL FOODS: Use traditional Indonesian/local dishes and ingredients. Examples: nasi goreng, gado-gado, sayur asem, pecel, rawon, soto, bubur ayam, tempe mendoan, tahu goreng, sambal, lalapan. Prioritize ingredients found in traditional markets (pasar).` : ''}
+${foodStyle === 'western' ? `- WESTERN STYLE: Use Western-style meals. Examples: grilled chicken breast, pasta, salads, sandwiches, oatmeal, Greek yogurt, steak, scrambled eggs, smoothie bowls. Avoid traditional Asian dishes.` : ''}
+${foodStyle === 'asian' ? `- ASIAN STYLE: Use diverse Asian cuisines. Examples: stir-fry, rice bowls, ramen, dim sum, curry, pad thai, sushi bowls, bibimbap, miso soup. Can include Indonesian, Japanese, Chinese, Thai, Korean dishes.` : ''}
+${foodStyle === 'high-protein' ? `- HIGH-PROTEIN FITNESS STYLE: Maximize protein content in every meal. Use protein-dense foods: chicken breast, lean beef, eggs, Greek yogurt, whey protein shakes, cottage cheese, tuna, salmon. Each meal should have protein as the centerpiece. Aim for 35-45% of calories from protein.
+- ${dietType === 'vegetarian' ? 'Use high-protein vegetarian sources: eggs, Greek yogurt, cottage cheese, tofu, tempeh, edamame, lentils, protein powder.' : dietType === 'vegan' ? 'Use high-protein vegan sources: tofu, tempeh, seitan, lentils, chickpeas, edamame, hemp seeds, pea protein powder.' : 'Include lean meats, fish, eggs, dairy as primary protein sources.'}` : ''}
+${foodStyle === 'budget' ? `- BUDGET-FRIENDLY LOCAL FOODS: Prioritize the most affordable, locally available ingredients. Use cheap staples: rice (nasi), eggs (telur), tempeh, tahu, vegetables from local markets (kangkung, bayam, wortel, kol), bananas, instant oats, peanuts. Avoid imported or expensive items (quinoa, salmon, avocado, almond butter, whey protein). Target estimated cost under Rp 50,000/day. Focus on simple preparations: goreng, rebus, tumis.` : ''}
+${foodStyle === 'premium' ? `- PREMIUM / WHOLE FOODS: Use high-quality, nutrient-dense whole foods. Examples: salmon, quinoa, avocado, grass-fed beef, organic eggs, mixed berries, cold-pressed juices, chia seeds, wild rice, extra virgin olive oil, premium nuts. Focus on organic and minimally processed ingredients.` : ''}
+
+FOOD ALLERGY RESTRICTIONS (ABSOLUTE — ZERO TOLERANCE):
+- User allergies: ${allergies || "None"}
+${allergies ? `- NEVER include ANY of these allergens: ${allergies}. Check every ingredient, sauce, marinade, and garnish. If an allergen could be present even in trace amounts in a dish, exclude that dish entirely and suggest a safe alternative.` : '- No food allergies reported. All ingredients allowed within diet type constraints.'}
+
+ADDITIONAL MEAL PLAN QUALITY RULES:
+- Include portion sizes in grams or household measures for EVERY food item
+- Adjust calories and macros to match the exact calculated targets: ${macros.calories} kcal, P:${macros.protein}g, C:${macros.carbs}g, F:${macros.fat}g
+- Each meal entry must show its individual calorie count that sums to the daily target
+- Grocery list should cover all meal plan ingredients with exact quantities for 1 week
+- Include simple preparation notes or cooking methods where helpful
 
 OCCUPATION & LIFESTYLE:
 - Occupation: ${occupation || "Not specified"}
