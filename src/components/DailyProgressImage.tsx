@@ -173,11 +173,25 @@ export default function DailyProgressImage({
       fractionY
     );
 
-    // ── VERTICAL PROGRESS BAR (left side) ──
-    const barX = 65;
+    // ── Measure max exercise name width for centering ──
+    ctx.font = "bold 20px 'Space Grotesk', system-ui, sans-serif";
+    let maxNameW = 0;
+    completedList.forEach((ex) => {
+      const w = ctx.measureText(ex.name).width;
+      if (w > maxNameW) maxNameW = w;
+    });
+
+    // Group dimensions: bar(18) + gap(16) + checkCircle(30) + gap(14) + text
+    const barWidth = 18;
+    const gapBarToCheck = 16;
+    const checkDiam = 30;
+    const gapCheckToText = 14;
+    const groupW = barWidth + gapBarToCheck + checkDiam + gapCheckToText + maxNameW;
+    const groupLeft = (W - groupW) / 2;
+
+    const barX = groupLeft + barWidth / 2;
     const barTop = headerH + listTopPad;
     const barHeight = listH;
-    const barWidth = 18;
     const barRadius = barWidth / 2;
 
     // Bar background track
@@ -204,8 +218,8 @@ export default function DailyProgressImage({
       ctx.restore();
     }
 
-    // ── EXERCISE LIST ──
-    const listX = 115;
+    // ── EXERCISE LIST (centered as group) ──
+    const listX = groupLeft + barWidth + gapBarToCheck + checkDiam / 2;
     ctx.textAlign = "left";
     completedList.forEach((ex, i) => {
       const y = barTop + i * itemH + 32;
@@ -227,12 +241,13 @@ export default function DailyProgressImage({
       ctx.stroke();
 
       // Exercise name: white text with black stroke
+      const textX = listX + checkDiam / 2 + gapCheckToText;
       ctx.font = "bold 20px 'Space Grotesk', system-ui, sans-serif";
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 2;
-      ctx.strokeText(ex.name, listX + 30, y);
+      ctx.strokeText(ex.name, textX, y);
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(ex.name, listX + 30, y);
+      ctx.fillText(ex.name, textX, y);
     });
 
     // ── DATE (bottom center) ──
