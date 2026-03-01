@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
+import DailyProgressImage from "@/components/DailyProgressImage";
 
 interface Exercise {
   name: string;
@@ -232,6 +233,14 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
                   );
                 })}
               </div>
+              <DailyProgressImage
+                dayLabel={day.day}
+                exercises={day.exercises}
+                completedExercises={day.exercises
+                  .filter((ex) => completionState[buildKey(day.day, ex.name)] === true)
+                  .map((ex) => ex.name)}
+                totalExercises={day.exercises.length}
+              />
             </div>
           );
         })}
