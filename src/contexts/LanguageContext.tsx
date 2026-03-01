@@ -324,6 +324,8 @@ const translations = {
     tipsLabel: "Tips",
     weightRecommendation: "Weight Recommendation",
     notesLabel: "Notes",
+    restDayTitle: "Rest & Recovery",
+    restDayTip: "Focus on mobility, nutrition, or light walks today.",
 
     // Enhanced Results
     sessionTimeBanner: "Session time matched: {minutes} minutes (5 min warm-up + lifting + 5 min cool-down)",
@@ -661,6 +663,8 @@ const translations = {
     tipsLabel: "Tips",
     weightRecommendation: "Rekomendasi Beban",
     notesLabel: "Catatan",
+    restDayTitle: "Istirahat & Pemulihan",
+    restDayTip: "Fokus pada mobilitas, nutrisi, atau jalan santai hari ini.",
 
     // Enhanced Results
     sessionTimeBanner: "Waktu sesi cocok: {minutes} menit (5 mnt pemanasan + angkat beban + 5 mnt pendinginan)",
@@ -998,6 +1002,8 @@ const translations = {
     tipsLabel: "技巧",
     weightRecommendation: "重量建议",
     notesLabel: "备注",
+    restDayTitle: "休息与恢复",
+    restDayTip: "今天专注于灵活性训练、营养或轻松散步。",
 
     // Enhanced Results
     sessionTimeBanner: "训练时间匹配：{minutes} 分钟（5分钟热身 + 力量训练 + 5分钟拉伸）",
