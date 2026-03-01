@@ -425,80 +425,79 @@ export default function Results() {
     const splitConfigured = Array.isArray(plan.weeklySplit) && plan.weeklySplit.length > 0;
 
     if (splitConfigured) {
+      console.log("[WeeklySplitDebug] Raw weeklySplit:", JSON.stringify(plan.weeklySplit));
       const split = parseWeeklySplit(plan.weeklySplit);
+      console.log("[WeeklySplitDebug] Parsed workoutByDay:", Object.fromEntries(split.workoutByDay), "restDays:", [...split.restDays]);
 
       if (split.workoutByDay.size === 0 && split.restDays.size === 0) {
-        throw new Error("[WeeklySplitMismatch] Weekly Split exists but no valid weekday mapping could be parsed.");
-      }
-
-      const workoutTemplates = plan.workout_plan.filter((entry) => entry.exercises.length > 0);
-      const workoutTemplateByDay = new Map<DayIndex, DayPlan>();
-
-      for (const template of workoutTemplates) {
-        const idx = getDayIndexFromText(template.day);
-        if (idx !== null && !workoutTemplateByDay.has(idx)) {
-          workoutTemplateByDay.set(idx, template);
+        console.warn("[WeeklySplitDebug] Could not parse any weekday mapping. Falling through to legacy logic.");
+      } else {
+        // Fill gaps: any weekday not explicitly mapped → treat as rest
+        for (let i = 0; i < 7; i++) {
+          const idx = i as DayIndex;
+          if (!split.workoutByDay.has(idx) && !split.restDays.has(idx)) {
+            split.restDays.add(idx);
+          }
         }
-      }
 
-      // Controlled fallback: assign unmatched templates by split training-day order.
-      const splitTrainingDays = Array.from(split.workoutByDay.keys()).sort((a, b) => a - b);
-      const unmatchedTemplates = workoutTemplates.filter((template) => {
-        const idx = getDayIndexFromText(template.day);
-        return idx === null || !split.workoutByDay.has(idx);
-      });
+        const workoutTemplates = plan.workout_plan.filter((entry) => entry.exercises.length > 0);
+        const workoutTemplateByDay = new Map<DayIndex, DayPlan>();
 
-      for (const splitDayIdx of splitTrainingDays) {
-        if (!workoutTemplateByDay.has(splitDayIdx)) {
-          const nextTemplate = unmatchedTemplates.shift();
-          if (nextTemplate) workoutTemplateByDay.set(splitDayIdx, nextTemplate);
+        for (const template of workoutTemplates) {
+          const idx = getDayIndexFromText(template.day);
+          if (idx !== null && !workoutTemplateByDay.has(idx)) {
+            workoutTemplateByDay.set(idx, template);
+          }
         }
-      }
 
-      const days: DayPlan[] = [];
-
-      for (let d = 0; d < 7; d++) {
-        const dayDate = addDays(weekStartDate, d);
-        const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
-        const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
-        const dayIndex = getMondayBasedDayIndex(dayDate);
-
-        const workoutLabel = split.workoutByDay.get(dayIndex);
-        const isRest = split.restDays.has(dayIndex);
-        const splitType: "workout" | "rest" | null = workoutLabel ? "workout" : isRest ? "rest" : null;
-
-        console.log("[WeeklySplitDebug]", {
-          date: dateStr,
-          resolvedWeekday: dayName,
-          matchedSplitType: splitType,
-          workoutLabel: workoutLabel ?? null,
+        const splitTrainingDays = Array.from(split.workoutByDay.keys()).sort((a, b) => a - b);
+        const unmatchedTemplates = workoutTemplates.filter((template) => {
+          const idx = getDayIndexFromText(template.day);
+          return idx === null || !split.workoutByDay.has(idx);
         });
 
-        if (!splitType) {
-          throw new Error(`[WeeklySplitMismatch] No split mapping for ${dayName} (${dateStr}). Weekly Split must explicitly define this weekday.`);
+        for (const splitDayIdx of splitTrainingDays) {
+          if (!workoutTemplateByDay.has(splitDayIdx)) {
+            const nextTemplate = unmatchedTemplates.shift();
+            if (nextTemplate) workoutTemplateByDay.set(splitDayIdx, nextTemplate);
+          }
         }
 
-        if (splitType === "rest") {
-          const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
-          days.push({
-            day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
-            exercises: [],
+        const days: DayPlan[] = [];
+
+        for (let d = 0; d < 7; d++) {
+          const dayDate = addDays(weekStartDate, d);
+          const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
+          const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
+          const dayIndex = getMondayBasedDayIndex(dayDate);
+
+          const workoutLabel = split.workoutByDay.get(dayIndex);
+
+          console.log("[WeeklySplitDebug]", {
+            date: dateStr,
+            resolvedWeekday: dayName,
+            dayIndex,
+            matchedSplitType: workoutLabel ? "workout" : "rest",
           });
-          continue;
+
+          if (!workoutLabel) {
+            const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
+            days.push({
+              day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
+              exercises: [],
+            });
+            continue;
+          }
+
+          const template = workoutTemplateByDay.get(dayIndex) ?? workoutTemplates[0];
+          days.push({
+            day: `${prefixWeek} - ${dayName}, ${dateStr} (${workoutLabel})`,
+            exercises: template?.exercises ?? [],
+          });
         }
 
-        const template = workoutTemplateByDay.get(dayIndex);
-        if (!template) {
-          throw new Error(`[WeeklySplitMismatch] Missing workout template for ${dayName} (${dateStr}) with split label "${workoutLabel}".`);
-        }
-
-        days.push({
-          day: `${prefixWeek} - ${dayName}, ${dateStr} (${workoutLabel})`,
-          exercises: template.exercises,
-        });
+        return days;
       }
-
-      return days;
     }
 
     // Legacy fallback for old plans without weeklySplit
