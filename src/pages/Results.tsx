@@ -168,28 +168,29 @@ const getMondayBasedDayIndex = (date: Date): DayIndex => {
   return (Number(fnsFormat(date, "i")) - 1) as DayIndex;
 };
 
+const isRestLabelText = (value: string) => {
+  const lower = value.toLowerCase();
+  const hasWorkoutHint = /(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body|mobilitas|kekuatan|functional|balance|core|push|pull|legs?|endurance|otot|massa|fat\s*loss)/i.test(lower);
+  const hasRestHint = /(\brest\b(?:\s*[/&-]\s*recover(?:y)?)?|\brest\s*day(?:s)?\b|istirahat|pemulihan|active\s*recovery|recovery|休息|恢复)/i.test(lower);
+
+  return hasRestHint && !hasWorkoutHint;
+};
+
 const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
   const workoutByDay = new Map<DayIndex, string>();
   const restDays = new Set<DayIndex>();
+  const orderedWorkoutLabels: string[] = [];
 
   const lines = (weeklySplit ?? [])
     .flatMap((entry) => entry.split(/\n+/))
     .map((entry) => entry.trim())
     .filter(Boolean);
 
-  const isRestLabel = (value: string) => {
-    const lower = value.toLowerCase();
-    const hasWorkoutHint = /(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body|mobilitas|kekuatan|functional|balance|core|push|pull|legs?|endurance|otot|massa|fat\s*loss)/i.test(lower);
-    const hasRestHint = /(\brest\b(?:\s*[/&-]\s*recover(?:y)?)?|\brest\s*day(?:s)?\b|istirahat|pemulihan|active\s*recovery|recovery|休息|恢复)/i.test(lower);
-
-    return hasRestHint && !hasWorkoutHint;
-  };
-
   const assignDay = (dayToken: string, label: string) => {
     const idx = getDayIndexFromText(dayToken);
     if (idx === null) return false;
 
-    if (isRestLabel(label)) {
+    if (isRestLabelText(label)) {
       restDays.add(idx);
       workoutByDay.delete(idx);
     } else {
@@ -221,9 +222,20 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
     const numberedRange = line.match(/^(?:day|hari)\s*(\d+)\s*-\s*(\d+)\s*:\s*(.+)$/i);
     if (numberedRange) {
       const [, , , label] = numberedRange;
-      if (isRestLabel(label)) {
+      if (isRestLabelText(label)) {
         // We can't map numbered ranges to specific weekdays without more context,
-        // so skip — the gap-filling logic will mark unmapped days as rest
+        // so skip — the gap-filling logic will mark unmapped days as rest.
+      }
+      continue;
+    }
+
+    // Format: "Day 1: Full Body A" (no weekday token) — keep order for later inference
+    const numberedNoWeekday = line.match(/^(?:day|hari)\s*(\d+)\s*:\s*(.+)$/i);
+    if (numberedNoWeekday) {
+      const [, orderToken, label] = numberedNoWeekday;
+      const order = Number(orderToken);
+      if (Number.isFinite(order) && order > 0 && !isRestLabelText(label)) {
+        orderedWorkoutLabels[order - 1] = label.trim();
       }
       continue;
     }
@@ -271,13 +283,17 @@ const parseWeeklySplit = (weeklySplit: string[] | undefined) => {
 
     // Fallback: line contains a day token + rest keyword
     const fallbackIdx = getDayIndexFromText(line);
-    if (fallbackIdx !== null && isRestLabel(line)) {
+    if (fallbackIdx !== null && isRestLabelText(line)) {
       restDays.add(fallbackIdx);
       workoutByDay.delete(fallbackIdx);
     }
   }
 
-  return { workoutByDay, restDays };
+  return {
+    workoutByDay,
+    restDays,
+    orderedWorkoutLabels: orderedWorkoutLabels.filter(Boolean),
+  };
 };
 
 const DRAFT_KEY = "suryaFitDraft";
@@ -445,6 +461,41 @@ export default function Results() {
     if (splitConfigured) {
       console.log("[WeeklySplitDebug] Raw weeklySplit:", JSON.stringify(plan.weeklySplit));
       const split = parseWeeklySplit(plan.weeklySplit);
+
+      // Inference fallback for formats like: "Day 1: Full Body A" (no weekday token)
+      if (split.workoutByDay.size === 0 && split.orderedWorkoutLabels.length > 0) {
+        const templateDayOrder = plan.workout_plan
+          .filter((entry) => entry.exercises.length > 0)
+          .map((entry) => getDayIndexFromText(entry.day))
+          .filter((idx): idx is DayIndex => idx !== null)
+          .filter((idx, index, arr) => arr.indexOf(idx) === index);
+
+        const scheduleDayOrder = (plan.weekly_schedule ?? [])
+          .flatMap((entry) => {
+            const [dayToken, ...labelParts] = entry.split(":");
+            const idx = getDayIndexFromText(dayToken ?? entry);
+            if (idx === null) return [];
+
+            const scheduleLabel = labelParts.join(":").trim() || entry;
+            if (isRestLabelText(scheduleLabel)) return [];
+            return [idx];
+          })
+          .filter((idx, index, arr) => arr.indexOf(idx) === index);
+
+        const inferredDayOrder = templateDayOrder.length > 0 ? templateDayOrder : scheduleDayOrder;
+
+        split.orderedWorkoutLabels.forEach((label, order) => {
+          const dayIdx = inferredDayOrder[order];
+          if (dayIdx !== undefined) {
+            split.workoutByDay.set(dayIdx, label);
+          }
+        });
+
+        if (split.workoutByDay.size > 0) {
+          console.log("[WeeklySplitDebug] Inferred workoutByDay from ordered labels:", Object.fromEntries(split.workoutByDay));
+        }
+      }
+
       console.log("[WeeklySplitDebug] Parsed workoutByDay:", Object.fromEntries(split.workoutByDay), "restDays:", [...split.restDays]);
 
       if (split.workoutByDay.size === 0 && split.restDays.size === 0) {
