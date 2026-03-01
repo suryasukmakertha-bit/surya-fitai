@@ -1,8 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-
 
 interface Exercise {
   name: string;
@@ -25,16 +24,33 @@ export default function DailyProgressImage({
   totalExercises,
 }: DailyProgressImageProps) {
   const { t, lang } = useLanguage();
+  const logoRef = useRef<HTMLImageElement | null>(null);
+
+  // Preload logo image
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/images/surya-fitai-logo.png";
+    img.onload = () => {
+      logoRef.current = img;
+    };
+  }, []);
 
   const completedList = exercises.filter((ex) => completedExercises.includes(ex.name));
   const progress = totalExercises > 0 ? completedList.length / totalExercises : 0;
 
   const youVsYou =
     lang === "id"
-      ? "INI ADALAH KAMU VS KAMU!"
+      ? "KAMU VS KAMU!"
       : lang === "zh"
-      ? "这是你对战你！"
-      : "THIS IS YOU VS YOU!";
+      ? "你对战你！"
+      : "YOU VS YOU!";
+
+  const thisIs =
+    lang === "id"
+      ? "INI ADALAH "
+      : lang === "zh"
+      ? "这是 "
+      : "THIS IS ";
 
   const downloadLabel =
     lang === "id"
@@ -45,7 +61,6 @@ export default function DailyProgressImage({
 
   const completedLabel = t.completed;
 
-  // Extract readable date from day label like "Week 1 - Friday, 2026-02-28 (Upper Body)"
   const extractReadableDate = (label: string): string => {
     const dateMatch = label.match(/(\d{4}-\d{2}-\d{2})/);
     if (!dateMatch) return label;
@@ -63,10 +78,15 @@ export default function DailyProgressImage({
   const handleDownload = useCallback(async () => {
     const canvas = document.createElement("canvas");
     const W = 800;
-    const itemH = 44;
-    const headerH = 220;
+    const itemH = 52;
+    const logoAreaH = 120;
+    const taglineAreaH = 80;
+    const fractionAreaH = 40;
+    const listTopPad = 30;
     const footerH = 80;
-    const H = headerH + completedList.length * itemH + footerH + 40;
+    const headerH = logoAreaH + taglineAreaH + fractionAreaH;
+    const listH = completedList.length * itemH;
+    const H = headerH + listTopPad + listH + footerH + 20;
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext("2d")!;
@@ -74,76 +94,103 @@ export default function DailyProgressImage({
     // Transparent background
     ctx.clearRect(0, 0, W, H);
 
-    // Draw "Surya-FitAi" text logo
-    ctx.textAlign = "center";
-    ctx.font = "bold 44px 'Space Grotesk', system-ui, sans-serif";
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 3;
-    ctx.strokeText("Surya-FitAi", W / 2, 70);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText("Surya-FitAi", W / 2, 70);
+    // ── LOGO (graphical, centered, with glow) ──
+    if (logoRef.current) {
+      const logo = logoRef.current;
+      const logoMaxW = 280;
+      const aspect = logo.naturalWidth / logo.naturalHeight;
+      const logoW = logoMaxW;
+      const logoH = logoW / aspect;
+      const logoX = (W - logoW) / 2;
+      const logoY = 20;
 
-    // "THIS IS YOU VS YOU!" header
-    ctx.textAlign = "center";
-    ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 2;
-    const headerY = 120;
+      // Green glow behind logo
+      ctx.save();
+      ctx.shadowColor = "#22c55e";
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.drawImage(logo, logoX, logoY, logoW, logoH);
+      ctx.restore();
 
-    // Split "YOU VS YOU" to highlight
-    if (lang === "en") {
-      const parts = youVsYou.split(/(YOU VS YOU!)/);
-      let xOffset = 0;
-      ctx.textAlign = "left";
-      const fullWidth = ctx.measureText(youVsYou).width;
-      const startX = (W - fullWidth) / 2;
-      for (const part of parts) {
-        if (part === "YOU VS YOU!") {
-          ctx.fillStyle = "#22c55e";
-          ctx.fillText(part, startX + xOffset, headerY);
-          ctx.fillStyle = "#1a1a2e";
-        } else {
-          ctx.fillText(part, startX + xOffset, headerY);
-        }
-        xOffset += ctx.measureText(part).width;
-      }
-      // Trophy emoji
-      ctx.font = "32px serif";
-      ctx.fillText(" 🏆", startX + xOffset, headerY);
+      // Draw logo again without shadow for crispness
+      ctx.drawImage(logo, logoX, logoY, logoW, logoH);
     } else {
+      // Fallback: text logo if image not loaded
       ctx.textAlign = "center";
+      ctx.font = "bold 48px 'Space Grotesk', system-ui, sans-serif";
+      ctx.shadowColor = "#22c55e";
+      ctx.shadowBlur = 18;
       ctx.fillStyle = "#22c55e";
-      ctx.fillText(youVsYou + " 🏆", W / 2, headerY);
+      ctx.fillText("Surya-FitAi", W / 2, 75);
+      ctx.shadowBlur = 0;
     }
 
-    // Progress fraction
+    // ── TAGLINE: "THIS IS YOU VS YOU! 🏆" ──
+    const taglineY = logoAreaH + 30;
+    ctx.textAlign = "center";
+
+    // "THIS IS " in bold green
+    ctx.font = "bold 30px 'Space Grotesk', system-ui, sans-serif";
+    const thisIsWidth = ctx.measureText(thisIs).width;
+
+    // "YOU VS YOU!" in bold italic green
+    ctx.font = "bold italic 30px 'Space Grotesk', system-ui, sans-serif";
+    const youVsYouWidth = ctx.measureText(youVsYou).width;
+
+    // Trophy emoji
+    ctx.font = "30px serif";
+    const trophyWidth = ctx.measureText(" 🏆").width;
+
+    const totalTaglineW = thisIsWidth + youVsYouWidth + trophyWidth;
+    let tagX = (W - totalTaglineW) / 2;
+
+    // Draw "THIS IS "
+    ctx.textAlign = "left";
+    ctx.font = "bold 30px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillStyle = "#22c55e";
+    ctx.fillText(thisIs, tagX, taglineY);
+    tagX += thisIsWidth;
+
+    // Draw "YOU VS YOU!" italic
+    ctx.font = "bold italic 30px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillStyle = "#22c55e";
+    ctx.fillText(youVsYou, tagX, taglineY);
+    tagX += youVsYouWidth;
+
+    // Draw trophy
+    ctx.font = "30px serif";
+    ctx.fillText(" 🏆", tagX, taglineY);
+
+    // ── PROGRESS FRACTION ──
+    const fractionY = taglineY + 38;
     ctx.textAlign = "center";
     ctx.font = "bold 18px 'Space Grotesk', system-ui, sans-serif";
     ctx.fillStyle = "#6b7280";
     ctx.fillText(
       `${completedList.length}/${totalExercises} ${completedLabel}`,
       W / 2,
-      headerY + 40
+      fractionY
     );
 
-    // Vertical progress bar on the left
-    const barX = 60;
-    const barTop = headerH;
-    const barHeight = completedList.length * itemH;
-    const barWidth = 16;
+    // ── VERTICAL PROGRESS BAR (left side) ──
+    const barX = 65;
+    const barTop = headerH + listTopPad;
+    const barHeight = listH;
+    const barWidth = 18;
     const barRadius = barWidth / 2;
 
-    // Bar background
-    ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
+    // Bar background track
+    ctx.fillStyle = "rgba(200, 200, 200, 0.25)";
     roundedRect(ctx, barX - barWidth / 2, barTop, barWidth, barHeight, barRadius);
     ctx.fill();
 
-    // Bar fill
+    // Bar fill (from bottom)
     const fillHeight = barHeight * progress;
     if (fillHeight > 0) {
-      // Glow
+      ctx.save();
       ctx.shadowColor = "#22c55e";
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 14;
       ctx.fillStyle = "#22c55e";
       roundedRect(
         ctx,
@@ -154,23 +201,23 @@ export default function DailyProgressImage({
         barRadius
       );
       ctx.fill();
-      ctx.shadowBlur = 0;
+      ctx.restore();
     }
 
-    // Exercise list
-    const listX = 110;
+    // ── EXERCISE LIST ──
+    const listX = 115;
     ctx.textAlign = "left";
     completedList.forEach((ex, i) => {
-      const y = headerH + i * itemH + 28;
+      const y = barTop + i * itemH + 32;
 
       // Green checkmark circle
       ctx.beginPath();
-      ctx.arc(listX, y - 6, 14, 0, Math.PI * 2);
+      ctx.arc(listX, y - 6, 15, 0, Math.PI * 2);
       ctx.fillStyle = "#22c55e";
       ctx.fill();
       ctx.closePath();
 
-      // White check
+      // White checkmark
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2.5;
       ctx.beginPath();
@@ -179,28 +226,28 @@ export default function DailyProgressImage({
       ctx.lineTo(listX + 6, y - 12);
       ctx.stroke();
 
-      // Exercise name — white with black stroke
-      ctx.font = "600 20px 'Space Grotesk', system-ui, sans-serif";
+      // Exercise name: white text with black stroke
+      ctx.font = "bold 20px 'Space Grotesk', system-ui, sans-serif";
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 2;
-      ctx.strokeText(ex.name, listX + 28, y);
+      ctx.strokeText(ex.name, listX + 30, y);
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(ex.name, listX + 28, y);
+      ctx.fillText(ex.name, listX + 30, y);
     });
 
-    // Date at bottom
+    // ── DATE (bottom center) ──
     const dateText = extractReadableDate(dayLabel).toLowerCase();
     ctx.textAlign = "center";
     ctx.font = "16px 'Space Grotesk', system-ui, sans-serif";
     ctx.fillStyle = "#9ca3af";
-    ctx.fillText(dateText, W / 2, H - 30);
+    ctx.fillText(dateText, W / 2, H - 25);
 
     // Download
     const link = document.createElement("a");
     link.download = `surya-fitai-progress-${dateText.replace(/[, ]+/g, "-")}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
-  }, [completedList, totalExercises, dayLabel, lang, t, youVsYou, completedLabel, progress]);
+  }, [completedList, totalExercises, dayLabel, lang, t, youVsYou, thisIs, completedLabel, progress]);
 
   if (completedList.length === 0) return null;
 
