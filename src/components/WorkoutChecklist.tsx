@@ -249,7 +249,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
 
       {/* Exercise Detail Popup */}
       <Dialog open={!!selectedExercise} onOpenChange={(open) => !open && setSelectedExercise(null)}>
-        <DialogContent className="sm:max-w-md bg-card border-border/50 shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-md bg-card border-border/50 shadow-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto" aria-describedby="exercise-detail-desc">
           <div className="p-6 space-y-4">
             <div className="flex items-start justify-between">
               <DialogTitle className="text-xl font-display font-bold text-foreground pr-8">
