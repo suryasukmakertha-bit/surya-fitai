@@ -5,87 +5,186 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const API_BASE = "https://exercisedb-api.vercel.app/api/v1/exercises";
+const B = "https://static.exercisedb.dev/media/";
 
-// In-memory cache for the full exercise database (name -> gifUrl)
-let exerciseDb: Map<string, string> | null = null;
-let dbLoading: Promise<void> | null = null;
+// Verified exercise GIF IDs from ExerciseDB open-source API
+const GIF_MAP: Record<string, string> = {
+  // Chest
+  "dumbbell bench press": `${B}SpYC0Kp.gif`,
+  "dumbbell chest press": `${B}SpYC0Kp.gif`,
+  "barbell bench press": `${B}EIeI8Vf.gif`,
+  "bench press": `${B}EIeI8Vf.gif`,
+  "flat bench press": `${B}EIeI8Vf.gif`,
+  "incline dumbbell press": `${B}bfiHMpI.gif`,
+  "incline bench press": `${B}641mIfk.gif`,
+  "cable chest press": `${B}7xI5MXA.gif`,
+  "chest press machine": `${B}DOoWcnA.gif`,
+  "lever chest press": `${B}DOoWcnA.gif`,
+  "smith close grip bench press": `${B}WcHl7ru.gif`,
+  "close grip bench press": `${B}WcHl7ru.gif`,
+  "dumbbell fly": `${B}bfiHMpI.gif`,
+  "cable fly": `${B}GKEH6jj.gif`,
+
+  // Back
+  "lat pulldown": `${B}LEprlgG.gif`,
+  "lat pulldown wide grip": `${B}LEprlgG.gif`,
+  "cable pulldown": `${B}RVwzP10.gif`,
+  "cable lat pulldown": `${B}LEprlgG.gif`,
+  "reverse grip lat pulldown": `${B}ecpY0rH.gif`,
+  "dumbbell bent over row": `${B}BJ0Hz5L.gif`,
+  "dumbbell row": `${B}C0MA9bC.gif`,
+  "dumbbell one arm row": `${B}C0MA9bC.gif`,
+  "chest supported dumbbell row": `${B}7vG5o25.gif`,
+  "dumbbell incline row": `${B}7vG5o25.gif`,
+  "cable seated row": `${B}fUBheHs.gif`,
+  "seated cable row": `${B}fUBheHs.gif`,
+  "cable row": `${B}fUBheHs.gif`,
+  "cable wide grip row": `${B}qcY50ZD.gif`,
+  "barbell row": `${B}BJ0Hz5L.gif`,
+  "bent over row": `${B}BJ0Hz5L.gif`,
+  "barbell rack pull": `${B}za9Ni4z.gif`,
+  "rack pull": `${B}za9Ni4z.gif`,
+  "twin handle lat pulldown": `${B}rkg41Fb.gif`,
+
+  // Shoulders
+  "dumbbell lateral raise": `${B}DsgkuIt.gif`,
+  "lateral raise": `${B}DsgkuIt.gif`,
+  "side lateral raise": `${B}DsgkuIt.gif`,
+  "cable lateral raise": `${B}goJ6ezq.gif`,
+  "landmine lateral raise": `${B}eXMFHww.gif`,
+  "lever lateral raise": `${B}dRTfGZT.gif`,
+  "dumbbell arnold press": `${B}Xy4jlWA.gif`,
+  "arnold press": `${B}Xy4jlWA.gif`,
+  "dumbbell shoulder press": `${B}Xy4jlWA.gif`,
+  "dumbbell shoulder press seated": `${B}Xy4jlWA.gif`,
+  "shoulder press": `${B}Xy4jlWA.gif`,
+  "overhead press": `${B}Xy4jlWA.gif`,
+  "military press": `${B}Xy4jlWA.gif`,
+  "cable shoulder press": `${B}PzQanLE.gif`,
+  "machine shoulder press": `${B}PzQanLE.gif`,
+  "dumbbell scott press": `${B}5vfAI0I.gif`,
+  "dumbbell incline shoulder raise": `${B}6e2DcYX.gif`,
+  "face pull": `${B}goJ6ezq.gif`,
+  "face pulls": `${B}goJ6ezq.gif`,
+  "cable alternate shoulder press": `${B}KHPZL0b.gif`,
+
+  // Legs
+  "leg press": `${B}V07qpXy.gif`,
+  "lever leg press": `${B}V07qpXy.gif`,
+  "seated leg press": `${B}V07qpXy.gif`,
+  "lever leg extension": `${B}my33uHU.gif`,
+  "leg extension": `${B}my33uHU.gif`,
+  "leg curl": `${B}17lJ1kr.gif`,
+  "lying leg curl": `${B}17lJ1kr.gif`,
+  "lever lying leg curl": `${B}17lJ1kr.gif`,
+  "seated leg curl": `${B}Zg3XY7P.gif`,
+  "lever seated leg curl": `${B}Zg3XY7P.gif`,
+  "kneeling leg curl": `${B}nnmCTLN.gif`,
+  "dumbbell goblet squat": `${B}yn8yg1r.gif`,
+  "goblet squat": `${B}yn8yg1r.gif`,
+  "goblet squat heels elevated": `${B}yn8yg1r.gif`,
+  "kettlebell goblet squat": `${B}ZA8b5hc.gif`,
+  "barbell squat": `${B}yn8yg1r.gif`,
+  "squat": `${B}yn8yg1r.gif`,
+  "back squat": `${B}yn8yg1r.gif`,
+  "barbell side split squat": `${B}W31mMjd.gif`,
+  "split squat": `${B}W31mMjd.gif`,
+  "bulgarian split squat": `${B}W31mMjd.gif`,
+  "barbell romanian deadlift": `${B}wQ2c4XD.gif`,
+  "romanian deadlift": `${B}wQ2c4XD.gif`,
+  "rdl": `${B}wQ2c4XD.gif`,
+  "dumbbell romanian deadlift": `${B}rR0LJzx.gif`,
+  "deadlift": `${B}wQ2c4XD.gif`,
+  "barbell deadlift": `${B}wQ2c4XD.gif`,
+  "standing single leg curl": `${B}C5jncD2.gif`,
+  "glute ham raise": `${B}Vvwjz6N.gif`,
+  "hip thrust": `${B}Vvwjz6N.gif`,
+  "calf raise": `${B}Vvwjz6N.gif`,
+  "seated calf raise": `${B}Vvwjz6N.gif`,
+  "standing calf raise": `${B}Vvwjz6N.gif`,
+
+  // Arms
+  "cable triceps pushdown": `${B}gAwDzB3.gif`,
+  "triceps pushdown": `${B}gAwDzB3.gif`,
+  "tricep pushdown": `${B}qRZ5S1N.gif`,
+  "cable one arm tricep pushdown": `${B}qRZ5S1N.gif`,
+  "dumbbell tate press": `${B}s5PdDyY.gif`,
+  "lever bicep curl": `${B}q6y3OhV.gif`,
+  "bicep curl": `${B}q6y3OhV.gif`,
+  "dumbbell bicep curl": `${B}q6y3OhV.gif`,
+  "dumbbell bicep curls": `${B}q6y3OhV.gif`,
+  "cable bicep curl": `${B}QTXKWPh.gif`,
+  "cable curl": `${B}QTXKWPh.gif`,
+  "hammer curl": `${B}q6y3OhV.gif`,
+  "preacher curl": `${B}q6y3OhV.gif`,
+  "concentration curl": `${B}q6y3OhV.gif`,
+  "skull crusher": `${B}gAwDzB3.gif`,
+  "overhead tricep extension": `${B}gAwDzB3.gif`,
+  "ez bar close grip bench press": `${B}da4cXST.gif`,
+  "tricep extension": `${B}gAwDzB3.gif`,
+  "cable reverse grip triceps pushdown": `${B}ThKP69G.gif`,
+
+  // Core
+  "dead bug": `${B}iny3m5y.gif`,
+  "dead bug core": `${B}iny3m5y.gif`,
+  "plank": `${B}iny3m5y.gif`,
+  "side plank": `${B}X6ytgYZ.gif`,
+  "russian twist": `${B}iny3m5y.gif`,
+  "leg raise": `${B}iny3m5y.gif`,
+  "lying leg raise": `${B}iny3m5y.gif`,
+  "lying leg raises": `${B}iny3m5y.gif`,
+  "hanging leg raise": `${B}iny3m5y.gif`,
+  "crunch": `${B}iny3m5y.gif`,
+  "sit up": `${B}iny3m5y.gif`,
+  "mountain climber": `${B}iny3m5y.gif`,
+  "bird dog": `${B}iny3m5y.gif`,
+  "lower back curl": `${B}ANbbry2.gif`,
+  "cable crunch": `${B}iny3m5y.gif`,
+};
 
 function normalize(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  return name
+    .toLowerCase()
+    .replace(/[()]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-async function loadExerciseDb(): Promise<void> {
-  if (exerciseDb) return;
-  
-  exerciseDb = new Map();
-  let offset = 0;
-  const limit = 200;
-  let hasMore = true;
+function findGif(exerciseName: string): string | null {
+  const n = normalize(exerciseName);
 
-  while (hasMore) {
-    try {
-      const res = await fetch(`${API_BASE}?limit=${limit}&offset=${offset}`);
-      if (!res.ok) break;
-      const data = await res.json();
-      const exercises = data?.data || [];
-      
-      for (const ex of exercises) {
-        if (ex.name && ex.gifUrl) {
-          exerciseDb.set(normalize(ex.name), ex.gifUrl);
-        }
-      }
-      
-      hasMore = exercises.length === limit;
-      offset += limit;
-    } catch {
-      break;
-    }
-  }
-  
-  console.log(`Loaded ${exerciseDb.size} exercises into cache`);
-}
+  // Exact match
+  if (GIF_MAP[n]) return GIF_MAP[n];
 
-function findBestMatch(searchName: string): string | null {
-  if (!exerciseDb) return null;
-  
-  const search = normalize(searchName);
-  
-  // 1. Exact match
-  if (exerciseDb.has(search)) return exerciseDb.get(search)!;
-  
-  // 2. Score-based matching
+  // Try removing common prefixes/suffixes
+  const cleaned = n
+    .replace(/^(barbell|dumbbell|cable|lever|machine|smith|ez bar|ez-bar|kettlebell)\s+/, "")
+    .replace(/\s*(seated|standing|lying|incline|decline|wide grip|close grip|rope|v-bar|with.*|female|male)\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (GIF_MAP[cleaned]) return GIF_MAP[cleaned];
+
+  // Partial match - find best
   let bestUrl: string | null = null;
   let bestScore = 0;
-  
-  const searchWords = search.split(" ");
-  
-  for (const [name, url] of exerciseDb.entries()) {
+  const nWords = n.split(" ");
+
+  for (const [key, url] of Object.entries(GIF_MAP)) {
     let score = 0;
-    
-    // Exact containment
-    if (name.includes(search)) score += 90;
-    else if (search.includes(name)) score += 80;
-    
-    // Word overlap
-    const nameWords = name.split(" ");
-    const matchedWords = searchWords.filter(sw => nameWords.some(nw => nw === sw));
-    const wordScore = (matchedWords.length / searchWords.length) * 60;
-    score = Math.max(score, wordScore);
-    
-    // Bonus for same word count (more specific match)
-    if (matchedWords.length === searchWords.length && nameWords.length <= searchWords.length + 2) {
-      score += 15;
+    if (key.includes(n) || n.includes(key)) {
+      score = 80 + (key === n ? 20 : 0);
+    } else {
+      const keyWords = key.split(" ");
+      const matched = nWords.filter(w => keyWords.includes(w));
+      score = (matched.length / Math.max(nWords.length, 1)) * 60;
     }
-    
     if (score > bestScore) {
       bestScore = score;
       bestUrl = url;
     }
   }
-  
-  // Only return if decent match (at least 50% words matched)
-  return bestScore >= 40 ? bestUrl : null;
+
+  return bestScore >= 35 ? bestUrl : null;
 }
 
 serve(async (req) => {
@@ -95,23 +194,7 @@ serve(async (req) => {
 
   try {
     const { exerciseName } = await req.json();
-    
-    if (!exerciseName) {
-      return new Response(JSON.stringify({ gifUrl: null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Load DB on first request (singleton)
-    if (!exerciseDb && !dbLoading) {
-      dbLoading = loadExerciseDb();
-    }
-    if (dbLoading) {
-      await dbLoading;
-      dbLoading = null;
-    }
-
-    const gifUrl = findBestMatch(exerciseName);
+    const gifUrl = exerciseName ? findGif(exerciseName) : null;
 
     return new Response(JSON.stringify({ gifUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
