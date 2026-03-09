@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
+import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
 
 interface Exercise {
   name: string;
@@ -255,6 +256,11 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
                 {selectedExercise?.name}
               </DialogTitle>
             </div>
+
+            {/* Exercise GIF Demo */}
+            {selectedExercise && (
+              <ExerciseGifPlayer exerciseName={selectedExercise.name} />
+            )}
 
             {/* Sets × Reps · Rest · Tempo */}
             <div className="bg-secondary/50 rounded-lg px-4 py-3">
