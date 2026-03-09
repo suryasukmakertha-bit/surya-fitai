@@ -7,29 +7,85 @@ const corsHeaders = {
 
 const API_BASE = "https://exercisedb-api.vercel.app/api/v1/exercises";
 
-// Simple cache to avoid repeated API calls for the same exercise
-const gifCache = new Map<string, string | null>();
+// In-memory cache for the full exercise database (name -> gifUrl)
+let exerciseDb: Map<string, string> | null = null;
+let dbLoading: Promise<void> | null = null;
 
-function normalizeForSearch(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/\(.*?\)/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function normalize(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
-// Score how well a result matches the search term
-function matchScore(searchTerm: string, resultName: string): number {
-  const s = searchTerm.toLowerCase();
-  const r = resultName.toLowerCase();
-  if (r === s) return 100;
-  if (r.includes(s)) return 80;
-  if (s.includes(r)) return 70;
+async function loadExerciseDb(): Promise<void> {
+  if (exerciseDb) return;
   
-  const searchWords = s.split(" ");
-  const resultWords = r.split(" ");
-  const matchedWords = searchWords.filter(w => resultWords.some(rw => rw.includes(w) || w.includes(rw)));
-  return (matchedWords.length / searchWords.length) * 60;
+  exerciseDb = new Map();
+  let offset = 0;
+  const limit = 200;
+  let hasMore = true;
+
+  while (hasMore) {
+    try {
+      const res = await fetch(`${API_BASE}?limit=${limit}&offset=${offset}`);
+      if (!res.ok) break;
+      const data = await res.json();
+      const exercises = data?.data || [];
+      
+      for (const ex of exercises) {
+        if (ex.name && ex.gifUrl) {
+          exerciseDb.set(normalize(ex.name), ex.gifUrl);
+        }
+      }
+      
+      hasMore = exercises.length === limit;
+      offset += limit;
+    } catch {
+      break;
+    }
+  }
+  
+  console.log(`Loaded ${exerciseDb.size} exercises into cache`);
+}
+
+function findBestMatch(searchName: string): string | null {
+  if (!exerciseDb) return null;
+  
+  const search = normalize(searchName);
+  
+  // 1. Exact match
+  if (exerciseDb.has(search)) return exerciseDb.get(search)!;
+  
+  // 2. Score-based matching
+  let bestUrl: string | null = null;
+  let bestScore = 0;
+  
+  const searchWords = search.split(" ");
+  
+  for (const [name, url] of exerciseDb.entries()) {
+    let score = 0;
+    
+    // Exact containment
+    if (name.includes(search)) score += 90;
+    else if (search.includes(name)) score += 80;
+    
+    // Word overlap
+    const nameWords = name.split(" ");
+    const matchedWords = searchWords.filter(sw => nameWords.some(nw => nw === sw));
+    const wordScore = (matchedWords.length / searchWords.length) * 60;
+    score = Math.max(score, wordScore);
+    
+    // Bonus for same word count (more specific match)
+    if (matchedWords.length === searchWords.length && nameWords.length <= searchWords.length + 2) {
+      score += 15;
+    }
+    
+    if (score > bestScore) {
+      bestScore = score;
+      bestUrl = url;
+    }
+  }
+  
+  // Only return if decent match (at least 50% words matched)
+  return bestScore >= 40 ? bestUrl : null;
 }
 
 serve(async (req) => {
@@ -46,78 +102,16 @@ serve(async (req) => {
       });
     }
 
-    const normalized = normalizeForSearch(exerciseName);
-
-    // Check cache
-    if (gifCache.has(normalized)) {
-      return new Response(JSON.stringify({ gifUrl: gifCache.get(normalized) }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Load DB on first request (singleton)
+    if (!exerciseDb && !dbLoading) {
+      dbLoading = loadExerciseDb();
+    }
+    if (dbLoading) {
+      await dbLoading;
+      dbLoading = null;
     }
 
-    // Query the free ExerciseDB API
-    const searchUrl = `${API_BASE}?search=${encodeURIComponent(normalized)}&limit=10`;
-    const response = await fetch(searchUrl);
-    
-    if (!response.ok) {
-      gifCache.set(normalized, null);
-      return new Response(JSON.stringify({ gifUrl: null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const result = await response.json();
-    const exercises = result?.data || [];
-
-    if (exercises.length === 0) {
-      // Try with fewer words (e.g., just "leg press" from "seated leg press")
-      const words = normalized.split(" ");
-      if (words.length > 2) {
-        const shorterSearch = words.slice(-2).join(" ");
-        const retryUrl = `${API_BASE}?search=${encodeURIComponent(shorterSearch)}&limit=10`;
-        const retryResponse = await fetch(retryUrl);
-        if (retryResponse.ok) {
-          const retryResult = await retryResponse.json();
-          const retryExercises = retryResult?.data || [];
-          if (retryExercises.length > 0) {
-            // Pick best match
-            let best = retryExercises[0];
-            let bestScore = matchScore(normalized, best.name);
-            for (const ex of retryExercises) {
-              const score = matchScore(normalized, ex.name);
-              if (score > bestScore) {
-                best = ex;
-                bestScore = score;
-              }
-            }
-            const gifUrl = best.gifUrl || null;
-            gifCache.set(normalized, gifUrl);
-            return new Response(JSON.stringify({ gifUrl }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-        }
-      }
-      
-      gifCache.set(normalized, null);
-      return new Response(JSON.stringify({ gifUrl: null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Pick the best matching exercise
-    let best = exercises[0];
-    let bestScore = matchScore(normalized, best.name);
-    for (const ex of exercises) {
-      const score = matchScore(normalized, ex.name);
-      if (score > bestScore) {
-        best = ex;
-        bestScore = score;
-      }
-    }
-
-    const gifUrl = best.gifUrl || null;
-    gifCache.set(normalized, gifUrl);
+    const gifUrl = findBestMatch(exerciseName);
 
     return new Response(JSON.stringify({ gifUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
