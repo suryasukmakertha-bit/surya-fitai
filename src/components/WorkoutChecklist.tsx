@@ -256,6 +256,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
                 {selectedExercise?.name}
               </DialogTitle>
             </div>
+            <DialogDescription id="exercise-detail-desc" className="sr-only">Exercise technique details</DialogDescription>
 
             {/* Exercise GIF Demo */}
             {selectedExercise && (
