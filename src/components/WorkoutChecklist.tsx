@@ -257,6 +257,11 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
               </DialogTitle>
             </div>
 
+            {/* Exercise GIF Demo */}
+            {selectedExercise && (
+              <ExerciseGifPlayer exerciseName={selectedExercise.name} />
+            )}
+
             {/* Sets × Reps · Rest · Tempo */}
             <div className="bg-secondary/50 rounded-lg px-4 py-3">
               <p className="text-sm text-foreground font-medium">
