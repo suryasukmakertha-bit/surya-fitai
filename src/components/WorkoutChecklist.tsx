@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
+import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
 
 interface Exercise {
   name: string;
