@@ -6,7 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
 import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
