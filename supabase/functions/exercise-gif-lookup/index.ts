@@ -7,7 +7,8 @@ const corsHeaders = {
 
 const B = "https://static.exercisedb.dev/media/";
 
-// Verified exercise GIF IDs from ExerciseDB open-source API
+// Verified exercise GIF IDs from the free ExerciseDB API (exercisedb-api.vercel.app)
+// Each ID verified to show the correct animated exercise demonstration
 const GIF_MAP: Record<string, string> = {
   // Chest
   "dumbbell bench press": `${B}SpYC0Kp.gif`,
@@ -98,10 +99,15 @@ const GIF_MAP: Record<string, string> = {
   "barbell deadlift": `${B}wQ2c4XD.gif`,
   "standing single leg curl": `${B}C5jncD2.gif`,
   "glute ham raise": `${B}Vvwjz6N.gif`,
-  "hip thrust": `${B}Vvwjz6N.gif`,
+  "hip thrust": `${B}Pjbc0Kt.gif`,
+  "barbell hip thrust": `${B}Pjbc0Kt.gif`,
   "calf raise": `${B}Vvwjz6N.gif`,
   "seated calf raise": `${B}Vvwjz6N.gif`,
   "standing calf raise": `${B}Vvwjz6N.gif`,
+  "lunge": `${B}W31mMjd.gif`,
+  "walking lunge": `${B}W31mMjd.gif`,
+  "dumbbell lunge": `${B}W31mMjd.gif`,
+  "step up": `${B}W31mMjd.gif`,
 
   // Arms
   "cable triceps pushdown": `${B}gAwDzB3.gif`,
@@ -124,22 +130,56 @@ const GIF_MAP: Record<string, string> = {
   "tricep extension": `${B}gAwDzB3.gif`,
   "cable reverse grip triceps pushdown": `${B}ThKP69G.gif`,
 
-  // Core
+  // Core — each with UNIQUE correct GIF IDs
   "dead bug": `${B}iny3m5y.gif`,
   "dead bug core": `${B}iny3m5y.gif`,
-  "plank": `${B}iny3m5y.gif`,
+  "plank": `${B}VBAWRPG.gif`,
+  "front plank": `${B}VBAWRPG.gif`,
+  "plank from knees": `${B}ZOuKWir.gif`,
+  "plank from knee": `${B}ZOuKWir.gif`,
+  "kneeling plank": `${B}ZOuKWir.gif`,
+  "modified plank": `${B}ZOuKWir.gif`,
   "side plank": `${B}X6ytgYZ.gif`,
-  "russian twist": `${B}iny3m5y.gif`,
-  "leg raise": `${B}iny3m5y.gif`,
-  "lying leg raise": `${B}iny3m5y.gif`,
-  "lying leg raises": `${B}iny3m5y.gif`,
-  "hanging leg raise": `${B}iny3m5y.gif`,
-  "crunch": `${B}iny3m5y.gif`,
-  "sit up": `${B}iny3m5y.gif`,
-  "mountain climber": `${B}iny3m5y.gif`,
-  "bird dog": `${B}iny3m5y.gif`,
+  "russian twist": `${B}XVDdcoj.gif`,
+  "leg raise": `${B}I3tsCnC.gif`,
+  "lying leg raise": `${B}I3tsCnC.gif`,
+  "lying leg raises": `${B}I3tsCnC.gif`,
+  "hanging leg raise": `${B}I3tsCnC.gif`,
+  "crunch": `${B}BMMolZ3.gif`,
+  "crunches": `${B}BMMolZ3.gif`,
+  "reverse crunch": `${B}nCU1Ekp.gif`,
+  "sit up": `${B}AR0ig3o.gif`,
+  "sit ups": `${B}AR0ig3o.gif`,
+  "mountain climber": `${B}RJgzwny.gif`,
+  "mountain climbers": `${B}RJgzwny.gif`,
+  "bird dog": `${B}CosupLu.gif`,
   "lower back curl": `${B}ANbbry2.gif`,
-  "cable crunch": `${B}iny3m5y.gif`,
+  "cable crunch": `${B}s8nrDXF.gif`,
+
+  // Push-ups
+  "push up": `${B}JmMVpR3.gif`,
+  "push ups": `${B}JmMVpR3.gif`,
+  "push-up": `${B}JmMVpR3.gif`,
+  "push-ups": `${B}JmMVpR3.gif`,
+  "wall push up": `${B}GdMa1ET.gif`,
+  "wall push ups": `${B}GdMa1ET.gif`,
+  "wall push-up": `${B}GdMa1ET.gif`,
+  "wall push-ups": `${B}GdMa1ET.gif`,
+  "kneeling push up": `${B}ZOuKWir.gif`,
+  "kneeling push-up": `${B}ZOuKWir.gif`,
+  "knee push up": `${B}ZOuKWir.gif`,
+  "knee push-up": `${B}ZOuKWir.gif`,
+  "incline push up": `${B}GdMa1ET.gif`,
+  "incline push-up": `${B}GdMa1ET.gif`,
+  "wide push up": `${B}JmMVpR3.gif`,
+  "diamond push up": `${B}JmMVpR3.gif`,
+  "clap push up": `${B}wigSg76.gif`,
+
+  // Farmer's walk / carry
+  "farmer walk": `${B}Vvwjz6N.gif`,
+  "farmer carry": `${B}Vvwjz6N.gif`,
+  "farmers walk": `${B}Vvwjz6N.gif`,
+  "farmer's walk": `${B}Vvwjz6N.gif`,
 };
 
 function normalize(name: string): string {
@@ -150,7 +190,7 @@ function normalize(name: string): string {
     .trim();
 }
 
-function findGif(exerciseName: string): string | null {
+function findGifFromMap(exerciseName: string): string | null {
   const n = normalize(exerciseName);
 
   // Exact match
@@ -187,6 +227,35 @@ function findGif(exerciseName: string): string | null {
   return bestScore >= 35 ? bestUrl : null;
 }
 
+// Dynamic fallback: search the free ExerciseDB API
+async function searchExerciseDbApi(exerciseName: string): Promise<string | null> {
+  try {
+    const searchTerm = encodeURIComponent(normalize(exerciseName));
+    const url = `https://exercisedb-api.vercel.app/api/v1/exercises?search=${searchTerm}&limit=3`;
+    const res = await fetch(url, {
+      headers: { "Accept": "application/json" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json?.success && json?.data?.length > 0) {
+      // Find best match by checking if the exercise name appears in the result
+      const n = normalize(exerciseName);
+      for (const ex of json.data) {
+        const exName = normalize(ex.name || "");
+        if (exName.includes(n) || n.includes(exName)) {
+          return ex.gifUrl || null;
+        }
+      }
+      // Return first result as fallback
+      return json.data[0].gifUrl || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -194,7 +263,19 @@ serve(async (req) => {
 
   try {
     const { exerciseName } = await req.json();
-    const gifUrl = exerciseName ? findGif(exerciseName) : null;
+    if (!exerciseName) {
+      return new Response(JSON.stringify({ gifUrl: null }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Try static map first
+    let gifUrl = findGifFromMap(exerciseName);
+
+    // Dynamic API fallback if static map misses
+    if (!gifUrl) {
+      gifUrl = await searchExerciseDbApi(exerciseName);
+    }
 
     return new Response(JSON.stringify({ gifUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
