@@ -10,9 +10,8 @@ interface ExerciseGifPlayerProps {
 function normalizeExerciseName(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\(.*?\)/g, "") // remove parenthetical
-    .replace(/dumbbell/gi, "dumbbell")
-    .replace(/barbell/gi, "barbell")
+    .replace(/\(.*?\)/g, "")
+    .replace(/[-–—]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
