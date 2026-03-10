@@ -186,6 +186,7 @@ function normalize(name: string): string {
   return name
     .toLowerCase()
     .replace(/[()]/g, "")
+    .replace(/[-–—]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
