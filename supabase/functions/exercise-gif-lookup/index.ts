@@ -180,6 +180,19 @@ const GIF_MAP: Record<string, string> = {
   "farmer carry": `${B}Vvwjz6N.gif`,
   "farmers walk": `${B}Vvwjz6N.gif`,
   "farmer's walk": `${B}Vvwjz6N.gif`,
+
+  // Additional bodyweight / beginner
+  "box squat": `${B}yn8yg1r.gif`,
+  "box squats": `${B}yn8yg1r.gif`,
+  "box squats to a chair": `${B}yn8yg1r.gif`,
+  "glute bridge": `${B}Pjbc0Kt.gif`,
+  "glute bridges": `${B}Pjbc0Kt.gif`,
+  "wall sit": `${B}W7yh3Yo.gif`,
+  "wall sits": `${B}W7yh3Yo.gif`,
+  "incline push up hands on table counter": `${B}GdMa1ET.gif`,
+  "incline push ups hands on table counter": `${B}GdMa1ET.gif`,
+  "incline push-up hands on table/counter": `${B}GdMa1ET.gif`,
+  "incline push-ups hands on table/counter": `${B}GdMa1ET.gif`,
 };
 
 function normalize(name: string): string {
