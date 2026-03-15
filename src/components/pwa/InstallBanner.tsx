@@ -78,7 +78,13 @@ export default function InstallBanner({ onInstallClick }: InstallBannerProps) {
     >
       <div className="bg-gradient-to-r from-primary/90 via-accent/80 to-primary/90 backdrop-blur-md shadow-lg">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <img src="/images/surya-fitai-logo.png" alt="" className="w-8 h-8 rounded-lg shrink-0" />
+          <div className="w-10 h-10 rounded-xl bg-black border border-primary/30 flex items-center justify-center shrink-0 overflow-hidden p-1.5">
+            <img 
+              src="/icons/icon-192.png" 
+              alt="Surya-FitAi" 
+              className="w-full h-full object-contain"
+            />
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-primary-foreground font-display font-bold text-sm leading-tight truncate">{t.title}</p>
             <p className="text-primary-foreground/80 text-xs leading-tight truncate">{t.subtitle}</p>

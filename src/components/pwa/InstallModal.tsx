@@ -56,10 +56,13 @@ export default function InstallModal({ open, onOpenChange, onInstall }: InstallM
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm border-primary/20 p-0 overflow-hidden">
-        {/* Gradient header */}
         <div className="bg-gradient-to-br from-primary/20 via-accent/10 to-transparent p-6 pb-4 text-center">
-          <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <img src="/images/surya-fitai-logo.png" alt="" className="w-10 h-10 rounded-lg" />
+          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-black border border-primary/20 flex items-center justify-center overflow-hidden shadow-lg p-3">
+            <img 
+              src="/icons/icon-192.png" 
+              alt="Surya-FitAi" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <DialogTitle className="text-xl font-display font-bold text-foreground">{t.title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-2">{t.desc}</DialogDescription>
