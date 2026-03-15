@@ -70,7 +70,7 @@ export default function HowItWorksGuide() {
   // Only show for new users or users without a plan
   if (hasPlan) return null;
 
-  const t = texts[language] || texts.en;
+  const t = texts[lang] || texts.en;
 
   const handleCta = () => {
     if (user) {
