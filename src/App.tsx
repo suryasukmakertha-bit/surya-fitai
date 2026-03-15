@@ -25,6 +25,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PWAManager />
             <InactivityRedirect>
               <Routes>
                 <Route path="/" element={<Index />} />
