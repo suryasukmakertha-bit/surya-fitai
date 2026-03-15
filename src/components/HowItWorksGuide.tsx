@@ -88,7 +88,7 @@ export default function HowItWorksGuide() {
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-4">
             <Rocket className="w-4 h-4 text-primary" />
             <span className="text-xs text-primary font-medium tracking-wide uppercase">
-              {language === "id" ? "Panduan" : language === "zh" ? "指南" : "Guide"}
+              {lang === "id" ? "Panduan" : lang === "zh" ? "指南" : "Guide"}
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">

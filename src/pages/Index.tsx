@@ -71,6 +71,9 @@ export default function Index() {
         </div>
       </section>
 
+      {/* How It Works Guide — only for new users */}
+      <HowItWorksGuide />
+
       {/* CTA */}
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center neon-border rounded-2xl p-12">
