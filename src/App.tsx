@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import SavedPlans from "./pages/SavedPlans";
 import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
+import PWAManager from "./components/pwa/PWAManager";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PWAManager />
             <InactivityRedirect>
               <Routes>
                 <Route path="/" element={<Index />} />
