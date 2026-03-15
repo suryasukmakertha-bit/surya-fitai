@@ -51,7 +51,7 @@ export default function NotificationPrompt({ open, onOpenChange, onEnable }: Not
 
         <div className="p-6 pt-4 space-y-2">
           <Button className="w-full h-11 font-bold gap-2" onClick={onEnable}>
-            <Bell className="w-4 h-4" />
+            <Sparkles className="w-4 h-4" />
             {t.enable}
           </Button>
           <Button variant="ghost" className="w-full h-10 text-muted-foreground" onClick={() => onOpenChange(false)}>
