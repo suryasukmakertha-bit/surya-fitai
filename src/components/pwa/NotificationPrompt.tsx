@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const texts = {
