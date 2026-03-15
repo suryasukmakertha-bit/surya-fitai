@@ -4,6 +4,7 @@ import { Dumbbell, Brain, Utensils, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
+import HowItWorksGuide from "@/components/HowItWorksGuide";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
