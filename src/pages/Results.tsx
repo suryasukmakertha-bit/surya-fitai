@@ -691,6 +691,7 @@ export default function Results() {
       }
       setSaved(true);
       localStorage.removeItem(DRAFT_KEY);
+      localStorage.setItem("fitai-has-created-plan", "true");
       if (data) {
         setPlanId(data.id);
         navigate("/results", { state: { plan, userInfo, programType, planId: data.id }, replace: true });

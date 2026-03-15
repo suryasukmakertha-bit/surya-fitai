@@ -1,32 +1,40 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import InstallBanner from "./InstallBanner";
 import InstallModal from "./InstallModal";
 import IOSInstallGuide from "./IOSInstallGuide";
 import NotificationPrompt from "./NotificationPrompt";
+import FeatureIntroPopup from "./FeatureIntroPopup";
 
 const MODAL_DISMISS_KEY = "fitai-install-modal-dismissed";
 const NOTIF_PROMPT_KEY = "fitai-notif-prompt-dismissed";
 const PAGE_VISIT_KEY = "fitai-page-visits";
+const INTRO_SEEN_KEY = "fitai-intro-seen";
 
 export default function PWAManager() {
+  const navigate = useNavigate();
   const { canPrompt, isInstalled, isIOS, showIOSGuide, triggerInstall, isStandalone } = usePWAInstall();
   const { permission, isSupported, requestPermission } = usePushNotifications();
 
   const [showModal, setShowModal] = useState(false);
   const [showIOSModal, setShowIOSModal] = useState(false);
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
+  const [introActive, setIntroActive] = useState(() => {
+    return localStorage.getItem(INTRO_SEEN_KEY) !== "true" && localStorage.getItem("fitai-has-created-plan") !== "true";
+  });
 
-  // Track page visits for trigger C (3 pages)
+  // Track page visits for trigger C (3 pages) — delay if intro is active
   useEffect(() => {
+    if (introActive) return;
     const visits = parseInt(localStorage.getItem(PAGE_VISIT_KEY) || "0", 10) + 1;
     localStorage.setItem(PAGE_VISIT_KEY, visits.toString());
 
     if (visits >= 3 && !isInstalled && !isStandalone && !localStorage.getItem(MODAL_DISMISS_KEY)) {
       setTimeout(() => setShowModal(true), 1000);
     }
-  }, [isInstalled, isStandalone]);
+  }, [isInstalled, isStandalone, introActive]);
 
   // Show notification prompt after install
   useEffect(() => {
@@ -43,7 +51,6 @@ export default function PWAManager() {
     } else if (canPrompt) {
       setShowModal(true);
     } else {
-      // Fallback: show modal with instructions
       setShowModal(true);
     }
   }, [isIOS, canPrompt, isInstalled, isStandalone]);
@@ -80,11 +87,17 @@ export default function PWAManager() {
     }
   };
 
-  if (isInstalled && isStandalone && permission !== "default") return null;
+  const handleIntroDone = () => {
+    setIntroActive(false);
+    navigate("/programs");
+  };
+
+  if (isInstalled && isStandalone && permission !== "default" && !introActive) return null;
 
   return (
     <>
-      {!isInstalled && !isStandalone && (
+      {introActive && <FeatureIntroPopup onDone={handleIntroDone} />}
+      {!introActive && !isInstalled && !isStandalone && (
         <InstallBanner onInstallClick={handleInstallClick} />
       )}
       <InstallModal open={showModal} onOpenChange={handleModalClose} onInstall={handleInstall} />
