@@ -92,7 +92,7 @@ export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto border-primary/20 p-0 rounded-2xl">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto border-primary/20 p-0 rounded-2xl animate-enter">
         {/* Language selector */}
         <div className="absolute top-3 left-3 z-10 flex items-center gap-1">
           <Globe className="w-3.5 h-3.5 text-muted-foreground" />
