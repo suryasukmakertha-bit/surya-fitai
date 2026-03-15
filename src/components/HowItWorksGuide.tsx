@@ -63,7 +63,7 @@ const texts: Record<string, { heading: string; subtitle: string; emptyMsg: strin
 export default function HowItWorksGuide() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { language } = useLanguage();
+  const { lang } = useLanguage();
 
   const hasPlan = localStorage.getItem(HAS_PLAN_KEY) === "true";
 
