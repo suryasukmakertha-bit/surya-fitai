@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 
+const NOTIF_ENABLED_KEY = "fitai-notif-enabled";
+const NOTIF_TIMER_KEY = "fitai-notif-scheduled";
+
 export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [isSupported, setIsSupported] = useState(false);
@@ -12,13 +15,40 @@ export function usePushNotifications() {
     }
   }, []);
 
+  // Listen for reschedule messages from SW
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "RESCHEDULE_NOTIFICATION") {
+        scheduleDailyReminder();
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handler);
+    return () => navigator.serviceWorker.removeEventListener("message", handler);
+  }, []);
+
+  // Auto-schedule if already enabled
+  useEffect(() => {
+    if (
+      isSupported &&
+      permission === "granted" &&
+      localStorage.getItem(NOTIF_ENABLED_KEY) === "true"
+    ) {
+      scheduleDailyReminder();
+    }
+  }, [isSupported, permission]);
+
   const requestPermission = useCallback(async () => {
     if (!isSupported) return false;
     const result = await Notification.requestPermission();
     setPermission(result);
     if (result === "granted") {
-      localStorage.setItem("fitai-notif-enabled", "true");
+      localStorage.setItem(NOTIF_ENABLED_KEY, "true");
       scheduleDailyReminder();
+      // Try to register periodic sync
+      tryPeriodicSync();
       return true;
     }
     return false;
@@ -27,55 +57,61 @@ export function usePushNotifications() {
   return { permission, isSupported, requestPermission };
 }
 
+function getDelayUntil7PM(): number {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(19, 0, 0, 0);
+  if (target <= now) {
+    target.setDate(target.getDate() + 1);
+  }
+  return target.getTime() - now.getTime();
+}
+
 function scheduleDailyReminder() {
-  // Schedule via setTimeout to fire at 7 PM local time
-  const scheduleNext = () => {
-    const now = new Date();
-    const target = new Date();
-    target.setHours(19, 0, 0, 0);
-    if (target <= now) {
-      target.setDate(target.getDate() + 1);
+  if (!("serviceWorker" in navigator)) return;
+  if (Notification.permission !== "granted") return;
+
+  const delay = getDelayUntil7PM();
+  const lang = localStorage.getItem("fitai-lang") || "en";
+
+  // Send message to SW to schedule
+  navigator.serviceWorker.ready.then((reg) => {
+    reg.active?.postMessage({
+      type: "SCHEDULE_NOTIFICATION",
+      delay,
+      lang,
+    });
+  });
+
+  localStorage.setItem(NOTIF_TIMER_KEY, Date.now().toString());
+}
+
+async function tryPeriodicSync() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if ("periodicSync" in reg) {
+      await (reg as any).periodicSync.register("daily-workout-reminder", {
+        minInterval: 24 * 60 * 60 * 1000,
+      });
     }
-    const delay = target.getTime() - now.getTime();
-
-    setTimeout(async () => {
-      if (Notification.permission === "granted" && "serviceWorker" in navigator) {
-        const reg = await navigator.serviceWorker.ready;
-        const lang = localStorage.getItem("fitai-lang") || "en";
-        
-        const titles: Record<string, string> = {
-          en: "Your workout is waiting 💪",
-          id: "Waktunya latihan 💪",
-          zh: "该锻炼了 💪",
-        };
-        const bodies: Record<string, string> = {
-          en: "Your AI trainer is ready. Let's complete today's workout.",
-          id: "Pelatih AI Anda sudah siap. Ayo selesaikan latihan hari ini.",
-          zh: "你的 AI 教练已经准备好了。开始今天的训练吧。",
-        };
-
-        reg.showNotification(titles[lang] || titles.en, {
-          body: bodies[lang] || bodies.en,
-          icon: "/images/surya-fitai-logo.png",
-          badge: "/images/surya-fitai-logo.png",
-          data: { url: "/saved-plans" },
-        });
-      }
-      // Re-schedule for next day
-      scheduleNext();
-    }, delay);
-  };
-
-  scheduleNext();
+  } catch {
+    // Periodic sync not supported, fallback to message-based scheduling
+  }
 }
 
 // Register service worker
 export function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        // SW registration failed silently
-      });
+      navigator.serviceWorker
+        .register("/sw.js", { updateViaCache: "none" })
+        .then((reg) => {
+          // Check for updates
+          reg.update();
+        })
+        .catch(() => {
+          // SW registration failed silently
+        });
     });
   }
 }
