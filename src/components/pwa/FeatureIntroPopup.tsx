@@ -477,7 +477,7 @@ export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
         {/* CTA buttons with haptic feedback */}
         {current === 3 ? (
           <Button 
-            className="w-full h-13 font-bold text-base gap-2 active:scale-[0.98] active:transition-transform active:duration-100" 
+            className="w-full h-13 font-bold text-base gap-2 cta-bounce active:scale-[0.98] active:transition-transform active:duration-100" 
             onClick={finish}
           >
             {cta.start}
@@ -504,6 +504,21 @@ export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+        @keyframes ctaBounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-3px);
+          }
+        }
+        .cta-bounce {
+          animation: ctaBounce 2s ease-in-out infinite;
+        }
+        .cta-bounce:active {
+          animation: none;
+          transform: scale(0.98);
         }
       `}</style>
     </div>
