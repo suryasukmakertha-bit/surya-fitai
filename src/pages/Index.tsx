@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
-import HowItWorksGuide from "@/components/HowItWorksGuide";
+import HowItWorksPopup from "@/components/HowItWorksPopup";
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
@@ -12,6 +13,8 @@ export default function Index() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const featuresRef = useRef<HTMLElement>(null);
+  const [showArrow, setShowArrow] = useState(true);
 
   const handleStartProgram = () => {
     if (user) {
@@ -20,9 +23,37 @@ export default function Index() {
       navigate("/auth", { state: { redirectTo: "/programs" } });
     }
   };
+
+  const scrollToFeatures = () => {
+    featuresRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Auto-hide arrow on scroll > 120px or features visible
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 120) {
+        setShowArrow(false);
+        return;
+      }
+      if (featuresRef.current) {
+        const rect = featuresRef.current.getBoundingClientRect();
+        if (rect.top < window.innerHeight) {
+          setShowArrow(false);
+          return;
+        }
+      }
+      setShowArrow(true);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
+
+      {/* How It Works Popup for new users */}
+      <HowItWorksPopup />
 
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
@@ -44,11 +75,22 @@ export default function Index() {
           <Button size="lg" onClick={handleStartProgram} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
             {t.startProgram} <ChevronRight className="w-5 h-5 ml-1" />
           </Button>
+
+          {/* Scroll indicator */}
+          <div
+            onClick={scrollToFeatures}
+            className={`mt-10 flex flex-col items-center gap-2 cursor-pointer transition-opacity duration-500 ${showArrow ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          >
+            <ChevronDown className="w-6 h-6 text-muted-foreground animate-[scrollBounce_1.2s_ease-in-out_infinite]" />
+            <span className="text-xs text-muted-foreground/70">
+              Scroll to see how Surya-FitAi works
+            </span>
+          </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-20 px-4">
+      <section ref={featuresRef} className="py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-display font-bold text-center text-foreground mb-12">
             {t.howItWorks} <span className="text-gradient">{t.works}</span>
@@ -70,9 +112,6 @@ export default function Index() {
           </div>
         </div>
       </section>
-
-      {/* How It Works Guide — only for new users */}
-      <HowItWorksGuide />
 
       {/* CTA */}
       <section className="py-16 px-4">
