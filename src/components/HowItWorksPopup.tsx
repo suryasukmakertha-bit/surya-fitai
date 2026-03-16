@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Layers,
@@ -20,6 +20,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
+  { value: "en", flag: "🇬🇧", label: "English" },
+  { value: "id", flag: "🇮🇩", label: "Indonesia" },
+  { value: "zh", flag: "🇨🇳", label: "中文" },
+];
 
 const HAS_PLAN_KEY = "fitai-has-created-plan";
 const GUIDE_SEEN_KEY = "fitai-guide-popup-seen";
@@ -71,7 +77,7 @@ const texts: Record<string, { title: string; cta: string; close: string; steps: 
 export default function HowItWorksPopup() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { lang } = useLanguage();
+  const { lang, setLang } = useLanguage();
 
   const hasPlan = localStorage.getItem(HAS_PLAN_KEY) === "true";
   const guideSeen = localStorage.getItem(GUIDE_SEEN_KEY) === "true";
@@ -97,6 +103,24 @@ export default function HowItWorksPopup() {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent className="max-w-sm mx-auto rounded-xl">
+        {/* Language switcher flags */}
+        <div className="absolute top-3.5 right-12 flex items-center gap-0.5">
+          {LANG_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setLang(opt.value)}
+              className={`text-base w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                lang === opt.value
+                  ? "bg-primary/15 ring-1 ring-primary scale-110"
+                  : "opacity-40 hover:opacity-80 hover:bg-muted"
+              }`}
+              title={opt.label}
+            >
+              {opt.flag}
+            </button>
+          ))}
+        </div>
+
         <DialogHeader>
           <DialogTitle className="text-xl font-display font-bold text-center">
             {t.title}
