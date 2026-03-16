@@ -1,41 +1,58 @@
-// Surya-FitAi Service Worker
-const CACHE_NAME = 'surya-fitai-v1';
+// Surya-FitAi Service Worker v2
+const CACHE_NAME = 'surya-fitai-v2';
 
-// Install event
+// Install — clear old caches
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.keys().then((names) =>
+      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
+    )
+  );
   self.skipWaiting();
 });
 
-// Activate event
+// Activate
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((names) =>
+      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
+    ).then(() => self.clients.claim())
+  );
 });
 
 // Push notification handler
 self.addEventListener('push', (event) => {
-  const lang = event.data ? event.data.json().lang || 'en' : 'en';
-  
+  let lang = 'en';
+  try {
+    const data = event.data?.json();
+    lang = data?.lang || 'en';
+  } catch (e) {
+    // fallback to default
+  }
+
   const titles = {
     en: 'Your workout is waiting 💪',
     id: 'Waktunya latihan 💪',
     zh: '该锻炼了 💪',
   };
-  
+
   const bodies = {
-    en: 'Your AI trainer is ready. Let\'s complete today\'s workout.',
+    en: "Your AI trainer is ready. Let's complete today's workout.",
     id: 'Pelatih AI Anda sudah siap. Ayo selesaikan latihan hari ini.',
     zh: '你的 AI 教练已经准备好了。开始今天的训练吧。',
   };
 
   const options = {
     body: bodies[lang] || bodies.en,
-    icon: '/images/surya-fitai-logo.png',
-    badge: '/images/surya-fitai-logo.png',
+    icon: '/icons/icon-192.png?v=2',
+    badge: '/icons/icon-192.png?v=2',
     vibrate: [100, 50, 100],
     data: { url: '/saved-plans' },
     actions: [
       { action: 'open', title: lang === 'id' ? 'Buka' : lang === 'zh' ? '打开' : 'Open' },
     ],
+    tag: 'daily-workout',
+    renotify: true,
   };
 
   event.waitUntil(
@@ -47,7 +64,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = event.notification.data?.url || '/saved-plans';
-  
+
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
@@ -61,6 +78,40 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+// Message handler for scheduling local notifications
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SCHEDULE_NOTIFICATION') {
+    const { delay, lang } = event.data;
+    setTimeout(() => {
+      const titles = {
+        en: 'Your workout is waiting 💪',
+        id: 'Waktunya latihan 💪',
+        zh: '该锻炼了 💪',
+      };
+      const bodies = {
+        en: "Your AI trainer is ready. Let's complete today's workout.",
+        id: 'Pelatih AI Anda sudah siap. Ayo selesaikan latihan hari ini.',
+        zh: '你的 AI 教练已经准备好了。开始今天的训练吧。',
+      };
+
+      self.registration.showNotification(titles[lang] || titles.en, {
+        body: bodies[lang] || bodies.en,
+        icon: '/icons/icon-192.png?v=2',
+        badge: '/icons/icon-192.png?v=2',
+        vibrate: [100, 50, 100],
+        data: { url: '/saved-plans' },
+        tag: 'daily-workout',
+        renotify: true,
+      });
+
+      // Tell client to schedule the next one
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: 'RESCHEDULE_NOTIFICATION' }));
+      });
+    }, delay);
+  }
+});
+
 // Periodic sync for daily notifications (if supported)
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'daily-workout-reminder') {
@@ -69,22 +120,12 @@ self.addEventListener('periodicsync', (event) => {
 });
 
 async function sendDailyReminder() {
-  const lang = 'en'; // fallback
-  const titles = {
-    en: 'Your workout is waiting 💪',
-    id: 'Waktunya latihan 💪',
-    zh: '该锻炼了 💪',
-  };
-  const bodies = {
-    en: 'Your AI trainer is ready. Let\'s complete today\'s workout.',
-    id: 'Pelatih AI Anda sudah siap. Ayo selesaikan latihan hari ini.',
-    zh: '你的 AI 教练已经准备好了。开始今天的训练吧。',
-  };
-
-  await self.registration.showNotification(titles[lang], {
-    body: bodies[lang],
-    icon: '/images/surya-fitai-logo.png',
-    badge: '/images/surya-fitai-logo.png',
+  await self.registration.showNotification('Your workout is waiting 💪', {
+    body: "Your AI trainer is ready. Let's complete today's workout.",
+    icon: '/icons/icon-192.png?v=2',
+    badge: '/icons/icon-192.png?v=2',
     data: { url: '/saved-plans' },
+    tag: 'daily-workout',
+    renotify: true,
   });
 }
