@@ -455,29 +455,39 @@ export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
 
       {/* Bottom area: dots + buttons */}
       <div className="px-6 pb-8 pt-4 space-y-5">
-        {/* Navigation dots */}
+        {/* Navigation dots with haptic-style micro-interactions */}
         <div className="flex items-center justify-center gap-2">
           {t.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`rounded-full transition-all duration-300 ${
+              className={`rounded-full transition-all duration-200 ease-out active:scale-75 active:duration-100 ${
                 i === current
-                  ? "w-8 h-2.5 bg-primary"
-                  : "w-2.5 h-2.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  ? "w-8 h-2.5 bg-primary shadow-[0_0_8px_rgba(var(--primary),0.4)]"
+                  : "w-2.5 h-2.5 bg-muted-foreground/30 hover:bg-muted-foreground/50 active:bg-primary/60"
               }`}
+              style={{
+                transform: i === current ? "scale(1)" : undefined,
+              }}
+              aria-label={`Go to slide ${i + 1}`}
             />
           ))}
         </div>
 
-        {/* CTA buttons */}
+        {/* CTA buttons with haptic feedback */}
         {current === 3 ? (
-          <Button className="w-full h-13 font-bold text-base gap-2" onClick={finish}>
+          <Button 
+            className="w-full h-13 font-bold text-base gap-2 active:scale-[0.98] active:transition-transform active:duration-100" 
+            onClick={finish}
+          >
             {cta.start}
             <ChevronRight className="w-5 h-5" />
           </Button>
         ) : (
-          <Button className="w-full h-13 font-bold text-base gap-2" onClick={goNext}>
+          <Button 
+            className="w-full h-13 font-bold text-base gap-2 active:scale-[0.98] active:transition-transform active:duration-100" 
+            onClick={goNext}
+          >
             {lang === "en" ? "Next" : lang === "id" ? "Lanjut" : "下一步"}
             <ChevronRight className="w-5 h-5" />
           </Button>
