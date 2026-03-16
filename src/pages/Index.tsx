@@ -12,7 +12,7 @@ import logo from "@/assets/logo.png";
 export default function Index() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const featuresRef = useRef<HTMLElement>(null);
   const [showArrow, setShowArrow] = useState(true);
 
