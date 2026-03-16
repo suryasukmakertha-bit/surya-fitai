@@ -505,6 +505,21 @@ export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
             transform: translateY(0);
           }
         }
+        @keyframes ctaBounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-3px);
+          }
+        }
+        .cta-bounce {
+          animation: ctaBounce 2s ease-in-out infinite;
+        }
+        .cta-bounce:active {
+          animation: none;
+          transform: scale(0.98);
+        }
       `}</style>
     </div>
   );
