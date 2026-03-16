@@ -12,7 +12,7 @@ import logo from "@/assets/logo.png";
 export default function Index() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const featuresRef = useRef<HTMLElement>(null);
   const [showArrow, setShowArrow] = useState(true);
 
@@ -83,7 +83,7 @@ export default function Index() {
           >
             <ChevronDown className="w-6 h-6 text-muted-foreground animate-[scrollBounce_1.2s_ease-in-out_infinite]" />
             <span className="text-xs text-muted-foreground/70">
-              Scroll to see how Surya-FitAi works
+              {lang === "id" ? "Scroll untuk melihat cara kerja Surya-FitAi" : lang === "zh" ? "滚动查看 Surya-FitAi 的使用方法" : "Scroll to see how Surya-FitAi works"}
             </span>
           </div>
         </div>
