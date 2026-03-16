@@ -92,6 +92,7 @@ export default function PWAManager() {
     navigate("/programs");
   };
 
+
   if (isInstalled && isStandalone && permission !== "default" && !introActive) return null;
 
   return (
