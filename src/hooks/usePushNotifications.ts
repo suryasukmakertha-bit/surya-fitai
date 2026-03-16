@@ -60,7 +60,7 @@ export function usePushNotifications() {
 function getDelayUntil7PM(): number {
   const now = new Date();
   const target = new Date();
-  target.setHours(19, 0, 0, 0);
+  target.setHours(7, 0, 0, 0);
   if (target <= now) {
     target.setDate(target.getDate() + 1);
   }
