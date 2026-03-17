@@ -52,8 +52,6 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       <AppHeader />
 
-      {/* How It Works Popup for new users */}
-      <HowItWorksPopup />
 
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
