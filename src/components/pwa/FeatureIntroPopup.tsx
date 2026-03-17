@@ -11,10 +11,10 @@ import type { Lang } from "@/contexts/LanguageContext";
 const INTRO_SEEN_KEY = "fitai-intro-seen";
 const HAS_PLAN_KEY = "fitai-has-created-plan";
 
-const langs: { code: Lang; flag: string; label: string }[] = [
-  { code: "en", flag: "🇬🇧", label: "EN" },
-  { code: "id", flag: "🇮🇩", label: "ID" },
-  { code: "zh", flag: "🇨🇳", label: "中文" },
+const langs: { code: Lang; flag: string }[] = [
+  { code: "en", flag: "🇬🇧" },
+  { code: "id", flag: "🇮🇩" },
+  { code: "zh", flag: "🇨🇳" },
 ];
 
 const slides = {
