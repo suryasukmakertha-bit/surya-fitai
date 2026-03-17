@@ -5,9 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import DownloadAppModal from "@/components/DownloadAppModal";
-import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage, Lang } from "@/contexts/LanguageContext";
-import { useToast } from "@/hooks/use-toast";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
