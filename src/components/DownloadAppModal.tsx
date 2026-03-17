@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +23,8 @@ const texts = {
     androidLabel: "Android",
     iosLabel: "iOS (Safari)",
     desktopLabel: "Desktop",
+    yourDevice: "Your device",
+    otherWays: "Other ways to install",
   },
   id: {
     title: "Pasang Surya-FitAi",
@@ -37,6 +38,8 @@ const texts = {
     androidLabel: "Android",
     iosLabel: "iOS (Safari)",
     desktopLabel: "Desktop",
+    yourDevice: "Perangkat Anda",
+    otherWays: "Cara lain untuk memasang",
   },
   zh: {
     title: "安装 Surya-FitAi",
@@ -50,7 +53,15 @@ const texts = {
     androidLabel: "Android",
     iosLabel: "iOS (Safari)",
     desktopLabel: "桌面",
+    yourDevice: "您的设备",
+    otherWays: "其他安装方式",
   },
+};
+
+const platformConfig = {
+  android: { icon: Smartphone, labelKey: "androidLabel" as const, textKey: "android" as const },
+  ios: { icon: Share2, labelKey: "iosLabel" as const, textKey: "ios" as const },
+  desktop: { icon: Monitor, labelKey: "desktopLabel" as const, textKey: "desktop" as const },
 };
 
 interface DownloadAppModalProps {
@@ -60,9 +71,8 @@ interface DownloadAppModalProps {
 
 export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModalProps) {
   const { lang } = useLanguage();
-  const { isInstalled, isStandalone, isIOS, canPrompt, triggerInstall } = usePWAInstall();
+  const { isStandalone, device, canPrompt, triggerInstall } = usePWAInstall();
   const t = texts[lang] || texts.en;
-  const alreadyInstalled = isInstalled || isStandalone;
 
   const handleInstall = async () => {
     if (canPrompt) {
@@ -71,19 +81,24 @@ export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModa
     }
   };
 
+  // Current device first, then others
+  const otherDevices = (["android", "ios", "desktop"] as const).filter(d => d !== device);
+  const currentPlatform = platformConfig[device];
+  const CurrentIcon = currentPlatform.icon;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm mx-auto rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-display font-bold text-center">
-            {alreadyInstalled ? t.alreadyTitle : t.title}
+            {isStandalone ? t.alreadyTitle : t.title}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Install Surya-FitAi as app
           </DialogDescription>
         </DialogHeader>
 
-        {alreadyInstalled ? (
+        {isStandalone ? (
           <div className="flex flex-col items-center gap-4 py-6">
             <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-primary" />
@@ -96,45 +111,46 @@ export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModa
             </Button>
           </div>
         ) : (
-          <div className="flex flex-col gap-4 py-4">
-            {/* Android */}
-            <div className="flex items-start gap-3 rounded-xl bg-card border border-border/50 px-4 py-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                <Smartphone className="w-4.5 h-4.5 text-primary" />
+          <div className="flex flex-col gap-3 py-4">
+            {/* Current device - highlighted */}
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider px-1">
+              {t.yourDevice}
+            </p>
+            <div className="flex items-start gap-3 rounded-xl bg-primary/5 border border-primary/20 px-4 py-3">
+              <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                <CurrentIcon className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <span className="text-sm font-semibold text-foreground">{t.androidLabel}</span>
-                <p className="text-xs text-muted-foreground mt-0.5">{t.android}</p>
-              </div>
-            </div>
-
-            {/* iOS */}
-            <div className="flex items-start gap-3 rounded-xl bg-card border border-border/50 px-4 py-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                <Share2 className="w-4.5 h-4.5 text-primary" />
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-foreground">{t.iosLabel}</span>
-                <p className="text-xs text-muted-foreground mt-0.5">{t.ios}</p>
-              </div>
-            </div>
-
-            {/* Desktop */}
-            <div className="flex items-start gap-3 rounded-xl bg-card border border-border/50 px-4 py-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                <Monitor className="w-4.5 h-4.5 text-primary" />
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-foreground">{t.desktopLabel}</span>
-                <p className="text-xs text-muted-foreground mt-0.5">{t.desktop}</p>
+                <span className="text-sm font-semibold text-foreground">{t[currentPlatform.labelKey]}</span>
+                <p className="text-xs text-muted-foreground mt-0.5">{t[currentPlatform.textKey]}</p>
               </div>
             </div>
 
             {canPrompt && (
-              <Button onClick={handleInstall} className="w-full font-bold mt-2">
+              <Button onClick={handleInstall} className="w-full font-bold">
                 {t.installNow}
               </Button>
             )}
+
+            {/* Other devices */}
+            <p className="text-xs text-muted-foreground uppercase tracking-wider px-1 mt-2">
+              {t.otherWays}
+            </p>
+            {otherDevices.map((d) => {
+              const cfg = platformConfig[d];
+              const Icon = cfg.icon;
+              return (
+                <div key={d} className="flex items-start gap-3 rounded-xl bg-card border border-border/50 px-4 py-3 opacity-70">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">{t[cfg.labelKey]}</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t[cfg.textKey]}</p>
+                  </div>
+                </div>
+              );
+            })}
 
             <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full text-muted-foreground">
               {t.close}
