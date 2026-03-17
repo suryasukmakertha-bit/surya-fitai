@@ -22,7 +22,6 @@ export default function AppHeader() {
   const [langOpen, setLangOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
-  const langRef = useRef<HTMLDivElement>(null);
 
   const isHome = location.pathname === "/";
 
