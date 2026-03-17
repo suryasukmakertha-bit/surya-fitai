@@ -165,6 +165,17 @@ export default function AppHeader() {
                     <span className="font-medium">{t.myPlans}</span>
                   </button>
 
+                  {/* Download App */}
+                  <button
+                    onClick={() => { setDownloadOpen(true); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <Download className="w-4 h-4 text-primary" />
+                    <span className="font-medium">
+                      {lang === "id" ? "Unduh Aplikasi" : lang === "zh" ? "下载应用" : "Download App"}
+                    </span>
+                  </button>
+
                   {/* Sign Out */}
                   <button
                     onClick={() => { signOut(); closeDrawer(); }}
