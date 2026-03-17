@@ -42,7 +42,7 @@ const texts = {
     title: "安装 Surya-FitAi",
     alreadyTitle: "应用已安装！",
     alreadyDesc: "您现在可以直接从主屏幕打开 Surya-FitAi。",
-    android: "出现提示时点击"安装"，或使用浏览器菜单 → 安装应用。",
+    android: "出现提示时点击'安装'，或使用浏览器菜单 → 安装应用。",
     ios: "点击分享按钮 → 添加到主屏幕。",
     desktop: "点击浏览器地址栏中的安装图标。",
     installNow: "立即安装",
