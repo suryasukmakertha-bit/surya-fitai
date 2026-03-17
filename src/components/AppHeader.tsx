@@ -198,6 +198,7 @@ export default function AppHeader() {
           </div>
         </div>
       )}
+      <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
     </>
   );
 }
