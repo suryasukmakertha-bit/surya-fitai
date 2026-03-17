@@ -5,45 +5,56 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+export type DeviceType = "android" | "ios" | "desktop";
+
+function detectDevice(): DeviceType {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/ipad|iphone|ipod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+    return "ios";
+  }
+  if (/android/.test(ua)) {
+    return "android";
+  }
+  return "desktop";
+}
+
+function checkIsStandalone(): boolean {
+  return window.matchMedia("(display-mode: standalone)").matches
+    || (navigator as any).standalone === true;
+}
+
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(checkIsStandalone);
+  const [device] = useState<DeviceType>(detectDevice);
   const promptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    // Check if already installed
-    const standalone = window.matchMedia("(display-mode: standalone)").matches
-      || (navigator as any).standalone === true;
-    setIsStandalone(standalone);
-    setIsInstalled(standalone || localStorage.getItem("fitai-pwa-installed") === "true");
-
-    // Detect iOS
-    const ua = navigator.userAgent;
-    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    setIsIOS(ios);
+    // Re-check standalone on display-mode change
+    const mq = window.matchMedia("(display-mode: standalone)");
+    const handler = () => setIsStandalone(mq.matches || (navigator as any).standalone === true);
+    mq.addEventListener?.("change", handler);
 
     // Listen for beforeinstallprompt (Android/Desktop Chrome)
-    const handler = (e: Event) => {
+    const promptHandler = (e: Event) => {
       e.preventDefault();
       const evt = e as BeforeInstallPromptEvent;
       promptRef.current = evt;
       setDeferredPrompt(evt);
     };
-    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("beforeinstallprompt", promptHandler);
 
     // Listen for appinstalled
     const installedHandler = () => {
-      setIsInstalled(true);
-      localStorage.setItem("fitai-pwa-installed", "true");
+      setIsStandalone(true);
       setDeferredPrompt(null);
       promptRef.current = null;
     };
     window.addEventListener("appinstalled", installedHandler);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
+      mq.removeEventListener?.("change", handler);
+      window.removeEventListener("beforeinstallprompt", promptHandler);
       window.removeEventListener("appinstalled", installedHandler);
     };
   }, []);
@@ -54,15 +65,14 @@ export function usePWAInstall() {
     await prompt.prompt();
     const result = await prompt.userChoice;
     if (result.outcome === "accepted") {
-      setIsInstalled(true);
-      localStorage.setItem("fitai-pwa-installed", "true");
+      setIsStandalone(true);
       return true;
     }
     return false;
   }, []);
 
-  const canPrompt = !!deferredPrompt && !isInstalled;
-  const showIOSGuide = isIOS && !isInstalled && !isStandalone;
+  const canPrompt = !!deferredPrompt && !isStandalone;
+  const isIOS = device === "ios";
 
-  return { canPrompt, isInstalled, isIOS, showIOSGuide, triggerInstall, isStandalone };
+  return { canPrompt, isInstalled: isStandalone, isIOS, device, triggerInstall, isStandalone };
 }
