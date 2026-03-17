@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import DownloadAppModal from "@/components/DownloadAppModal";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
@@ -19,6 +20,7 @@ export default function AppHeader() {
   const { toast } = useToast();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
 
   const isHome = location.pathname === "/";
@@ -159,6 +161,17 @@ export default function AppHeader() {
                     <span className="font-medium">{t.myPlans}</span>
                   </button>
 
+                  {/* Download App */}
+                  <button
+                    onClick={() => { setDownloadOpen(true); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <Download className="w-4 h-4 text-primary" />
+                    <span className="font-medium">
+                      {lang === "id" ? "Unduh Aplikasi" : lang === "zh" ? "下载应用" : "Download App"}
+                    </span>
+                  </button>
+
                   {/* Sign Out */}
                   <button
                     onClick={() => { signOut(); closeDrawer(); }}
@@ -181,6 +194,7 @@ export default function AppHeader() {
           </div>
         </div>
       )}
+      <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
     </>
   );
 }

@@ -11,10 +11,10 @@ import type { Lang } from "@/contexts/LanguageContext";
 const INTRO_SEEN_KEY = "fitai-intro-seen";
 const HAS_PLAN_KEY = "fitai-has-created-plan";
 
-const langs: { code: Lang; flag: string; label: string }[] = [
-  { code: "en", flag: "🇬🇧", label: "EN" },
-  { code: "id", flag: "🇮🇩", label: "ID" },
-  { code: "zh", flag: "🇨🇳", label: "中文" },
+const langs: { code: Lang; flag: string }[] = [
+  { code: "en", flag: "🇬🇧" },
+  { code: "id", flag: "🇮🇩" },
+  { code: "zh", flag: "🇨🇳" },
 ];
 
 const slides = {
@@ -385,19 +385,18 @@ export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
   return (
     <div className="fixed inset-0 z-[100] bg-background flex flex-col">
       {/* Language selector */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-1 bg-card/80 backdrop-blur-sm rounded-full px-2 py-1 border border-border/50">
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-1 bg-card/80 backdrop-blur-sm rounded-full px-1.5 py-1 border border-border/50">
         {langs.map((l) => (
           <button
             key={l.code}
             onClick={() => handleLang(l.code)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all duration-200 ${
               lang === l.code
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                ? "bg-primary shadow-sm scale-110"
+                : "opacity-50 hover:opacity-90 hover:bg-accent/50"
             }`}
           >
-            <span className="text-sm">{l.flag}</span>
-            <span>{l.label}</span>
+            {l.flag}
           </button>
         ))}
       </div>

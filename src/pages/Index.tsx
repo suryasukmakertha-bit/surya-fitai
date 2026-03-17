@@ -5,7 +5,7 @@ import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown } from "lucide-rea
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
-import HowItWorksPopup from "@/components/HowItWorksPopup";
+
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
@@ -52,8 +52,6 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       <AppHeader />
 
-      {/* How It Works Popup for new users */}
-      <HowItWorksPopup />
 
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
