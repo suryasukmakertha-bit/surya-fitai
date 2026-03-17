@@ -163,7 +163,7 @@ export default function AppHeader() {
 
                   {/* Download App */}
                   <button
-                    onClick={() => { setDownloadOpen(true); }}
+                    onClick={() => { closeDrawer(); setDownloadOpen(true); }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <Download className="w-4 h-4 text-primary" />
