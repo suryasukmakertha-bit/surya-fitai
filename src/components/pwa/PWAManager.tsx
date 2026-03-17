@@ -15,7 +15,7 @@ const INTRO_SEEN_KEY = "fitai-intro-seen";
 
 export default function PWAManager() {
   const navigate = useNavigate();
-  const { canPrompt, isInstalled, isIOS, showIOSGuide, triggerInstall, isStandalone } = usePWAInstall();
+  const { canPrompt, isInstalled, isIOS, triggerInstall, isStandalone } = usePWAInstall();
   const { permission, isSupported, requestPermission } = usePushNotifications();
 
   const [showModal, setShowModal] = useState(false);
