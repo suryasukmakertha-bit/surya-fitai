@@ -128,9 +128,14 @@ export function usePushNotifications() {
     setPermission(result);
     if (result === "granted") {
       localStorage.setItem(NOTIF_ENABLED_KEY, "true");
+      syncLangToSW();
       checkAndSendReminders();
       scheduleSWReminders();
       tryPeriodicSync();
+      // Ask SW to check reminders immediately
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.active?.postMessage({ type: "CHECK_REMINDERS" });
+      });
       return true;
     }
     return false;
