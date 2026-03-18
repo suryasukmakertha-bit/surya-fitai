@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Smartphone, Monitor, Share2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { usePWAInstall, getGlobalDeferredPrompt } from "@/hooks/usePWAInstall";
 
 const texts = {
   en: {
@@ -73,11 +73,24 @@ export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModa
   const { lang } = useLanguage();
   const { isStandalone, device, canPrompt, triggerInstall } = usePWAInstall();
   const t = texts[lang] || texts.en;
+  // Also check global deferred prompt as fallback
+  const hasPrompt = canPrompt || (!isStandalone && !!getGlobalDeferredPrompt());
 
   const handleInstall = async () => {
+    // Try hook's triggerInstall first, then global fallback
     if (canPrompt) {
       const success = await triggerInstall();
       if (success) onOpenChange(false);
+    } else {
+      const prompt = getGlobalDeferredPrompt();
+      if (prompt) {
+        await prompt.prompt();
+        const result = await prompt.userChoice;
+        if (result.outcome === "accepted") {
+          localStorage.setItem("pwaInstalled", "true");
+          onOpenChange(false);
+        }
+      }
     }
   };
 
@@ -126,8 +139,8 @@ export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModa
               </div>
             </div>
 
-            {canPrompt && (
-              <Button onClick={handleInstall} className="w-full font-bold">
+            {hasPrompt && (
+              <Button onClick={handleInstall} className="w-full font-bold bg-primary hover:bg-primary/90">
                 {t.installNow}
               </Button>
             )}

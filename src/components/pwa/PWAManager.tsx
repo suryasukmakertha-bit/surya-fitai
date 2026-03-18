@@ -124,12 +124,17 @@ export default function PWAManager() {
     navigate("/programs");
   };
 
+  const handleIntroSkip = () => {
+    setIntroActive(false);
+    navigate("/");
+  };
+
   if (!introChecked) return null;
   if (isInstalled && isStandalone && permission !== "default" && !introActive) return null;
 
   return (
     <>
-      {introActive && <FeatureIntroPopup onDone={handleIntroDone} forceOpen />}
+      {introActive && <FeatureIntroPopup onDone={handleIntroDone} onSkip={handleIntroSkip} forceOpen />}
       {!introActive && !isInstalled && !isStandalone && (
         <InstallBanner onInstallClick={handleInstallClick} />
       )}

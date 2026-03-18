@@ -127,6 +127,7 @@ const exerciseCards = {
 
 interface FeatureIntroPopupProps {
   onDone: () => void;
+  onSkip?: () => void;
   forceOpen?: boolean;
 }
 
@@ -333,7 +334,7 @@ function SlideProgress({ active, lang }: { active: boolean; lang: Lang }) {
 
 // --- Main Component ---
 
-export default function FeatureIntroPopup({ onDone, forceOpen = false }: FeatureIntroPopupProps) {
+export default function FeatureIntroPopup({ onDone, onSkip, forceOpen = false }: FeatureIntroPopupProps) {
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState<Lang>(() => {
     return (localStorage.getItem("fitai-language") as Lang) || "en";
@@ -358,6 +359,13 @@ export default function FeatureIntroPopup({ onDone, forceOpen = false }: Feature
     setOpen(false);
     onDone();
   }, [onDone]);
+
+  const skip = useCallback(() => {
+    localStorage.setItem(INTRO_SEEN_KEY, "true");
+    setOpen(false);
+    if (onSkip) onSkip();
+    else onDone();
+  }, [onDone, onSkip]);
 
   const goNext = () => setCurrent((p) => Math.min(p + 1, 3));
   const goPrev = () => setCurrent((p) => Math.max(p - 1, 0));
@@ -404,7 +412,7 @@ export default function FeatureIntroPopup({ onDone, forceOpen = false }: Feature
 
       {/* Skip button */}
       <button
-        onClick={finish}
+        onClick={skip}
         className="absolute top-4 right-4 z-10 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full border border-border/50 bg-card/80 backdrop-blur-sm"
       >
         {cta.skip}
