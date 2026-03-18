@@ -127,6 +127,7 @@ const exerciseCards = {
 
 interface FeatureIntroPopupProps {
   onDone: () => void;
+  forceOpen?: boolean;
 }
 
 // Staggered animation hook
