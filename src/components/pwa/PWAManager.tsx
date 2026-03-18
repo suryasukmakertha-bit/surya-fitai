@@ -70,14 +70,14 @@ export default function PWAManager() {
     }
   }, [isInstalled, isStandalone, introActive, introChecked]);
 
-  // Show notification prompt after install (standalone or backup flag)
+  // Show notification prompt on every load when permission is still 'default'
   useEffect(() => {
-    const installedDetected = isInstalled || isStandalone || localStorage.getItem("pwaInstalled") === "true";
-    if (installedDetected && isSupported && permission === "default" && !localStorage.getItem(NOTIF_PROMPT_KEY)) {
-      const timer = setTimeout(() => setShowNotifPrompt(true), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isInstalled, isStandalone, isSupported, permission]);
+    if (!isSupported || permission !== "default") return;
+    // Don't show during intro
+    if (introActive) return;
+    const timer = setTimeout(() => setShowNotifPrompt(true), 3000);
+    return () => clearTimeout(timer);
+  }, [isSupported, permission, introActive]);
 
   const handleInstallClick = useCallback(() => {
     if (isInstalled || isStandalone) return;
@@ -110,13 +110,12 @@ export default function PWAManager() {
   const handleNotifEnable = async () => {
     await requestPermission();
     setShowNotifPrompt(false);
-    localStorage.setItem(NOTIF_PROMPT_KEY, "true");
   };
 
   const handleNotifClose = (open: boolean) => {
     if (!open) {
       setShowNotifPrompt(false);
-      localStorage.setItem(NOTIF_PROMPT_KEY, "true");
+      // Don't permanently dismiss — will re-show next load if still 'default'
     }
   };
 
@@ -131,8 +130,6 @@ export default function PWAManager() {
   };
 
   if (!introChecked) return null;
-  const installedFull = (isInstalled || isStandalone || localStorage.getItem("pwaInstalled") === "true");
-  if (installedFull && permission !== "default" && !introActive && !showNotifPrompt) return null;
 
   return (
     <>

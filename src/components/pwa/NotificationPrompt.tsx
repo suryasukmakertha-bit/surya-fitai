@@ -5,21 +5,21 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const texts = {
   en: {
-    title: "Enable Workout Reminders",
-    desc: "Get daily reminders from your AI trainer so you never miss a workout.",
-    enable: "Enable Notifications",
-    later: "Maybe Later",
+    title: "Daily Workout Reminders",
+    desc: "Allow daily workout reminders at 7 AM and 3 PM?",
+    enable: "Allow",
+    later: "Not now",
   },
   id: {
-    title: "Aktifkan Pengingat Latihan",
-    desc: "Dapatkan pengingat harian dari pelatih AI Anda agar tidak melewatkan latihan.",
-    enable: "Aktifkan Notifikasi",
+    title: "Pengingat Latihan Harian",
+    desc: "Izinkan pengingat latihan harian pukul 7 pagi dan 3 sore?",
+    enable: "Izinkan",
     later: "Nanti",
   },
   zh: {
-    title: "开启训练提醒",
-    desc: "从你的 AI 教练那里获得每日提醒，不要错过训练。",
-    enable: "开启通知",
+    title: "每日训练提醒",
+    desc: "允许每天早上7点和下午3点的健身提醒吗？",
+    enable: "允许",
     later: "稍后",
   },
 };
