@@ -51,11 +51,10 @@ async function showNotificationViaSW(title: string, body: string) {
     body,
     icon: "/icons/icon-192.png?v=2",
     badge: "/icons/icon-192.png?v=2",
-    vibrate: [100, 50, 100],
     data: { url: "/saved-plans" },
     tag: "daily-workout-" + Date.now(),
     renotify: true,
-  });
+  } as NotificationOptions);
 }
 
 function checkAndSendReminders() {
