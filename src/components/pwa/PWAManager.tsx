@@ -124,6 +124,11 @@ export default function PWAManager() {
     navigate("/programs");
   };
 
+  const handleIntroSkip = () => {
+    setIntroActive(false);
+    navigate("/");
+  };
+
   if (!introChecked) return null;
   if (isInstalled && isStandalone && permission !== "default" && !introActive) return null;
 
