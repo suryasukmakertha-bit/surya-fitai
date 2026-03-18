@@ -334,7 +334,7 @@ function SlideProgress({ active, lang }: { active: boolean; lang: Lang }) {
 
 // --- Main Component ---
 
-export default function FeatureIntroPopup({ onDone, forceOpen = false }: FeatureIntroPopupProps) {
+export default function FeatureIntroPopup({ onDone, onSkip, forceOpen = false }: FeatureIntroPopupProps) {
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState<Lang>(() => {
     return (localStorage.getItem("fitai-language") as Lang) || "en";
