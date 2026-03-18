@@ -412,7 +412,7 @@ export default function FeatureIntroPopup({ onDone, onSkip, forceOpen = false }:
 
       {/* Skip button */}
       <button
-        onClick={finish}
+        onClick={skip}
         className="absolute top-4 right-4 z-10 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full border border-border/50 bg-card/80 backdrop-blur-sm"
       >
         {cta.skip}

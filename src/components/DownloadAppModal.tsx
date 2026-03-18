@@ -77,9 +77,20 @@ export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModa
   const hasPrompt = canPrompt || (!isStandalone && !!getGlobalDeferredPrompt());
 
   const handleInstall = async () => {
+    // Try hook's triggerInstall first, then global fallback
     if (canPrompt) {
       const success = await triggerInstall();
       if (success) onOpenChange(false);
+    } else {
+      const prompt = getGlobalDeferredPrompt();
+      if (prompt) {
+        await prompt.prompt();
+        const result = await prompt.userChoice;
+        if (result.outcome === "accepted") {
+          localStorage.setItem("pwaInstalled", "true");
+          onOpenChange(false);
+        }
+      }
     }
   };
 

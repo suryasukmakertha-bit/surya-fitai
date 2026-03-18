@@ -82,6 +82,7 @@ export function usePWAInstall() {
       setIsStandalone(true);
       setDeferredPrompt(null);
       promptRef.current = null;
+      globalDeferredPrompt = null;
     };
     window.addEventListener("appinstalled", installedHandler);
 
