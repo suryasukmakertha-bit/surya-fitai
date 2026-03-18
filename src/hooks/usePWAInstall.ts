@@ -18,21 +18,34 @@ function detectDevice(): DeviceType {
   return "desktop";
 }
 
-function checkIsStandalone(): boolean {
-  return window.matchMedia("(display-mode: standalone)").matches
-    || (navigator as any).standalone === true;
+/** Device-level only check — no user/account dependency */
+export function isPwaInstalled(): boolean {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true ||
+    document.documentElement.classList.contains("standalone")
+  );
 }
 
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isStandalone, setIsStandalone] = useState(checkIsStandalone);
+  const [isStandalone, setIsStandalone] = useState(isPwaInstalled);
   const [device] = useState<DeviceType>(detectDevice);
   const promptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
+    // Reset backup flag if not actually installed (handles uninstall)
+    if (!isPwaInstalled()) {
+      localStorage.removeItem("pwaInstalled");
+    }
+
     // Re-check standalone on display-mode change
     const mq = window.matchMedia("(display-mode: standalone)");
-    const handler = () => setIsStandalone(mq.matches || (navigator as any).standalone === true);
+    const handler = () => {
+      const installed = isPwaInstalled();
+      setIsStandalone(installed);
+      if (!installed) localStorage.removeItem("pwaInstalled");
+    };
     mq.addEventListener?.("change", handler);
 
     // Listen for beforeinstallprompt (Android/Desktop Chrome)
@@ -44,8 +57,9 @@ export function usePWAInstall() {
     };
     window.addEventListener("beforeinstallprompt", promptHandler);
 
-    // Listen for appinstalled
+    // Listen for appinstalled — backup flag only
     const installedHandler = () => {
+      localStorage.setItem("pwaInstalled", "true");
       setIsStandalone(true);
       setDeferredPrompt(null);
       promptRef.current = null;
@@ -65,6 +79,7 @@ export function usePWAInstall() {
     await prompt.prompt();
     const result = await prompt.userChoice;
     if (result.outcome === "accepted") {
+      localStorage.setItem("pwaInstalled", "true");
       setIsStandalone(true);
       return true;
     }

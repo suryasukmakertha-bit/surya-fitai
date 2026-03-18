@@ -1,5 +1,5 @@
-// Surya-FitAi Service Worker v2
-const CACHE_NAME = 'surya-fitai-v2';
+// Surya-FitAi Service Worker v3
+const CACHE_NAME = 'surya-fitai-v3';
 
 // Install — clear old caches
 self.addEventListener('install', (event) => {
@@ -22,41 +22,24 @@ self.addEventListener('activate', (event) => {
 
 // Push notification handler
 self.addEventListener('push', (event) => {
-  let lang = 'en';
+  let data = {};
   try {
-    const data = event.data?.json();
-    lang = data?.lang || 'en';
-  } catch (e) {
-    // fallback to default
-  }
+    data = event.data?.json() || {};
+  } catch (e) {}
 
-  const titles = {
-    en: 'Your workout is waiting 💪',
-    id: 'Waktunya latihan 💪',
-    zh: '该锻炼了 💪',
-  };
-
-  const bodies = {
-    en: "Your AI trainer is ready. Let's complete today's workout.",
-    id: 'Pelatih AI Anda sudah siap. Ayo selesaikan latihan hari ini.',
-    zh: '你的 AI 教练已经准备好了。开始今天的训练吧。',
-  };
-
-  const options = {
-    body: bodies[lang] || bodies.en,
-    icon: '/icons/icon-192.png?v=2',
-    badge: '/icons/icon-192.png?v=2',
-    vibrate: [100, 50, 100],
-    data: { url: '/saved-plans' },
-    actions: [
-      { action: 'open', title: lang === 'id' ? 'Buka' : lang === 'zh' ? '打开' : 'Open' },
-    ],
-    tag: 'daily-workout',
-    renotify: true,
-  };
+  const title = data.title || 'Your workout is waiting 💪';
+  const body = data.body || "Your AI trainer is ready. Let's complete today's workout.";
 
   event.waitUntil(
-    self.registration.showNotification(titles[lang] || titles.en, options)
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icons/icon-192.png?v=2',
+      badge: '/icons/icon-192.png?v=2',
+      vibrate: [100, 50, 100],
+      data: { url: '/saved-plans' },
+      tag: data.tag || 'daily-workout',
+      renotify: true,
+    })
   );
 });
 
@@ -81,26 +64,15 @@ self.addEventListener('notificationclick', (event) => {
 // Message handler for scheduling local notifications
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SCHEDULE_NOTIFICATION') {
-    const { delay, lang } = event.data;
+    const { delay, title, body, tag } = event.data;
     setTimeout(() => {
-      const titles = {
-        en: 'Your workout is waiting 💪',
-        id: 'Waktunya latihan 💪',
-        zh: '该锻炼了 💪',
-      };
-      const bodies = {
-        en: "Your AI trainer is ready. Let's complete today's workout.",
-        id: 'Pelatih AI Anda sudah siap. Ayo selesaikan latihan hari ini.',
-        zh: '你的 AI 教练已经准备好了。开始今天的训练吧。',
-      };
-
-      self.registration.showNotification(titles[lang] || titles.en, {
-        body: bodies[lang] || bodies.en,
+      self.registration.showNotification(title || 'Your workout is waiting 💪', {
+        body: body || "Your AI trainer is ready. Let's complete today's workout.",
         icon: '/icons/icon-192.png?v=2',
         badge: '/icons/icon-192.png?v=2',
         vibrate: [100, 50, 100],
         data: { url: '/saved-plans' },
-        tag: 'daily-workout',
+        tag: tag || 'daily-workout',
         renotify: true,
       });
 
@@ -115,17 +87,15 @@ self.addEventListener('message', (event) => {
 // Periodic sync for daily notifications (if supported)
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'daily-workout-reminder') {
-    event.waitUntil(sendDailyReminder());
+    event.waitUntil(
+      self.registration.showNotification('Hey champion! 💪', {
+        body: "Time to train with your AI trainer! Let's make today strong!",
+        icon: '/icons/icon-192.png?v=2',
+        badge: '/icons/icon-192.png?v=2',
+        data: { url: '/saved-plans' },
+        tag: 'periodic-reminder',
+        renotify: true,
+      })
+    );
   }
 });
-
-async function sendDailyReminder() {
-  await self.registration.showNotification('Your workout is waiting 💪', {
-    body: "Your AI trainer is ready. Let's complete today's workout.",
-    icon: '/icons/icon-192.png?v=2',
-    badge: '/icons/icon-192.png?v=2',
-    data: { url: '/saved-plans' },
-    tag: 'daily-workout',
-    renotify: true,
-  });
-}
