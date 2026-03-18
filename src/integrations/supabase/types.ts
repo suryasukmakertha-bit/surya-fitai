@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          created_at: string | null
+          key: string
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          key: string
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -75,6 +93,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          lang: string
+          last_afternoon_sent: string | null
+          last_morning_sent: string | null
+          p256dh: string
+          timezone: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          lang?: string
+          last_afternoon_sent?: string | null
+          last_morning_sent?: string | null
+          p256dh: string
+          timezone?: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          lang?: string
+          last_afternoon_sent?: string | null
+          last_morning_sent?: string | null
+          p256dh?: string
+          timezone?: string
+        }
+        Relationships: []
       }
       saved_plans: {
         Row: {

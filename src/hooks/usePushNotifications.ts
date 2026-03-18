@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const NOTIF_ENABLED_KEY = "fitai-notif-enabled";
 const LAST_MORNING_KEY = "fitai-lastMorningReminderDate";
@@ -80,6 +81,93 @@ function checkAndSendReminders() {
   }
 }
 
+// ===== Web Push Subscription (server-sent notifications) =====
+function base64UrlToUint8Array(base64Url: string): Uint8Array {
+  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) base64 += "=";
+  const bin = atob(base64);
+  return new Uint8Array([...bin].map((c) => c.charCodeAt(0)));
+}
+
+async function subscribeToPush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+
+    // Check if already subscribed
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      // Update language and timezone in DB
+      await updateSubscriptionMeta(existing);
+      return;
+    }
+
+    // Fetch VAPID public key from edge function
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    const res = await fetch(`${supabaseUrl}/functions/v1/get-vapid-key`, {
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+      },
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch VAPID key:", res.status);
+      return;
+    }
+
+    const { publicKey } = await res.json();
+    const applicationServerKey = base64UrlToUint8Array(publicKey);
+
+    // Subscribe to push
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
+    });
+
+    // Save to database
+    await saveSubscription(subscription);
+  } catch (e) {
+    console.error("Push subscription failed:", e);
+  }
+}
+
+async function saveSubscription(subscription: PushSubscription) {
+  const subJson = subscription.toJSON();
+  if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) return;
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const lang = getLang();
+
+  await supabase.from("push_subscriptions").upsert(
+    {
+      endpoint: subJson.endpoint,
+      p256dh: subJson.keys.p256dh,
+      auth: subJson.keys.auth,
+      timezone,
+      lang,
+    },
+    { onConflict: "endpoint" }
+  );
+}
+
+async function updateSubscriptionMeta(subscription: PushSubscription) {
+  const subJson = subscription.toJSON();
+  if (!subJson.endpoint) return;
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const lang = getLang();
+
+  await supabase
+    .from("push_subscriptions")
+    .update({ timezone, lang })
+    .eq("endpoint", subJson.endpoint);
+}
+
+// ===== Main hook =====
 export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [isSupported, setIsSupported] = useState(false);
@@ -92,22 +180,24 @@ export function usePushNotifications() {
     }
   }, []);
 
-  // Check and send reminders on load and every 5 minutes
+  // Check and send reminders on load and every 5 minutes (client-side fallback)
   useEffect(() => {
     if (!isSupported || permission !== "granted") return;
-    
-    // Sync language to SW so background notifications use correct language
+
     syncLangToSW();
-    
-    // Check immediately
     checkAndSendReminders();
-    
-    // Check every 5 minutes while app is open
+
     const interval = setInterval(checkAndSendReminders, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [isSupported, permission]);
 
-  // Schedule via SW messages for background delivery
+  // Subscribe to Web Push for server-sent background notifications
+  useEffect(() => {
+    if (!isSupported || permission !== "granted") return;
+    subscribeToPush();
+  }, [isSupported, permission]);
+
+  // Schedule via SW messages as additional fallback
   useEffect(() => {
     if (!isSupported || permission !== "granted") return;
     scheduleSWReminders();
@@ -135,6 +225,8 @@ export function usePushNotifications() {
       checkAndSendReminders();
       scheduleSWReminders();
       tryPeriodicSync();
+      // Subscribe to Web Push for background delivery
+      subscribeToPush();
       // Ask SW to check reminders immediately
       navigator.serviceWorker.ready.then((reg) => {
         reg.active?.postMessage({ type: "CHECK_REMINDERS" });
@@ -147,6 +239,7 @@ export function usePushNotifications() {
   return { permission, isSupported, requestPermission };
 }
 
+// ===== SW fallback helpers =====
 function getDelayUntilHour(targetHour: number): number {
   const now = new Date();
   const target = new Date();
@@ -164,7 +257,6 @@ function scheduleSWReminders() {
   const lang = getLang();
 
   navigator.serviceWorker.ready.then((reg) => {
-    // Schedule morning (7 AM)
     const morningDelay = getDelayUntilHour(7);
     const morning = morningMessages[lang];
     reg.active?.postMessage({
@@ -175,7 +267,6 @@ function scheduleSWReminders() {
       tag: "morning-reminder",
     });
 
-    // Schedule afternoon (3 PM / 15:00)
     const afternoonDelay = getDelayUntilHour(15);
     const afternoon = afternoonMessages[lang];
     reg.active?.postMessage({
@@ -193,7 +284,7 @@ async function tryPeriodicSync() {
     const reg = await navigator.serviceWorker.ready;
     if ("periodicSync" in reg) {
       await (reg as any).periodicSync.register("daily-fitness-reminder", {
-        minInterval: 4 * 60 * 60 * 1000, // every 4 hours for reliable coverage
+        minInterval: 4 * 60 * 60 * 1000,
       });
     }
   } catch {
