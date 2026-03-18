@@ -110,13 +110,12 @@ export default function PWAManager() {
   const handleNotifEnable = async () => {
     await requestPermission();
     setShowNotifPrompt(false);
-    localStorage.setItem(NOTIF_PROMPT_KEY, "true");
   };
 
   const handleNotifClose = (open: boolean) => {
     if (!open) {
       setShowNotifPrompt(false);
-      localStorage.setItem(NOTIF_PROMPT_KEY, "true");
+      // Don't permanently dismiss — will re-show next load if still 'default'
     }
   };
 
