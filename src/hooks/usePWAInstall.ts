@@ -18,6 +18,24 @@ function detectDevice(): DeviceType {
   return "desktop";
 }
 
+// Global deferred prompt accessible from anywhere
+let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+
+export function getGlobalDeferredPrompt() {
+  return globalDeferredPrompt;
+}
+
+// Capture at module level so it's never missed
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e: Event) => {
+    e.preventDefault();
+    globalDeferredPrompt = e as BeforeInstallPromptEvent;
+  });
+  window.addEventListener("appinstalled", () => {
+    globalDeferredPrompt = null;
+  });
+}
+
 /** Device-level only check — no user/account dependency */
 export function isPwaInstalled(): boolean {
   return (
