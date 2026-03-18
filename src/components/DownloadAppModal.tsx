@@ -128,8 +128,8 @@ export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModa
               </div>
             </div>
 
-            {canPrompt && (
-              <Button onClick={handleInstall} className="w-full font-bold">
+            {hasPrompt && (
+              <Button onClick={handleInstall} className="w-full font-bold bg-primary hover:bg-primary/90">
                 {t.installNow}
               </Button>
             )}
