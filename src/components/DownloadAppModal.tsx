@@ -73,6 +73,8 @@ export default function DownloadAppModal({ open, onOpenChange }: DownloadAppModa
   const { lang } = useLanguage();
   const { isStandalone, device, canPrompt, triggerInstall } = usePWAInstall();
   const t = texts[lang] || texts.en;
+  // Also check global deferred prompt as fallback
+  const hasPrompt = canPrompt || (!isStandalone && !!getGlobalDeferredPrompt());
 
   const handleInstall = async () => {
     if (canPrompt) {
