@@ -70,6 +70,7 @@ export function usePWAInstall() {
     const promptHandler = (e: Event) => {
       e.preventDefault();
       const evt = e as BeforeInstallPromptEvent;
+      globalDeferredPrompt = evt;
       promptRef.current = evt;
       setDeferredPrompt(evt);
     };
