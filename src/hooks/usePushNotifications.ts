@@ -96,6 +96,9 @@ export function usePushNotifications() {
   useEffect(() => {
     if (!isSupported || permission !== "granted") return;
     
+    // Sync language to SW so background notifications use correct language
+    syncLangToSW();
+    
     // Check immediately
     checkAndSendReminders();
     
@@ -128,9 +131,14 @@ export function usePushNotifications() {
     setPermission(result);
     if (result === "granted") {
       localStorage.setItem(NOTIF_ENABLED_KEY, "true");
+      syncLangToSW();
       checkAndSendReminders();
       scheduleSWReminders();
       tryPeriodicSync();
+      // Ask SW to check reminders immediately
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.active?.postMessage({ type: "CHECK_REMINDERS" });
+      });
       return true;
     }
     return false;
@@ -184,13 +192,21 @@ async function tryPeriodicSync() {
   try {
     const reg = await navigator.serviceWorker.ready;
     if ("periodicSync" in reg) {
-      await (reg as any).periodicSync.register("daily-workout-reminder", {
-        minInterval: 12 * 60 * 60 * 1000, // every 12 hours
+      await (reg as any).periodicSync.register("daily-fitness-reminder", {
+        minInterval: 4 * 60 * 60 * 1000, // every 4 hours for reliable coverage
       });
     }
   } catch {
     // Periodic sync not supported
   }
+}
+
+function syncLangToSW() {
+  if (!("serviceWorker" in navigator)) return;
+  const lang = getLang();
+  navigator.serviceWorker.ready.then((reg) => {
+    reg.active?.postMessage({ type: "SET_LANG", lang });
+  });
 }
 
 // Register service worker
