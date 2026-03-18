@@ -96,6 +96,9 @@ export function usePushNotifications() {
   useEffect(() => {
     if (!isSupported || permission !== "granted") return;
     
+    // Sync language to SW so background notifications use correct language
+    syncLangToSW();
+    
     // Check immediately
     checkAndSendReminders();
     
