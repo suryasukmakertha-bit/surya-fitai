@@ -360,6 +360,13 @@ export default function FeatureIntroPopup({ onDone, onSkip, forceOpen = false }:
     onDone();
   }, [onDone]);
 
+  const skip = useCallback(() => {
+    localStorage.setItem(INTRO_SEEN_KEY, "true");
+    setOpen(false);
+    if (onSkip) onSkip();
+    else onDone();
+  }, [onDone, onSkip]);
+
   const goNext = () => setCurrent((p) => Math.min(p + 1, 3));
   const goPrev = () => setCurrent((p) => Math.max(p - 1, 0));
 
