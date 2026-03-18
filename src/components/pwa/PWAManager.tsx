@@ -131,7 +131,8 @@ export default function PWAManager() {
   };
 
   if (!introChecked) return null;
-  if (isInstalled && isStandalone && permission !== "default" && !introActive) return null;
+  const installedFull = (isInstalled || isStandalone || localStorage.getItem("pwaInstalled") === "true");
+  if (installedFull && permission !== "default" && !introActive && !showNotifPrompt) return null;
 
   return (
     <>
