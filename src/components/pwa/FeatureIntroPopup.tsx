@@ -127,6 +127,7 @@ const exerciseCards = {
 
 interface FeatureIntroPopupProps {
   onDone: () => void;
+  forceOpen?: boolean;
 }
 
 // Staggered animation hook
@@ -332,7 +333,7 @@ function SlideProgress({ active, lang }: { active: boolean; lang: Lang }) {
 
 // --- Main Component ---
 
-export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
+export default function FeatureIntroPopup({ onDone, forceOpen = false }: FeatureIntroPopupProps) {
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState<Lang>(() => {
     return (localStorage.getItem("fitai-language") as Lang) || "en";
@@ -344,8 +345,8 @@ export default function FeatureIntroPopup({ onDone }: FeatureIntroPopupProps) {
   useEffect(() => {
     const hasPlan = localStorage.getItem(HAS_PLAN_KEY) === "true";
     const seen = localStorage.getItem(INTRO_SEEN_KEY) === "true";
-    if (!hasPlan && !seen) setOpen(true);
-  }, []);
+    if (forceOpen || (!hasPlan && !seen)) setOpen(true);
+  }, [forceOpen]);
 
   const handleLang = (code: Lang) => {
     setLang(code);

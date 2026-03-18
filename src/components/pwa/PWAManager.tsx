@@ -31,32 +31,26 @@ export default function PWAManager() {
   useEffect(() => {
     if (authLoading) return;
 
-    const seen = localStorage.getItem(INTRO_SEEN_KEY) === "true";
-    if (seen) {
-      setIntroActive(false);
-      setIntroChecked(true);
-      return;
-    }
-
     if (!user) {
-      // Not logged in — show intro for new visitors
+      const seen = localStorage.getItem(INTRO_SEEN_KEY) === "true";
       const hasPlan = localStorage.getItem("fitai-has-created-plan") === "true";
-      setIntroActive(!hasPlan);
+      setIntroActive(!seen && !hasPlan);
       setIntroChecked(true);
       return;
     }
 
-    // Logged in — check backend for saved plans
+    // Logged in — backend result always wins over localStorage
     supabase
       .from("saved_plans")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .then(({ count }) => {
         if (count === 0 || count === null) {
-          // Zero plans — show intro
+          // Zero plans — force intro to show again for this account
+          localStorage.removeItem(INTRO_SEEN_KEY);
+          localStorage.removeItem("fitai-has-created-plan");
           setIntroActive(true);
         } else {
-          // Has plans — mark as seen so we don't check again
           localStorage.setItem(INTRO_SEEN_KEY, "true");
           localStorage.setItem("fitai-has-created-plan", "true");
           setIntroActive(false);
@@ -135,7 +129,7 @@ export default function PWAManager() {
 
   return (
     <>
-      {introActive && <FeatureIntroPopup onDone={handleIntroDone} />}
+      {introActive && <FeatureIntroPopup onDone={handleIntroDone} forceOpen />}
       {!introActive && !isInstalled && !isStandalone && (
         <InstallBanner onInstallClick={handleInstallClick} />
       )}
