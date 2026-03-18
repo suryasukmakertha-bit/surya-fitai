@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Smartphone, Monitor, Share2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { usePWAInstall, getGlobalDeferredPrompt } from "@/hooks/usePWAInstall";
 
 const texts = {
   en: {
