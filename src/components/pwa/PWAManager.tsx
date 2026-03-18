@@ -70,13 +70,14 @@ export default function PWAManager() {
     }
   }, [isInstalled, isStandalone, introActive, introChecked]);
 
-  // Show notification prompt after install
+  // Show notification prompt after install (standalone or backup flag)
   useEffect(() => {
-    if (isInstalled && isSupported && permission === "default" && !localStorage.getItem(NOTIF_PROMPT_KEY)) {
+    const installedDetected = isInstalled || isStandalone || localStorage.getItem("pwaInstalled") === "true";
+    if (installedDetected && isSupported && permission === "default" && !localStorage.getItem(NOTIF_PROMPT_KEY)) {
       const timer = setTimeout(() => setShowNotifPrompt(true), 3000);
       return () => clearTimeout(timer);
     }
-  }, [isInstalled, isSupported, permission]);
+  }, [isInstalled, isStandalone, isSupported, permission]);
 
   const handleInstallClick = useCallback(() => {
     if (isInstalled || isStandalone) return;
@@ -130,7 +131,8 @@ export default function PWAManager() {
   };
 
   if (!introChecked) return null;
-  if (isInstalled && isStandalone && permission !== "default" && !introActive) return null;
+  const installedFull = (isInstalled || isStandalone || localStorage.getItem("pwaInstalled") === "true");
+  if (installedFull && permission !== "default" && !introActive && !showNotifPrompt) return null;
 
   return (
     <>
