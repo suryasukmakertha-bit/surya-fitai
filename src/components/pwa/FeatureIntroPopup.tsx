@@ -127,6 +127,7 @@ const exerciseCards = {
 
 interface FeatureIntroPopupProps {
   onDone: () => void;
+  onSkip?: () => void;
   forceOpen?: boolean;
 }
 
