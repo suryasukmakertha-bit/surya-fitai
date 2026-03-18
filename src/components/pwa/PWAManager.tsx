@@ -129,7 +129,7 @@ export default function PWAManager() {
 
   return (
     <>
-      {introActive && <FeatureIntroPopup onDone={handleIntroDone} />}
+      {introActive && <FeatureIntroPopup onDone={handleIntroDone} forceOpen />}
       {!introActive && !isInstalled && !isStandalone && (
         <InstallBanner onInstallClick={handleInstallClick} />
       )}
