@@ -89,6 +89,14 @@ export default function AppHeader() {
                 <button onClick={() => navigate("/saved-plans")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <FolderOpen className="w-4 h-4" /> {t.myPlans}
                 </button>
+                <button onClick={() => setDownloadOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <Download className="w-4 h-4 text-primary" />
+                  {lang === "id" ? "Unduh Aplikasi" : lang === "zh" ? "下载应用" : "Download App"}
+                </button>
+                <button onClick={() => openLegalPopup('terms')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <ScrollText className="w-4 h-4 text-primary" />
+                  {UI[lang as LangCode].menuItem}
+                </button>
                 <button onClick={() => signOut()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <LogOut className="w-4 h-4" /> {t.signOut}
                 </button>
