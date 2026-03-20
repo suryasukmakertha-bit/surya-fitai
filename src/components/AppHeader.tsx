@@ -105,7 +105,13 @@ export default function AppHeader() {
                 <button onClick={() => { if (!guardSavedPlans()) return; navigate("/saved-plans"); }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <FolderOpen className="w-4 h-4" /> {t.myPlans}
                 </button>
-                <button onClick={() => openSubPopup('save_plan')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <button onClick={() => {
+                  if (access.isSubscriptionActive || access.isTrialActive || access.isUnlimited) {
+                    toast({ title: lang === "id" ? "Langganan Pro kamu aktif ✅" : lang === "zh" ? "您的Pro订阅已激活 ✅" : "Your Pro subscription is active ✅" });
+                  } else {
+                    openSubPopup('save_plan');
+                  }
+                }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <Crown className="w-4 h-4 text-primary" />
                   {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).planName}
                 </button>
@@ -199,7 +205,14 @@ export default function AppHeader() {
 
                   {/* Pro Plan */}
                   <button
-                    onClick={() => { closeDrawer(); openSubPopup('save_plan'); }}
+                    onClick={() => {
+                      closeDrawer();
+                      if (access.isSubscriptionActive || access.isTrialActive || access.isUnlimited) {
+                        toast({ title: lang === "id" ? "Langganan Pro kamu aktif ✅" : lang === "zh" ? "您的Pro订阅已激活 ✅" : "Your Pro subscription is active ✅" });
+                      } else {
+                        openSubPopup('save_plan');
+                      }
+                    }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <Crown className="w-4 h-4 text-primary" />
