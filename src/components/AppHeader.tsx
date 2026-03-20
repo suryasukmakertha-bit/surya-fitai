@@ -205,7 +205,14 @@ export default function AppHeader() {
 
                   {/* Pro Plan */}
                   <button
-                    onClick={() => { closeDrawer(); openSubPopup('save_plan'); }}
+                    onClick={() => {
+                      closeDrawer();
+                      if (access.isSubscriptionActive || access.isTrialActive || access.isUnlimited) {
+                        toast({ title: lang === "id" ? "Langganan Pro kamu aktif ✅" : lang === "zh" ? "您的Pro订阅已激活 ✅" : "Your Pro subscription is active ✅" });
+                      } else {
+                        openSubPopup('save_plan');
+                      }
+                    }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <Crown className="w-4 h-4 text-primary" />
