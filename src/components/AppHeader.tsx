@@ -230,6 +230,7 @@ export default function AppHeader() {
         </div>
       )}
       <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
+      <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
     </>
   );
 }
