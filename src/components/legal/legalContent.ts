@@ -137,7 +137,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
       { heading: '2. Information We Collect', items: [
         { label: 'Account Information', text: 'Your email address and name when you register.' },
         { label: 'Health & Fitness Data', text: 'Age, gender, height, weight, fitness goals, activity level, and health conditions you provide to generate your plan.' },
-        { label: 'Payment Information', text: 'Payment is processed by Xendit. We only store your subscription status — not your card details.' },
+        { label: 'Payment Information', text: 'Payment is processed by Midtrans. We only store your subscription status — not your card or payment details.' },
         { label: 'Usage Data', text: 'How you use the App, to help us improve our service.' },
       ]},
       { heading: '3. How We Use Your Information', body: 'We use your data to: deliver personalized AI plans, manage your account and subscription, process payments, send subscription notifications, and improve the App.' },
