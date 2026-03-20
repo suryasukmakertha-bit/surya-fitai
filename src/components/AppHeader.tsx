@@ -99,8 +99,9 @@ export default function AppHeader() {
             </div>
             {user ? (
               <>
-                <button onClick={() => navigate("/saved-plans")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <button onClick={() => { if (!guardSavedPlans()) return; navigate("/saved-plans"); }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <FolderOpen className="w-4 h-4" /> {t.myPlans}
+                </button>
                 </button>
                 <button onClick={() => setPricingOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <Crown className="w-4 h-4 text-primary" />
