@@ -10,6 +10,8 @@ import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingCont
 import { UI, LangCode } from "@/components/legal/legalContent";
 import { openLegalPopup } from "@/components/legal/legalEvents";
 import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
