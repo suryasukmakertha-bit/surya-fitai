@@ -18,6 +18,8 @@ import AppHeader from "@/components/AppHeader";
 import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import { addDays, format as fnsFormat } from "date-fns";
 import { id as idLocale, zhCN } from "date-fns/locale";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 
 interface DayPlan {
   day: string;
@@ -661,12 +663,20 @@ export default function Results() {
     );
   }
 
+  const { access, guardSavePlan, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail: subEmail, refetch: refetchSub, openPopup } = useSubscription();
+
+  const planLimitTooltip = lang === "id" ? "Hapus 1 plan untuk menyimpan yang baru" : lang === "zh" ? "删除一个计划以保存新计划" : "Delete a plan to save a new one";
+
+  const trialBannerText = lang === "id" ? `🎉 Sisa ${access.trialDaysLeft} hari uji coba gratis` : lang === "zh" ? `🎉 免费试用还剩${access.trialDaysLeft}天` : `🎉 ${access.trialDaysLeft} days left in free trial`;
+  const upgradeNowText = lang === "id" ? "Upgrade Sekarang" : lang === "zh" ? "立即升级" : "Upgrade Now";
+
   const handleSave = async () => {
     if (!user) {
       toast({ title: t.signInToSave, description: t.signInToSaveDesc, variant: "destructive" });
       navigate("/auth");
       return;
     }
+    if (!guardSavePlan()) return;
     if (saving || saved) return; // prevent double saves
     setSaving(true);
     try {
@@ -697,6 +707,7 @@ export default function Results() {
         navigate("/results", { state: { plan, userInfo, programType, planId: data.id }, replace: true });
       }
       toast({ title: t.planSaved });
+      refetchSub();
     } catch (err: any) {
       console.error('Save plan error:', err);
       toast({ title: t.errorSaving, variant: "destructive" });
@@ -735,7 +746,14 @@ export default function Results() {
             <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
-            <Button onClick={handleSave} disabled={saving || saved} variant={saved ? "secondary" : "default"} size="sm">
+            <Button
+              onClick={handleSave}
+              disabled={saving || saved || isAtPlanLimit}
+              title={isAtPlanLimit ? planLimitTooltip : undefined}
+              variant={saved ? "secondary" : "default"}
+              size="sm"
+              className={isAtPlanLimit ? "opacity-50 cursor-not-allowed" : ""}
+            >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
               {saved ? t.saved : t.savePlan}
             </Button>
@@ -749,7 +767,16 @@ export default function Results() {
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
 
-        {/* Session Time Banner */}
+        {/* Trial Banner */}
+        {access.isTrialActive && (
+          <div className="mx-0 mb-3 p-3 rounded-xl bg-green-950 border border-green-800 flex items-center justify-between">
+            <span className="text-green-400 text-sm">{trialBannerText}</span>
+            <button onClick={() => openPopup('save_plan')} className="text-green-400 text-xs font-semibold underline">
+              {upgradeNowText}
+            </button>
+          </div>
+        )}
+
         {plan.estimatedSessionTimeMinutes && (
           <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
             <Clock className="w-6 h-6 text-primary shrink-0" />
@@ -1153,6 +1180,8 @@ export default function Results() {
           </a>
         </div>
       </div>
+      <SubscriptionPopup isOpen={showPopup} onClose={closePopup} trigger={popupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} />
     </div>
   );
 }
+

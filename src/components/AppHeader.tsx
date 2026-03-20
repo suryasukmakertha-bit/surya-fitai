@@ -10,6 +10,8 @@ import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingCont
 import { UI, LangCode } from "@/components/legal/legalContent";
 import { openLegalPopup } from "@/components/legal/legalEvents";
 import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
@@ -30,6 +32,7 @@ export default function AppHeader() {
   const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const langRef = useRef<HTMLDivElement>(null);
+  const { guardSavedPlans, openPopup: openSubPopup, showPopup: showSubPopup, popupTrigger: subPopupTrigger, closePopup: closeSubPopup, userEmail: subEmail, refetch: refetchSub } = useSubscription();
 
   // Track notification permission
   useEffect(() => {
@@ -99,10 +102,10 @@ export default function AppHeader() {
             </div>
             {user ? (
               <>
-                <button onClick={() => navigate("/saved-plans")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <button onClick={() => { if (!guardSavedPlans()) return; navigate("/saved-plans"); }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <FolderOpen className="w-4 h-4" /> {t.myPlans}
                 </button>
-                <button onClick={() => setPricingOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <button onClick={() => openSubPopup('save_plan')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <Crown className="w-4 h-4 text-primary" />
                   {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).planName}
                 </button>
@@ -187,7 +190,7 @@ export default function AppHeader() {
                 <>
                   {/* My Plans */}
                    <button
-                    onClick={() => { navigate("/saved-plans"); closeDrawer(); }}
+                    onClick={() => { if (!guardSavedPlans()) { closeDrawer(); return; } navigate("/saved-plans"); closeDrawer(); }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <FolderOpen className="w-4 h-4 text-primary" />
@@ -196,7 +199,7 @@ export default function AppHeader() {
 
                   {/* Pro Plan */}
                   <button
-                    onClick={() => { closeDrawer(); setPricingOpen(true); }}
+                    onClick={() => { closeDrawer(); openSubPopup('save_plan'); }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <Crown className="w-4 h-4 text-primary" />
@@ -261,6 +264,7 @@ export default function AppHeader() {
       <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
       <NotificationSettingsPopup open={notifSettingsOpen} onOpenChange={setNotifSettingsOpen} />
+      <SubscriptionPopup isOpen={showSubPopup} onClose={closeSubPopup} trigger={subPopupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} />
     </>
   );
 }
