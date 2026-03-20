@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown, Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,7 @@ import PricingModal from "@/components/pricing/PricingModal";
 import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
 import { UI, LangCode } from "@/components/legal/legalContent";
 import { openLegalPopup } from "@/components/legal/legalEvents";
+import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
