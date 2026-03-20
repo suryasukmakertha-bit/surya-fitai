@@ -110,6 +110,12 @@ export default function AppHeader() {
                   <Download className="w-4 h-4 text-primary" />
                   {lang === "id" ? "Unduh Aplikasi" : lang === "zh" ? "下载应用" : "Download App"}
                 </button>
+                <button onClick={() => setNotifSettingsOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <Bell className="w-4 h-4 text-primary" />
+                  {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
+                  {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />}
+                  {notifPermission === "denied" && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
+                </button>
                 <button onClick={() => openLegalPopup('terms')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <ScrollText className="w-4 h-4 text-primary" />
                   {UI[lang as LangCode].menuItem}
