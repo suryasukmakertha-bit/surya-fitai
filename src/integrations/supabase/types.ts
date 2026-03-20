@@ -32,6 +32,53 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          midtrans_order_id: string | null
+          midtrans_transaction_id: string | null
+          payment_type: string | null
+          status: string
+          subscription_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          midtrans_order_id?: string | null
+          midtrans_transaction_id?: string | null
+          payment_type?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          midtrans_order_id?: string | null
+          midtrans_transaction_id?: string | null
+          payment_type?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -163,6 +210,42 @@ export type Database = {
           program_type?: string
           user_id?: string
           user_info?: Json
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          subscription_end: string | null
+          subscription_start: string | null
+          trial_end: string
+          trial_start: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          trial_end?: string
+          trial_start?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          trial_end?: string
+          trial_start?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
