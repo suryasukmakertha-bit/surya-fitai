@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import DownloadAppModal from "@/components/DownloadAppModal";
+import { UI, LangCode } from "@/components/legal/legalContent";
+import { openLegalPopup } from "@/components/legal/legalEvents";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
