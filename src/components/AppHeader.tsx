@@ -174,6 +174,15 @@ export default function AppHeader() {
                     </span>
                   </button>
 
+                  {/* Terms & Privacy */}
+                  <button
+                    onClick={() => { closeDrawer(); openLegalPopup('terms'); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <ScrollText className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{UI[lang as LangCode].menuItem}</span>
+                  </button>
+
                   {/* Sign Out */}
                   <button
                     onClick={() => { signOut(); closeDrawer(); }}
