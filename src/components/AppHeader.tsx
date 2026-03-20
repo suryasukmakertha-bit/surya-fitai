@@ -32,6 +32,7 @@ export default function AppHeader() {
   const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const langRef = useRef<HTMLDivElement>(null);
+  const { guardSavedPlans, openPopup: openSubPopup, showPopup: showSubPopup, popupTrigger: subPopupTrigger, closePopup: closeSubPopup, userEmail: subEmail, refetch: refetchSub } = useSubscription();
 
   // Track notification permission
   useEffect(() => {
