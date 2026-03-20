@@ -83,7 +83,7 @@ export default function Index() {
           >
             <ChevronDown className="w-6 h-6 text-muted-foreground animate-[scrollBounce_1.2s_ease-in-out_infinite]" />
             <span className="text-xs text-muted-foreground/70">
-              {lang === "id" ? "Scroll untuk melihat cara kerja Surya-FitAi" : lang === "zh" ? "滚动查看 Surya-FitAi 的使用方法" : "Scroll to see how Surya-FitAi works"}
+              {lang === "id" ? "Gulir untuk lihat fitur & harga" : lang === "zh" ? "向下滚动查看功能与价格" : "Scroll to explore features & pricing"}
             </span>
           </div>
         </div>
