@@ -5,6 +5,8 @@ import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown } from "lucide-rea
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
+import PricingCard from "@/components/pricing/PricingCard";
+import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
 
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
