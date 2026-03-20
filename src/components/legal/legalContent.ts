@@ -112,7 +112,7 @@ export const TERMS: Record<LangCode, { title: string; lastUpdated: string; secti
       { heading: '4. 订阅与付款', items: [
         { label: '免费试用', text: '新用户可获得14天免费试用期，可完整访问所有功能。' },
         { label: 'Pro订阅', text: '试用期结束后，保存和管理计划需要Pro订阅，每月Rp 19,900。' },
-        { label: '付款方式', text: '通过Xendit安全处理，支持QRIS、虚拟账户及其他付款方式。' },
+        { label: '付款方式', text: '通过Midtrans安全处理，支持QRIS、GoPay、ShopeePay、虚拟账户及其他付款方式。' },
         { label: '退款政策', text: '由于服务的数字性质，订阅激活后我们不提供退款。如有技术问题，请联系fitaisurya@gmail.com。' },
         { label: '取消订阅', text: '您可随时停止续订。当前计费周期结束前您仍可继续使用。' },
       ]},
