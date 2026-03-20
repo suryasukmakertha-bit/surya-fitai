@@ -113,6 +113,21 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-display font-bold text-foreground mb-2">
+              {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).sectionTitle}
+            </h2>
+            <p className="text-muted-foreground text-base">
+              {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).sectionSubtitle}
+            </p>
+          </div>
+          <PricingCard variant="landing" onCtaClick={handleStartProgram} />
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto text-center neon-border rounded-2xl p-12">
