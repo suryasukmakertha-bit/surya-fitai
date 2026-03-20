@@ -1191,7 +1191,7 @@ export default function Results() {
           </a>
         </div>
       </div>
-      <SubscriptionPopup isOpen={showPopup} onClose={closePopup} trigger={popupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} />
+      <SubscriptionPopup isOpen={showPopup} onClose={closePopup} trigger={popupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} trialNotStarted={access.trialNotStarted} isTrialActive={access.isTrialActive} />
     </div>
   );
 }
