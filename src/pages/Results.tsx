@@ -746,7 +746,14 @@ export default function Results() {
             <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
-            <Button onClick={handleSave} disabled={saving || saved} variant={saved ? "secondary" : "default"} size="sm">
+            <Button
+              onClick={handleSave}
+              disabled={saving || saved || isAtPlanLimit}
+              title={isAtPlanLimit ? planLimitTooltip : undefined}
+              variant={saved ? "secondary" : "default"}
+              size="sm"
+              className={isAtPlanLimit ? "opacity-50 cursor-not-allowed" : ""}
+            >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
               {saved ? t.saved : t.savePlan}
             </Button>
