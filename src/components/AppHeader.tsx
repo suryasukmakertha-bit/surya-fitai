@@ -199,7 +199,7 @@ export default function AppHeader() {
 
                   {/* Pro Plan */}
                   <button
-                    onClick={() => { closeDrawer(); setPricingOpen(true); }}
+                    onClick={() => { closeDrawer(); openSubPopup('save_plan'); }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <Crown className="w-4 h-4 text-primary" />
