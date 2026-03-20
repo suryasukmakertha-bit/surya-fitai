@@ -68,7 +68,7 @@ export const TERMS: Record<LangCode, { title: string; lastUpdated: string; secti
       { heading: '4. Subscription and Payments', items: [
         { label: 'Free Trial', text: 'New users receive a 14-day free trial with full access to all features.' },
         { label: 'Pro Subscription', text: 'After the trial, saving and managing plans requires a Pro subscription at Rp 19,900 per month.' },
-        { label: 'Payment', text: 'Processed securely through Xendit, supporting QRIS, Virtual Account, and other payment methods.' },
+        { label: 'Payment', text: 'Processed securely through Midtrans, supporting QRIS, GoPay, ShopeePay, Virtual Account, and other payment methods.' },
         { label: 'Refund Policy', text: 'Due to the digital nature of the service, we do not offer refunds once a subscription is activated. For technical issues, contact fitaisurya@gmail.com.' },
         { label: 'Cancellation', text: 'You may stop renewing at any time. Access continues until the end of the current billing period.' },
       ]},
