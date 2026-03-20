@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import DownloadAppModal from "@/components/DownloadAppModal";
+import PricingModal from "@/components/pricing/PricingModal";
+import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
 import { UI, LangCode } from "@/components/legal/legalContent";
 import { openLegalPopup } from "@/components/legal/legalEvents";
 
@@ -23,6 +25,7 @@ export default function AppHeader() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
 
   const isHome = location.pathname === "/";
@@ -88,6 +91,10 @@ export default function AppHeader() {
               <>
                 <button onClick={() => navigate("/saved-plans")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <FolderOpen className="w-4 h-4" /> {t.myPlans}
+                </button>
+                <button onClick={() => setPricingOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <Crown className="w-4 h-4 text-primary" />
+                  {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).planName}
                 </button>
                 <button onClick={() => setDownloadOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <Download className="w-4 h-4 text-primary" />
@@ -163,12 +170,21 @@ export default function AppHeader() {
               {user ? (
                 <>
                   {/* My Plans */}
-                  <button
+                   <button
                     onClick={() => { navigate("/saved-plans"); closeDrawer(); }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <FolderOpen className="w-4 h-4 text-primary" />
                     <span className="font-medium">{t.myPlans}</span>
+                  </button>
+
+                  {/* Pro Plan */}
+                  <button
+                    onClick={() => { closeDrawer(); setPricingOpen(true); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <Crown className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).planName}</span>
                   </button>
 
                   {/* Download App */}
@@ -214,6 +230,7 @@ export default function AppHeader() {
         </div>
       )}
       <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
+      <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
     </>
   );
 }

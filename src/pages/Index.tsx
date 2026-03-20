@@ -5,6 +5,8 @@ import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown } from "lucide-rea
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
+import PricingCard from "@/components/pricing/PricingCard";
+import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
 
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
@@ -108,6 +110,21 @@ export default function Index() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-display font-bold text-foreground mb-2">
+              {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).sectionTitle}
+            </h2>
+            <p className="text-muted-foreground text-base">
+              {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).sectionSubtitle}
+            </p>
+          </div>
+          <PricingCard variant="landing" onCtaClick={handleStartProgram} />
         </div>
       </section>
 
