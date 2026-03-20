@@ -92,6 +92,19 @@ function base64UrlToUint8Array(base64Url: string): Uint8Array {
 async function subscribeToPush() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
+  // iOS requires standalone mode (installed to Home Screen) and iOS 16.4+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true;
+  const iosVersion = isIOS
+    ? parseInt((navigator.userAgent.match(/OS (\d+)_/) || [])[1])
+    : null;
+
+  if (isIOS && (!isStandalone || !iosVersion || iosVersion < 16)) {
+    return;
+  }
+
   try {
     const reg = await navigator.serviceWorker.ready;
 
