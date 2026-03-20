@@ -778,8 +778,8 @@ export default function Results() {
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
 
-        {/* Trial Banner */}
-        {access.isTrialActive && (
+        {/* Trial Banner — only show when trial is active, not when trialNotStarted */}
+        {access.isTrialActive && !access.trialNotStarted && (
           <div className="mx-0 mb-3 p-3 rounded-xl bg-green-950 border border-green-800 flex items-center justify-between">
             <span className="text-green-400 text-sm">{trialBannerText}</span>
             <button onClick={() => openPopup('save_plan')} className="text-green-400 text-xs font-semibold underline">
