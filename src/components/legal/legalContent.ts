@@ -90,7 +90,7 @@ export const TERMS: Record<LangCode, { title: string; lastUpdated: string; secti
       { heading: '4. Langganan dan Pembayaran', items: [
         { label: 'Uji Coba Gratis', text: 'Pengguna baru mendapatkan uji coba gratis selama 14 hari dengan akses penuh ke semua fitur.' },
         { label: 'Langganan Pro', text: 'Setelah masa uji coba, menyimpan dan mengelola program memerlukan langganan Pro seharga Rp 19.900 per bulan.' },
-        { label: 'Pembayaran', text: 'Diproses dengan aman melalui Xendit, mendukung QRIS, Virtual Account, dan metode pembayaran lainnya.' },
+        { label: 'Pembayaran', text: 'Diproses dengan aman melalui Midtrans, mendukung QRIS, GoPay, ShopeePay, Virtual Account, dan metode pembayaran lainnya.' },
         { label: 'Kebijakan Pengembalian Dana', text: 'Karena sifat digital layanan ini, kami tidak menawarkan pengembalian dana setelah langganan diaktifkan. Untuk masalah teknis, hubungi fitaisurya@gmail.com.' },
         { label: 'Pembatalan', text: 'Anda dapat berhenti berlangganan kapan saja. Akses tetap berlaku hingga akhir periode penagihan saat ini.' },
       ]},
