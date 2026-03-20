@@ -135,12 +135,20 @@ async function subscribeToPush() {
   }
 }
 
+function detectPlatform(): string {
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return "ios";
+  if (/Android/.test(ua)) return "android";
+  return "desktop";
+}
+
 async function saveSubscription(subscription: PushSubscription) {
   const subJson = subscription.toJSON();
   if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) return;
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const lang = getLang();
+  const platform = detectPlatform();
 
   await supabase.from("push_subscriptions").upsert(
     {
@@ -149,6 +157,7 @@ async function saveSubscription(subscription: PushSubscription) {
       auth: subJson.keys.auth,
       timezone,
       lang,
+      platform,
     },
     { onConflict: "endpoint" }
   );
