@@ -179,7 +179,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
       { heading: '2. 我们收集的信息', items: [
         { label: '账户信息', text: '注册时您的电子邮件地址和姓名。' },
         { label: '健康与健身数据', text: '您为生成计划而提供的年龄、性别、身高、体重、健身目标、活动水平和健康状况。' },
-        { label: '付款信息', text: '付款由Xendit处理。我们只存储您的订阅状态，不存储您的卡片详细信息。' },
+        { label: '付款信息', text: '付款由Midtrans处理。我们只存储您的订阅状态，不存储您的卡片或付款详细信息。' },
         { label: '使用数据', text: '您使用应用程序的方式，用于改善我们的服务。' },
       ]},
       { heading: '3. 我们如何使用您的信息', body: '我们使用您的数据：提供个性化AI计划、管理您的账户和订阅、处理付款、发送订阅通知以及改善应用程序。' },
