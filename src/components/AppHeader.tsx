@@ -214,6 +214,19 @@ export default function AppHeader() {
                     </span>
                   </button>
 
+                  {/* Notifications */}
+                  <button
+                    onClick={() => { closeDrawer(); setNotifSettingsOpen(true); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <Bell className="w-4 h-4 text-primary" />
+                    <span className="font-medium flex items-center gap-2">
+                      {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
+                      {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />}
+                      {notifPermission === "denied" && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
+                    </span>
+                  </button>
+
                   {/* Terms & Privacy */}
                   <button
                     onClick={() => { closeDrawer(); openLegalPopup('terms'); }}
