@@ -1,0 +1,1 @@
+ALTER TABLE public.push_subscriptions ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'android';

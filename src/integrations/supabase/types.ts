@@ -104,6 +104,7 @@ export type Database = {
           last_afternoon_sent: string | null
           last_morning_sent: string | null
           p256dh: string
+          platform: string | null
           timezone: string
         }
         Insert: {
@@ -115,6 +116,7 @@ export type Database = {
           last_afternoon_sent?: string | null
           last_morning_sent?: string | null
           p256dh: string
+          platform?: string | null
           timezone?: string
         }
         Update: {
@@ -126,6 +128,7 @@ export type Database = {
           last_afternoon_sent?: string | null
           last_morning_sent?: string | null
           p256dh?: string
+          platform?: string | null
           timezone?: string
         }
         Relationships: []

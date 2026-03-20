@@ -92,6 +92,19 @@ function base64UrlToUint8Array(base64Url: string): Uint8Array {
 async function subscribeToPush() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
+  // iOS requires standalone mode (installed to Home Screen) and iOS 16.4+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true;
+  const iosVersion = isIOS
+    ? parseInt((navigator.userAgent.match(/OS (\d+)_/) || [])[1])
+    : null;
+
+  if (isIOS && (!isStandalone || !iosVersion || iosVersion < 16)) {
+    return;
+  }
+
   try {
     const reg = await navigator.serviceWorker.ready;
 
@@ -135,12 +148,20 @@ async function subscribeToPush() {
   }
 }
 
+function detectPlatform(): string {
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return "ios";
+  if (/Android/.test(ua)) return "android";
+  return "desktop";
+}
+
 async function saveSubscription(subscription: PushSubscription) {
   const subJson = subscription.toJSON();
   if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) return;
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const lang = getLang();
+  const platform = detectPlatform();
 
   await supabase.from("push_subscriptions").upsert(
     {
@@ -149,6 +170,7 @@ async function saveSubscription(subscription: PushSubscription) {
       auth: subJson.keys.auth,
       timezone,
       lang,
+      platform,
     },
     { onConflict: "endpoint" }
   );

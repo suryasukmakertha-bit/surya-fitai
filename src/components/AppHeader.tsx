@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown, Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,7 @@ import PricingModal from "@/components/pricing/PricingModal";
 import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
 import { UI, LangCode } from "@/components/legal/legalContent";
 import { openLegalPopup } from "@/components/legal/legalEvents";
+import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
@@ -26,7 +27,16 @@ export default function AppHeader() {
   const [langOpen, setLangOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [pricingOpen, setPricingOpen] = useState(false);
+  const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const langRef = useRef<HTMLDivElement>(null);
+
+  // Track notification permission
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, [notifSettingsOpen]);
 
   const isHome = location.pathname === "/";
 
@@ -99,6 +109,12 @@ export default function AppHeader() {
                 <button onClick={() => setDownloadOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <Download className="w-4 h-4 text-primary" />
                   {lang === "id" ? "Unduh Aplikasi" : lang === "zh" ? "下载应用" : "Download App"}
+                </button>
+                <button onClick={() => setNotifSettingsOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <Bell className="w-4 h-4 text-primary" />
+                  {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
+                  {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />}
+                  {notifPermission === "denied" && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
                 </button>
                 <button onClick={() => openLegalPopup('terms')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <ScrollText className="w-4 h-4 text-primary" />
@@ -198,6 +214,19 @@ export default function AppHeader() {
                     </span>
                   </button>
 
+                  {/* Notifications */}
+                  <button
+                    onClick={() => { closeDrawer(); setNotifSettingsOpen(true); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <Bell className="w-4 h-4 text-primary" />
+                    <span className="font-medium flex items-center gap-2">
+                      {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
+                      {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />}
+                      {notifPermission === "denied" && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
+                    </span>
+                  </button>
+
                   {/* Terms & Privacy */}
                   <button
                     onClick={() => { closeDrawer(); openLegalPopup('terms'); }}
@@ -231,6 +260,7 @@ export default function AppHeader() {
       )}
       <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
+      <NotificationSettingsPopup open={notifSettingsOpen} onOpenChange={setNotifSettingsOpen} />
     </>
   );
 }
