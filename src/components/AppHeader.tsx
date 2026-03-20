@@ -25,6 +25,7 @@ export default function AppHeader() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
 
   const isHome = location.pathname === "/";
