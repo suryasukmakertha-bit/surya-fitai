@@ -158,7 +158,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
       { heading: '2. Informasi yang Kami Kumpulkan', items: [
         { label: 'Informasi Akun', text: 'Alamat email dan nama Anda saat mendaftar.' },
         { label: 'Data Kesehatan & Kebugaran', text: 'Usia, jenis kelamin, tinggi, berat badan, tujuan kebugaran, tingkat aktivitas, dan kondisi kesehatan yang Anda berikan untuk membuat program.' },
-        { label: 'Informasi Pembayaran', text: 'Pembayaran diproses oleh Xendit. Kami hanya menyimpan status langganan Anda — bukan detail kartu Anda.' },
+        { label: 'Informasi Pembayaran', text: 'Pembayaran diproses oleh Midtrans. Kami hanya menyimpan status langganan Anda — bukan detail kartu atau pembayaran Anda.' },
         { label: 'Data Penggunaan', text: 'Cara Anda menggunakan Aplikasi, untuk membantu kami meningkatkan layanan.' },
       ]},
       { heading: '3. Cara Kami Menggunakan Informasi Anda', body: 'Kami menggunakan data Anda untuk: menyampaikan program AI yang dipersonalisasi, mengelola akun dan langganan, memproses pembayaran, mengirim notifikasi langganan, dan meningkatkan Aplikasi.' },
