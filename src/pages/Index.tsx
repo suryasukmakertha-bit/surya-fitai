@@ -128,16 +128,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center neon-border rounded-2xl p-12">
-          <h2 className="text-3xl font-display font-bold text-foreground mb-4">{t.readyTransform}</h2>
-          <p className="text-muted-foreground mb-6">{t.ctaDesc}</p>
-          <Button size="lg" onClick={handleStartProgram} className="h-12 px-8 font-bold">
-            {t.getStarted} <ChevronRight className="w-5 h-5 ml-1" />
-          </Button>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4">
