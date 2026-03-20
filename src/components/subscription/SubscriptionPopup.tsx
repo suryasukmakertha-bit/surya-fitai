@@ -9,6 +9,8 @@ interface SubscriptionPopupProps {
   trigger?: 'save_plan' | 'saved_plans' | 'saved_plan_item';
   userEmail?: string | null;
   onPaymentDone?: () => void;
+  trialNotStarted?: boolean;
+  isTrialActive?: boolean;
 }
 
 const TEXT = {
