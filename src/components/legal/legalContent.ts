@@ -183,7 +183,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
         { label: '使用数据', text: '您使用应用程序的方式，用于改善我们的服务。' },
       ]},
       { heading: '3. 我们如何使用您的信息', body: '我们使用您的数据：提供个性化AI计划、管理您的账户和订阅、处理付款、发送订阅通知以及改善应用程序。' },
-      { heading: '4. 数据共享', body: '我们不出售您的数据。我们仅与以下方共享：', bullets: ['Supabase — 我们的安全数据库和身份验证提供商', 'Xendit — 我们的支付处理商（仅用于订阅计费）', 'AI提供商 — 用于生成计划的匿名化健身数据'] },
+      { heading: '4. 数据共享', body: '我们不出售您的数据。我们仅与以下方共享：', bullets: ['Supabase — 我们的安全数据库和身份验证提供商', 'Midtrans — 我们的支付处理商（仅用于订阅计费）', 'AI提供商 — 用于生成计划的匿名化健身数据'] },
       { heading: '5. 数据安全', body: '我们实施行业标准安全措施。您的数据存储在访问受限的安全服务器上。' },
       { heading: '6. 数据保留', body: '在您的账户处于活跃状态时，我们会保留您的数据。您可以发送电子邮件至fitaisurya@gmail.com请求删除数据。' },
       { heading: '7. 您的权利', body: '您有权访问、更正和删除您的个人数据。请联系fitaisurya@gmail.com行使这些权利。' },
