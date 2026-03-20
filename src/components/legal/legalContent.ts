@@ -141,7 +141,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
         { label: 'Usage Data', text: 'How you use the App, to help us improve our service.' },
       ]},
       { heading: '3. How We Use Your Information', body: 'We use your data to: deliver personalized AI plans, manage your account and subscription, process payments, send subscription notifications, and improve the App.' },
-      { heading: '4. Data Sharing', body: 'We do not sell your data. We only share with:', bullets: ['Supabase — our secure database and authentication provider', 'Xendit — our payment processor (subscription billing only)', 'AI providers — anonymized fitness data to generate your plans'] },
+      { heading: '4. Data Sharing', body: 'We do not sell your data. We only share with:', bullets: ['Supabase — our secure database and authentication provider', 'Midtrans — our payment processor (subscription billing only)', 'AI providers — anonymized fitness data to generate your plans'] },
       { heading: '5. Data Security', body: 'We implement industry-standard security measures. Your data is stored on secure servers with restricted access.' },
       { heading: '6. Data Retention', body: 'We retain your data while your account is active. You may request deletion by emailing fitaisurya@gmail.com.' },
       { heading: '7. Your Rights', body: 'You have the right to access, correct, and delete your personal data. Contact us at fitaisurya@gmail.com to exercise these rights.' },
