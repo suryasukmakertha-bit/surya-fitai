@@ -190,7 +190,7 @@ export default function AppHeader() {
                 <>
                   {/* My Plans */}
                    <button
-                    onClick={() => { navigate("/saved-plans"); closeDrawer(); }}
+                    onClick={() => { if (!guardSavedPlans()) { closeDrawer(); return; } navigate("/saved-plans"); closeDrawer(); }}
                     className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <FolderOpen className="w-4 h-4 text-primary" />
