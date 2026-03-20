@@ -18,6 +18,8 @@ import AppHeader from "@/components/AppHeader";
 import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import { addDays, format as fnsFormat } from "date-fns";
 import { id as idLocale, zhCN } from "date-fns/locale";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 
 interface DayPlan {
   day: string;
