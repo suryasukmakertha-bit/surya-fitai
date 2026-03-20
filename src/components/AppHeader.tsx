@@ -32,7 +32,7 @@ export default function AppHeader() {
   const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const langRef = useRef<HTMLDivElement>(null);
-  const { guardSavedPlans, openPopup: openSubPopup, showPopup: showSubPopup, popupTrigger: subPopupTrigger, closePopup: closeSubPopup, userEmail: subEmail, refetch: refetchSub } = useSubscription();
+  const { access, guardSavedPlans, checkMyPlansGuard, openPopup: openSubPopup, showPopup: showSubPopup, popupTrigger: subPopupTrigger, closePopup: closeSubPopup, userEmail: subEmail, refetch: refetchSub } = useSubscription();
 
   // Track notification permission
   useEffect(() => {
@@ -264,7 +264,7 @@ export default function AppHeader() {
       <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
       <NotificationSettingsPopup open={notifSettingsOpen} onOpenChange={setNotifSettingsOpen} />
-      <SubscriptionPopup isOpen={showSubPopup} onClose={closeSubPopup} trigger={subPopupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} />
+      <SubscriptionPopup isOpen={showSubPopup} onClose={closeSubPopup} trigger={subPopupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} trialNotStarted={access.trialNotStarted} isTrialActive={access.isTrialActive} />
     </>
   );
 }

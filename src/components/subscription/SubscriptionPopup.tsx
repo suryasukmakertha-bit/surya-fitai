@@ -9,6 +9,8 @@ interface SubscriptionPopupProps {
   trigger?: 'save_plan' | 'saved_plans' | 'saved_plan_item';
   userEmail?: string | null;
   onPaymentDone?: () => void;
+  trialNotStarted?: boolean;
+  isTrialActive?: boolean;
 }
 
 const TEXT = {
@@ -91,7 +93,7 @@ const loadSnapScript = (url: string, clientKey: string): Promise<void> =>
     document.head.appendChild(script);
   });
 
-export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_plan', userEmail, onPaymentDone }: SubscriptionPopupProps) {
+export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_plan', userEmail, onPaymentDone, trialNotStarted, isTrialActive }: SubscriptionPopupProps) {
   const { lang } = useLanguage();
   const t = TEXT[lang as keyof typeof TEXT] ?? TEXT.en;
   const [payLoading, setPayLoading] = useState(false);
@@ -151,8 +153,10 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
 
           <p className="text-sm text-muted-foreground">{subtitle}</p>
 
-          {/* Trial expired notice */}
-          <p className="text-sm text-amber-400 font-medium">{t.trialExpired}</p>
+          {/* Trial expired notice — only show if trial existed and is no longer active */}
+          {!trialNotStarted && !isTrialActive && (
+            <p className="text-sm text-amber-400 font-medium">{t.trialExpired}</p>
+          )}
 
           {/* Benefits */}
           <ul className="space-y-2">
