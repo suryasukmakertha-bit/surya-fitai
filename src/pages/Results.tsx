@@ -767,7 +767,16 @@ export default function Results() {
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
 
-        {/* Session Time Banner */}
+        {/* Trial Banner */}
+        {access.isTrialActive && (
+          <div className="mx-0 mb-3 p-3 rounded-xl bg-green-950 border border-green-800 flex items-center justify-between">
+            <span className="text-green-400 text-sm">{trialBannerText}</span>
+            <button onClick={() => openPopup('save_plan')} className="text-green-400 text-xs font-semibold underline">
+              {upgradeNowText}
+            </button>
+          </div>
+        )}
+
         {plan.estimatedSessionTimeMinutes && (
           <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
             <Clock className="w-6 h-6 text-primary shrink-0" />
