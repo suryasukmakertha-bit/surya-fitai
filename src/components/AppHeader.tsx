@@ -264,7 +264,7 @@ export default function AppHeader() {
       <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
       <NotificationSettingsPopup open={notifSettingsOpen} onOpenChange={setNotifSettingsOpen} />
-      <SubscriptionPopup isOpen={showSubPopup} onClose={closeSubPopup} trigger={subPopupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} />
+      <SubscriptionPopup isOpen={showSubPopup} onClose={closeSubPopup} trigger={subPopupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} trialNotStarted={access.trialNotStarted} isTrialActive={access.isTrialActive} />
     </>
   );
 }
