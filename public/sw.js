@@ -128,8 +128,9 @@ self.addEventListener('periodicsync', (event) => {
 
 // ── Push notification handler ──
 self.addEventListener('push', (event) => {
+  if (!event.data) return;
   let data = {};
-  try { data = event.data?.json() || {}; } catch (e) {}
+  try { data = event.data.json(); } catch (e) {}
 
   const title = data.title || 'Your workout is waiting 💪';
   const body = data.body || "Your AI trainer is ready. Let's complete today's workout.";
@@ -137,10 +138,10 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: '/icons/icon-192.png?v=2',
-      badge: '/icons/icon-192.png?v=2',
+      icon: data.icon || '/icons/icon-192.png?v=2',
+      badge: data.badge || '/icons/icon-192.png?v=2',
       vibrate: [100, 50, 100],
-      data: { url: '/saved-plans' },
+      data: { url: data.url || '/saved-plans' },
       tag: data.tag || 'daily-workout',
       renotify: true,
     })
