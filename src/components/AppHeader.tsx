@@ -260,6 +260,7 @@ export default function AppHeader() {
       )}
       <DownloadAppModal open={downloadOpen} onOpenChange={setDownloadOpen} />
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
+      <NotificationSettingsPopup open={notifSettingsOpen} onOpenChange={setNotifSettingsOpen} />
     </>
   );
 }
