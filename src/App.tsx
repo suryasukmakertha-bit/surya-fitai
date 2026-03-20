@@ -14,6 +14,7 @@ import SavedPlans from "./pages/SavedPlans";
 import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
 import PWAManager from "./components/pwa/PWAManager";
+import ConsentManager from "./components/legal/ConsentManager";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </InactivityRedirect>
+            <ConsentManager />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

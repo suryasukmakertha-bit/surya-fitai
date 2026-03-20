@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import DownloadAppModal from "@/components/DownloadAppModal";
+import { UI, LangCode } from "@/components/legal/legalContent";
+import { openLegalPopup } from "@/components/legal/legalEvents";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
@@ -170,6 +172,15 @@ export default function AppHeader() {
                     <span className="font-medium">
                       {lang === "id" ? "Unduh Aplikasi" : lang === "zh" ? "下载应用" : "Download App"}
                     </span>
+                  </button>
+
+                  {/* Terms & Privacy */}
+                  <button
+                    onClick={() => { closeDrawer(); openLegalPopup('terms'); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <ScrollText className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{UI[lang as LangCode].menuItem}</span>
                   </button>
 
                   {/* Sign Out */}
