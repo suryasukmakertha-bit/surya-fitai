@@ -27,7 +27,16 @@ export default function AppHeader() {
   const [langOpen, setLangOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [pricingOpen, setPricingOpen] = useState(false);
+  const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const langRef = useRef<HTMLDivElement>(null);
+
+  // Track notification permission
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, [notifSettingsOpen]);
 
   const isHome = location.pathname === "/";
 
