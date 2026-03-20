@@ -162,7 +162,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
         { label: 'Data Penggunaan', text: 'Cara Anda menggunakan Aplikasi, untuk membantu kami meningkatkan layanan.' },
       ]},
       { heading: '3. Cara Kami Menggunakan Informasi Anda', body: 'Kami menggunakan data Anda untuk: menyampaikan program AI yang dipersonalisasi, mengelola akun dan langganan, memproses pembayaran, mengirim notifikasi langganan, dan meningkatkan Aplikasi.' },
-      { heading: '4. Berbagi Data', body: 'Kami tidak menjual data Anda. Kami hanya berbagi dengan:', bullets: ['Supabase — penyedia database dan autentikasi aman kami', 'Xendit — pemroses pembayaran kami (khusus penagihan langganan)', 'Penyedia AI — data kebugaran yang dianonimkan untuk membuat program Anda'] },
+      { heading: '4. Berbagi Data', body: 'Kami tidak menjual data Anda. Kami hanya berbagi dengan:', bullets: ['Supabase — penyedia database dan autentikasi aman kami', 'Midtrans — pemroses pembayaran kami (khusus penagihan langganan)', 'Penyedia AI — data kebugaran yang dianonimkan untuk membuat program Anda'] },
       { heading: '5. Keamanan Data', body: 'Kami menerapkan langkah-langkah keamanan standar industri. Data Anda disimpan di server yang aman dengan akses terbatas.' },
       { heading: '6. Penyimpanan Data', body: 'Kami menyimpan data Anda selama akun Anda aktif. Anda dapat meminta penghapusan dengan menghubungi fitaisurya@gmail.com.' },
       { heading: '7. Hak Anda', body: 'Anda berhak mengakses, mengoreksi, dan menghapus data pribadi Anda. Hubungi kami di fitaisurya@gmail.com untuk menggunakan hak-hak ini.' },
