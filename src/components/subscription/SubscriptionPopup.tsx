@@ -93,7 +93,7 @@ const loadSnapScript = (url: string, clientKey: string): Promise<void> =>
     document.head.appendChild(script);
   });
 
-export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_plan', userEmail, onPaymentDone }: SubscriptionPopupProps) {
+export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_plan', userEmail, onPaymentDone, trialNotStarted, isTrialActive }: SubscriptionPopupProps) {
   const { lang } = useLanguage();
   const t = TEXT[lang as keyof typeof TEXT] ?? TEXT.en;
   const [payLoading, setPayLoading] = useState(false);
