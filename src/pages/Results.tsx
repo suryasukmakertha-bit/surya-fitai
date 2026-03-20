@@ -663,12 +663,20 @@ export default function Results() {
     );
   }
 
+  const { access, guardSavePlan, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail: subEmail, refetch: refetchSub, openPopup } = useSubscription();
+
+  const planLimitTooltip = lang === "id" ? "Hapus 1 plan untuk menyimpan yang baru" : lang === "zh" ? "删除一个计划以保存新计划" : "Delete a plan to save a new one";
+
+  const trialBannerText = lang === "id" ? `🎉 Sisa ${access.trialDaysLeft} hari uji coba gratis` : lang === "zh" ? `🎉 免费试用还剩${access.trialDaysLeft}天` : `🎉 ${access.trialDaysLeft} days left in free trial`;
+  const upgradeNowText = lang === "id" ? "Upgrade Sekarang" : lang === "zh" ? "立即升级" : "Upgrade Now";
+
   const handleSave = async () => {
     if (!user) {
       toast({ title: t.signInToSave, description: t.signInToSaveDesc, variant: "destructive" });
       navigate("/auth");
       return;
     }
+    if (!guardSavePlan()) return;
     if (saving || saved) return; // prevent double saves
     setSaving(true);
     try {
@@ -699,6 +707,7 @@ export default function Results() {
         navigate("/results", { state: { plan, userInfo, programType, planId: data.id }, replace: true });
       }
       toast({ title: t.planSaved });
+      refetchSub();
     } catch (err: any) {
       console.error('Save plan error:', err);
       toast({ title: t.errorSaving, variant: "destructive" });
