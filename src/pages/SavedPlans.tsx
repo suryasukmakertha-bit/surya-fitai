@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Loader2, Eye, Plus, Pencil, Check, X } from "lucide-react";
+import { Trash2, Loader2, Eye, Pencil, Check, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -30,9 +30,9 @@ export default function SavedPlans() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  const { access, loading: subLoading, openPopup, guardSavedPlans, guardSavedPlanItem, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail, refetch: refetchSub } = useSubscription();
+  const { access, loading: subLoading, openPopup, checkMyPlansGuard, checkSaveGuard, guardSavedPlanItem, showPopup, popupTrigger, closePopup, userEmail, refetch: refetchSub, savedPlansCount } = useSubscription();
 
-  const planLimitTooltip = lang === "id" ? "Hapus 1 plan untuk menyimpan yang baru" : lang === "zh" ? "删除一个计划以保存新计划" : "Delete a plan to save a new one";
+  const planLimitToastMsg = lang === "id" ? "Maksimal 3 plan tersimpan. Hapus 1 plan untuk menyimpan yang baru." : lang === "zh" ? "已达到最多3个计划。删除一个计划以保存新计划。" : "Maximum 3 plans reached. Delete a plan to save a new one.";
 
   const lockedTitle = lang === "id" ? "Upgrade untuk akses program kamu" : lang === "zh" ? "升级以访问您的计划" : "Upgrade to access your plans";
   const lockedBtn = lang === "id" ? "Lihat Paket Pro" : lang === "zh" ? "查看Pro计划" : "See Pro Plans";
@@ -46,10 +46,13 @@ export default function SavedPlans() {
     fetchPlans();
   }, [user, authLoading]);
 
-  // Check access on page load
+  // Check access on page load — show popup only if trial expired & not subscribed
   useEffect(() => {
-    if (!subLoading && !access.canAccessSavedPlans) openPopup('saved_plans');
-  }, [subLoading, access.canAccessSavedPlans]);
+    if (!subLoading) {
+      const guard = checkMyPlansGuard();
+      if (guard === 'popup') openPopup('saved_plans');
+    }
+  }, [subLoading, checkMyPlansGuard]);
 
   const fetchPlans = async () => {
     const { data, error } = await supabase
@@ -64,7 +67,7 @@ export default function SavedPlans() {
     await supabase.from("saved_plans").delete().eq("id", id);
     setPlans((prev) => prev.filter((p) => p.id !== id));
     toast({ title: t.planDeleted });
-    refetchSub();
+    await refetchSub();
   };
 
   const startRename = (plan: SavedPlan) => {
@@ -85,6 +88,20 @@ export default function SavedPlans() {
     navigate("/results", { state: { plan: plan.plan_data, userInfo: plan.user_info, programType: plan.program_type, planId: plan.id } });
   };
 
+  const handleAddPlan = () => {
+    const guard = checkSaveGuard();
+    if (guard === 'popup') { openPopup('saved_plans'); return; }
+    if (guard === 'toast_limit') {
+      toast({ title: planLimitToastMsg, duration: 3000 });
+      return;
+    }
+    navigate("/programs");
+  };
+
+  // Determine add plan button state
+  const addGuard = checkSaveGuard();
+  const isAddDisabled = addGuard === 'toast_limit';
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -92,6 +109,9 @@ export default function SavedPlans() {
       </div>
     );
   }
+
+  // Show locked state only when trial expired & not subscribed (not for trialNotStarted)
+  const showLockedState = !access.canAccessSavedPlans && !access.trialNotStarted;
 
   return (
     <div className="min-h-screen bg-background">
@@ -102,19 +122,18 @@ export default function SavedPlans() {
             {t.savedPlans} <span className="text-gradient">{t.plans}</span>
           </h1>
           <Button
-            onClick={() => navigate("/programs")}
+            onClick={handleAddPlan}
             size="sm"
-            disabled={isAtPlanLimit}
-            title={isAtPlanLimit ? planLimitTooltip : undefined}
-            className={isAtPlanLimit ? "opacity-50 cursor-not-allowed" : ""}
+            disabled={isAddDisabled}
+            className={isAddDisabled ? "opacity-50 cursor-not-allowed" : ""}
           >
             {t.addPlan || "+ Add Plan"}
           </Button>
         </div>
         <p className="text-muted-foreground mb-8">{t.savedPlansDesc}</p>
 
-        {/* Locked state when no access */}
-        {!access.canAccessSavedPlans && (
+        {/* Locked state when trial expired & not subscribed */}
+        {showLockedState && (
           <div className="relative">
             <div className="filter blur-sm pointer-events-none select-none opacity-40">
               <div className="rounded-2xl bg-secondary h-28 mb-3" />
@@ -133,12 +152,12 @@ export default function SavedPlans() {
           </div>
         )}
 
-        {access.canAccessSavedPlans && plans.length === 0 ? (
+        {!showLockedState && plans.length === 0 ? (
           <div className="card-gradient rounded-lg p-8 border border-border/50 text-center">
             <p className="text-muted-foreground mb-4">{t.noSavedPlans}</p>
             <Button onClick={() => navigate("/programs")}>{t.generateFirst}</Button>
           </div>
-        ) : access.canAccessSavedPlans && (
+        ) : !showLockedState && (
           <div className="space-y-3">
             {plans.map((p) => (
               <div key={p.id} className="card-gradient rounded-lg p-5 border border-border/50 flex items-center justify-between">
@@ -190,7 +209,7 @@ export default function SavedPlans() {
           </div>
         )}
       </div>
-      <SubscriptionPopup isOpen={showPopup} onClose={closePopup} trigger={popupTrigger} userEmail={userEmail} onPaymentDone={refetchSub} />
+      <SubscriptionPopup isOpen={showPopup} onClose={closePopup} trigger={popupTrigger} userEmail={userEmail} onPaymentDone={refetchSub} trialNotStarted={access.trialNotStarted} isTrialActive={access.isTrialActive} />
     </div>
   );
 }

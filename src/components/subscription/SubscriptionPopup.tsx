@@ -153,8 +153,10 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
 
           <p className="text-sm text-muted-foreground">{subtitle}</p>
 
-          {/* Trial expired notice */}
-          <p className="text-sm text-amber-400 font-medium">{t.trialExpired}</p>
+          {/* Trial expired notice — only show if trial existed and is no longer active */}
+          {!trialNotStarted && !isTrialActive && (
+            <p className="text-sm text-amber-400 font-medium">{t.trialExpired}</p>
+          )}
 
           {/* Benefits */}
           <ul className="space-y-2">
