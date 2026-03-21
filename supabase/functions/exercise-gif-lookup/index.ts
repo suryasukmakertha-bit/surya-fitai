@@ -349,9 +349,12 @@ serve(async (req) => {
 
     console.log(`[exercise-gif-lookup] Searching: "${exerciseName}"`);
 
-    // 0. Check static image map first (isometric/bodyweight holds)
+    // 0. Check static image map first — exact match, then partial match
     const normalizedForStatic = normalize(exerciseName);
-    const staticUrl = STATIC_IMAGE_MAP[normalizedForStatic];
+    const staticUrl = STATIC_IMAGE_MAP[normalizedForStatic] ||
+      Object.entries(STATIC_IMAGE_MAP).find(([key]) =>
+        normalizedForStatic.includes(key) || key.includes(normalizedForStatic)
+      )?.[1];
     if (staticUrl) {
       console.log(`[exercise-gif-lookup] Static image hit for "${exerciseName}"`);
       return new Response(JSON.stringify({ gifUrl: staticUrl, source: "static" }), {
