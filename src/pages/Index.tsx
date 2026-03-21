@@ -70,10 +70,6 @@ export default function Index() {
               style={{ backgroundColor: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
               {(t as any).coachCertified}
             </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ backgroundColor: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
-              {(t as any).coachExperience}
-            </span>
           </div>
           <h1 className="text-5xl md:text-7xl font-display font-black text-foreground leading-tight mb-6">
             {t.heroTitle1} <br />

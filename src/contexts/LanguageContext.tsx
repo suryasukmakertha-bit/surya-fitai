@@ -365,7 +365,7 @@ const translations = {
     coachWeightChartSub: "Log your weight regularly so Coach Surya can track your real progress.",
     coachCheckInSub: "Your check-in data helps Coach Surya calibrate your plan over time.",
     coachHistorySub: "Your progress journey tracked by Coach Surya.",
-    whatsappCtaCoach: "💬 Get 1-on-1 Coaching from Coach Surya",
+    whatsappCtaCoach: "Get 1-on-1 Coaching from Coach Surya",
   },
   id: {
     // Common
@@ -729,7 +729,7 @@ const translations = {
     coachWeightChartSub: "Catat beratmu secara rutin agar Coach Surya bisa melacak perkembangan nyatamu.",
     coachCheckInSub: "Data check-in kamu membantu Coach Surya mengkalibrasi programmu seiring waktu.",
     coachHistorySub: "Perjalanan progressmu yang dipantau Coach Surya.",
-    whatsappCtaCoach: "💬 Konsultasi Langsung dengan Coach Surya",
+    whatsappCtaCoach: "Konsultasi Langsung dengan Coach Surya",
   },
   zh: {
     // Common
@@ -1093,7 +1093,7 @@ const translations = {
     coachWeightChartSub: "定期记录您的体重，以便Surya教练跟踪您的真实进度。",
     coachCheckInSub: "您的打卡数据有助于Surya教练随时间调整您的计划。",
     coachHistorySub: "由Surya教练记录的您的进度之旅。",
-    whatsappCtaCoach: "💬 获得Coach Surya的一对一指导",
+    whatsappCtaCoach: "获得Coach Surya的一对一指导",
   },
 };
 
