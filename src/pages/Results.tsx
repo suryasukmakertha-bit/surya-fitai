@@ -1095,6 +1095,10 @@ export default function Results() {
 
               {/* Progression Rules */}
               {plan.progressionRules && (
+                <>
+                <p className="text-muted-foreground text-xs mb-1.5 px-1">
+                  {(t as any).coachProgressionLabel}
+                </p>
                 <div className="card-gradient rounded-lg p-5 border border-primary/30">
                   <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
                     <Target className="w-4 h-4 text-primary" /> {(t as any).progressionRulesLabel || "Progression Rules"}
