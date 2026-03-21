@@ -1238,7 +1238,7 @@ export default function Results() {
             style={{ backgroundColor: "#25D366" }}
           >
             <MessageCircle className="w-6 h-6" />
-            {t.whatsappCta}
+            {(t as any).whatsappCtaCoach}
           </a>
         </div>
       </div>
