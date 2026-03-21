@@ -195,10 +195,7 @@ const GIF_MAP: Record<string, string> = {
   "box squats to a chair": `${B}yn8yg1r.gif`,
   "glute bridge": `${B}Pjbc0Kt.gif`,
   "glute bridges": `${B}Pjbc0Kt.gif`,
-  "wall sit": `${B}W7yh3Yo.gif`,
-  "wall sits": `${B}W7yh3Yo.gif`,
-  "wall squat": `${B}W7yh3Yo.gif`,
-  "wall squat hold": `${B}W7yh3Yo.gif`,
+  // wall sit - no valid GIF in ExerciseDB, will fall through to Wger/muscles.wiki
   "incline push up hands on table counter": `${B}GdMa1ET.gif`,
   "incline push ups hands on table counter": `${B}GdMa1ET.gif`,
   "incline push-up hands on table/counter": `${B}GdMa1ET.gif`,
