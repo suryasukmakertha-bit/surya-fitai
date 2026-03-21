@@ -60,6 +60,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
     const normalizedName = normalizeExerciseName(exercise_name)
+    console.log(`[get-exercise-gif] Searching: "${exercise_name}", normalized: "${normalizedName}"`)
 
     // Check cache first
     const { data: cached } = await supabase
@@ -69,6 +70,7 @@ serve(async (req) => {
       .maybeSingle()
 
     if (cached?.gif_url) {
+      console.log(`[get-exercise-gif] Cache hit for "${normalizedName}"`)
       return new Response(
         JSON.stringify({ gif_url: cached.gif_url, source: 'cache' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -78,9 +80,11 @@ serve(async (req) => {
     // Search ExerciseDB via RapidAPI
     const apiKey = Deno.env.get('RAPIDAPI_KEY')
     if (!apiKey) {
+      console.log(`[get-exercise-gif] RAPIDAPI_KEY not configured, using fallback`)
+      const fallbackUrl = `https://muscles.wiki/exercises/${normalizedName.replace(/\s+/g, '-')}.gif`
       return new Response(
-        JSON.stringify({ error: 'RAPIDAPI_KEY not configured', gif_url: null }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ gif_url: fallbackUrl, source: 'fallback' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -88,35 +92,46 @@ serve(async (req) => {
     let exerciseData = null
 
     for (const variant of searchVariants) {
-      try {
-        const response = await fetch(
-          `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(variant)}?limit=5&offset=0`,
-          {
+      if (exerciseData) break
+
+      const endpoints = [
+        `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(variant)}?limit=5&offset=0`,
+        `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(variant)}`,
+        `https://exercisedb.p.rapidapi.com/exercises?name=${encodeURIComponent(variant)}&limit=5`,
+      ]
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, {
             headers: {
               'X-RapidAPI-Key': apiKey,
               'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
             },
+          })
+          console.log(`[get-exercise-gif] Trying: "${variant}", endpoint: ${endpoint}, status: ${response.status}`)
+          if (!response.ok) continue
+          const exercises = await response.json()
+          if (exercises?.length > 0) {
+            exerciseData =
+              exercises.find(
+                (e: any) =>
+                  normalizeExerciseName(e.name).includes(normalizedName) ||
+                  normalizedName.includes(normalizeExerciseName(e.name))
+              ) || exercises[0]
+            if (exerciseData) break
           }
-        )
-        if (!response.ok) continue
-        const exercises = await response.json()
-        if (exercises?.length > 0) {
-          exerciseData =
-            exercises.find(
-              (e: any) =>
-                normalizeExerciseName(e.name).includes(normalizedName) ||
-                normalizedName.includes(normalizeExerciseName(e.name))
-            ) || exercises[0]
-          if (exerciseData) break
+        } catch (err) {
+          console.log(`[get-exercise-gif] Error fetching "${variant}": ${err}`)
+          continue
         }
-      } catch {
-        continue
       }
     }
 
     if (!exerciseData) {
+      console.log(`[get-exercise-gif] No ExerciseDB result, using fallback`)
+      const fallbackUrl = `https://muscles.wiki/exercises/${normalizedName.replace(/\s+/g, '-')}.gif`
       return new Response(
-        JSON.stringify({ gif_url: null, source: 'not_found' }),
+        JSON.stringify({ gif_url: fallbackUrl, source: 'fallback' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -134,11 +149,13 @@ serve(async (req) => {
       { onConflict: 'exercise_name_normalized' }
     )
 
+    console.log(`[get-exercise-gif] Found: "${exerciseData.name}", gif: ${exerciseData.gifUrl}`)
     return new Response(
       JSON.stringify({ gif_url: exerciseData.gifUrl, source: 'exercisedb' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
+    console.log(`[get-exercise-gif] Fatal error: ${err}`)
     return new Response(
       JSON.stringify({ error: String(err), gif_url: null }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

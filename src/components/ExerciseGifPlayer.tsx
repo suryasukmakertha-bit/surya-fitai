@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Play, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -20,6 +20,7 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
   const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [fallbackAttempted, setFallbackAttempted] = useState(false);
   const { lang } = useLanguage();
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     setLoading(true);
     setError(false);
     setGifUrl(null);
+    setFallbackAttempted(false);
 
     async function fetchGif() {
       try {
@@ -38,12 +40,17 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
         if (cancelled) return;
 
         if (fnError || !data?.gif_url) {
-          setError(true);
+          // Try muscles.wiki fallback
+          const musclesName = searchTerm.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+          setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
         } else {
           setGifUrl(data.gif_url);
         }
       } catch {
-        if (!cancelled) setError(true);
+        if (!cancelled) {
+          const musclesName = normalizeExerciseName(exerciseName).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+          setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -52,6 +59,17 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     fetchGif();
     return () => { cancelled = true; };
   }, [exerciseName]);
+
+  const handleImgError = () => {
+    if (!fallbackAttempted && exerciseName) {
+      const musclesName = exerciseName.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+      setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
+      setFallbackAttempted(true);
+    } else {
+      setError(true);
+      setGifUrl(null);
+    }
+  };
 
   const loadingText = lang === "id" ? "Memuat demo..." : lang === "zh" ? "加载演示中..." : "Loading demo...";
   const errorText = lang === "id" ? "Demo tidak tersedia" : lang === "zh" ? "演示不可用" : "Demo not available";
@@ -88,7 +106,7 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
           alt={`${exerciseName} demonstration`}
           className="w-full h-full object-cover"
           loading="eager"
-          onError={() => { setError(true); setGifUrl(null); }}
+          onError={handleImgError}
         />
       </div>
       <p className="text-muted-foreground/60 text-[10px] text-center py-2">Source: ExerciseDB</p>
