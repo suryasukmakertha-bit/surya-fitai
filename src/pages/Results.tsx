@@ -1207,8 +1207,9 @@ export default function Results() {
               </div>
 
               {sorted.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="font-display font-bold text-foreground mb-3">{t.history}</h3>
+              <div className="space-y-2">
+                  <h3 className="font-display font-bold text-foreground mb-1">{t.history}</h3>
+                  <p className="text-muted-foreground text-xs mb-3">{(t as any).coachHistorySub}</p>
                   {[...sorted].reverse().map((c) => (
                     <div key={c.id} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-3 text-sm">
                       <div className="flex items-center gap-4">
