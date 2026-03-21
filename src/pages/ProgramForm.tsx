@@ -189,6 +189,15 @@ export default function ProgramForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Coach Intro Banner */}
+          <div className="mb-5 px-4 py-3 rounded-2xl flex items-start gap-3"
+            style={{ backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+            <span className="text-xl flex-shrink-0">👋</span>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {(t as any).coachFormIntro}
+            </p>
+          </div>
+
           {/* Basic Info Section */}
           <div className="card-gradient rounded-lg p-6 border border-border/50 space-y-5">
             <h3 className="font-display font-bold text-foreground text-sm uppercase tracking-wider text-primary">{t.basicInfoSection}</h3>
