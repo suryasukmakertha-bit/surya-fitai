@@ -33,18 +33,19 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     async function fetchGif() {
       try {
         const searchTerm = normalizeExerciseName(exerciseName);
-        const { data, error: fnError } = await supabase.functions.invoke("get-exercise-gif", {
-          body: { exercise_name: searchTerm },
+        // Use the exercise-gif-lookup function which has a static map + free API fallback
+        const { data, error: fnError } = await supabase.functions.invoke("exercise-gif-lookup", {
+          body: { exerciseName: searchTerm },
         });
 
         if (cancelled) return;
 
-        if (fnError || !data?.gif_url) {
+        if (fnError || !data?.gifUrl) {
           // Try muscles.wiki fallback
           const musclesName = searchTerm.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
           setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
         } else {
-          setGifUrl(data.gif_url);
+          setGifUrl(data.gifUrl);
         }
       } catch {
         if (!cancelled) {
