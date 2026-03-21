@@ -205,10 +205,9 @@ const GIF_MAP: Record<string, string> = {
 function normalize(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[()]/g, "")
-    .replace(/[-–—]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
 }
 
 function findGifFromMap(exerciseName: string): string | null {
