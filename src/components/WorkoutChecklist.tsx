@@ -235,6 +235,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
                   );
                 })}
               </div>
+              {done === total && total > 0 && (
+                <p className="text-primary text-xs text-center mt-3 mb-1">{(t as any).coachCompletedDay}</p>
+              )}
               <DailyProgressImage
                 dayLabel={day.day}
                 exercises={day.exercises}
