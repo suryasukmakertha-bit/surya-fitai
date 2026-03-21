@@ -1071,9 +1071,8 @@ export default function Results() {
                     </li>
                   ))}
                 </ul>
-                </div>
-                </>
-              )}
+              </div>
+            )}
             {plan.weekly_schedule?.length > 0 && (
               <div className="card-gradient rounded-lg p-5 border border-border/50">
                 <h3 className="font-display font-bold text-foreground mb-3">{t.weeklySchedule}</h3>
