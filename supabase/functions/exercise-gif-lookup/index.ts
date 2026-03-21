@@ -205,10 +205,9 @@ const GIF_MAP: Record<string, string> = {
 function normalize(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[()]/g, "")
-    .replace(/[-–—]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
 }
 
 function findGifFromMap(exerciseName: string): string | null {
@@ -325,13 +324,10 @@ async function fetchFromWger(exerciseName: string): Promise<string | null> {
   }
 }
 
-// Static images for exercises not available in any external DB (isometric/bodyweight holds)
+// Static images for exercises not available in any external DB
 const STATIC_IMAGE_MAP: Record<string, string> = {
-  'wall sit': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Wall_sit.jpg/440px-Wall_sit.jpg',
-  'plank hold': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Plank_exercise.jpg/440px-Plank_exercise.jpg',
+  'wall sit': 'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif',
   'hollow hold': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Hollow_hold.jpg/440px-Hollow_hold.jpg',
-  'glute bridge': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Glute_bridge.jpg/440px-Glute_bridge.jpg',
-  'superman hold': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Superman_exercise.jpg/440px-Superman_exercise.jpg',
 };
 
 serve(async (req) => {
