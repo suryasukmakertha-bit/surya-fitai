@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Play, RotateCcw, Loader2 } from "lucide-react";
+import { Play, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ExerciseGifPlayerProps {
   exerciseName: string;
 }
 
-// Normalize exercise name for better API matching
 function normalizeExerciseName(name: string): string {
   return name
     .toLowerCase()
@@ -20,28 +20,27 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
   const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [paused, setPaused] = useState(false);
+  const { lang } = useLanguage();
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(false);
     setGifUrl(null);
-    setPaused(false);
 
     async function fetchGif() {
       try {
         const searchTerm = normalizeExerciseName(exerciseName);
-        const { data, error: fnError } = await supabase.functions.invoke("exercise-gif-lookup", {
-          body: { exerciseName: searchTerm },
+        const { data, error: fnError } = await supabase.functions.invoke("get-exercise-gif", {
+          body: { exercise_name: searchTerm },
         });
 
         if (cancelled) return;
 
-        if (fnError || !data?.gifUrl) {
+        if (fnError || !data?.gif_url) {
           setError(true);
         } else {
-          setGifUrl(data.gifUrl);
+          setGifUrl(data.gif_url);
         }
       } catch {
         if (!cancelled) setError(true);
@@ -54,63 +53,45 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     return () => { cancelled = true; };
   }, [exerciseName]);
 
+  const loadingText = lang === "id" ? "Memuat demo..." : lang === "zh" ? "加载演示中..." : "Loading demo...";
+  const errorText = lang === "id" ? "Demo tidak tersedia" : lang === "zh" ? "演示不可用" : "Demo not available";
+  const coachLabel = lang === "id" ? "🎯 Demo Coach Surya" : lang === "zh" ? "🎯 Surya教练演示" : "🎯 Coach Surya's Demo";
+  const watchText = lang === "id" ? "Perhatikan form dan teknik yang benar" : lang === "zh" ? "观察正确的姿势和技巧" : "Watch the correct form and technique";
+
   if (loading) {
     return (
-      <div className="w-full aspect-video bg-secondary/60 rounded-xl flex items-center justify-center">
+      <div className="w-full aspect-square rounded-xl bg-secondary/60 flex flex-col items-center justify-center gap-2">
         <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        <span className="text-muted-foreground text-xs">{loadingText}</span>
       </div>
     );
   }
 
   if (error || !gifUrl) {
     return (
-      <div className="w-full aspect-video bg-secondary/60 rounded-xl flex flex-col items-center justify-center gap-2 border border-border/30">
-        <Play className="h-10 w-10 text-muted-foreground/40" />
-        <p className="text-xs text-muted-foreground">Demo not available for this exercise</p>
+      <div className="w-full aspect-square rounded-xl bg-secondary/60 flex flex-col items-center justify-center gap-2 border border-border/30">
+        <span className="text-3xl">🏋️</span>
+        <p className="text-xs text-muted-foreground">{errorText}</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full rounded-xl overflow-hidden border border-border/30 relative group">
-      {/* GIF image */}
-      <div className="relative aspect-video bg-black">
+    <div className="w-full rounded-xl overflow-hidden border border-border/30">
+      <div className="flex items-center gap-1.5 px-3 pt-3 mb-1">
+        <span className="text-primary text-xs font-semibold">{coachLabel}</span>
+      </div>
+      <p className="text-muted-foreground text-xs px-3 mb-2">{watchText}</p>
+      <div className="relative aspect-square bg-black mx-3 rounded-lg overflow-hidden">
         <img
           src={gifUrl}
           alt={`${exerciseName} demonstration`}
-          className={`w-full h-full object-contain ${paused ? "opacity-50" : ""}`}
+          className="w-full h-full object-cover"
           loading="eager"
+          onError={() => { setError(true); setGifUrl(null); }}
         />
-
-        {/* Play/Pause overlay */}
-        <button
-          onClick={() => setPaused(!paused)}
-          className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors"
-        >
-          {paused && (
-            <div className="bg-black/60 rounded-full p-3">
-              <Play className="h-8 w-8 text-white fill-white" />
-            </div>
-          )}
-        </button>
-
-        {/* GIF label */}
-        <span className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-          GIF
-        </span>
-
-        {/* Fake progress bar for aesthetics */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-          <div className="h-full bg-white w-full animate-pulse" />
-        </div>
       </div>
-
-      {/* Caption */}
-      <div className="px-3 py-2 bg-secondary/40">
-        <p className="text-xs text-muted-foreground text-center">
-          Demo: Correct <span className="text-foreground font-medium">{exerciseName}</span> Technique
-        </p>
-      </div>
+      <p className="text-muted-foreground/60 text-[10px] text-center py-2">Source: ExerciseDB</p>
     </div>
   );
 }
