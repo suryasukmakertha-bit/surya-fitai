@@ -326,7 +326,7 @@ async function fetchFromWger(exerciseName: string): Promise<string | null> {
 
 // Static images for exercises not available in any external DB
 const STATIC_IMAGE_MAP: Record<string, string> = {
-  'wall sit': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Wall_sit_exercise.jpg/440px-Wall_sit_exercise.jpg',
+  'wall sit': `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220"><rect width="200" height="220" fill="#1a1a2e"/><rect x="170" y="20" width="12" height="180" fill="#4a4a6a" rx="2"/><circle cx="110" cy="45" r="16" fill="none" stroke="#00d4ff" stroke-width="3"/><line x1="110" y1="61" x2="110" y2="115" stroke="#00d4ff" stroke-width="3"/><line x1="110" y1="115" x2="170" y2="115" stroke="#00d4ff" stroke-width="3"/><line x1="110" y1="115" x2="80" y2="160" stroke="#00d4ff" stroke-width="3"/><line x1="80" y1="160" x2="80" y2="195" stroke="#00d4ff" stroke-width="3"/><line x1="110" y1="75" x2="85" y2="95" stroke="#00d4ff" stroke-width="3"/><line x1="110" y1="75" x2="135" y2="95" stroke="#00d4ff" stroke-width="3"/><text x="100" y="215" text-anchor="middle" fill="#888" font-size="10" font-family="Arial">Wall Sit</text></svg>')}`,
   'hollow hold': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Hollow_hold.jpg/440px-Hollow_hold.jpg',
 };
 
