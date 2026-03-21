@@ -775,6 +775,15 @@ export default function Results() {
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
             {t.yourPersonalized} <span className="text-gradient">{t.aiPlan}</span>
           </h1>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-primary text-xs font-semibold">
+              {(t as any).coachPreparedBy}
+            </span>
+            <span className="text-muted-foreground/60 text-xs">•</span>
+            <span className="text-muted-foreground text-xs">
+              {(t as any).coachCredential}
+            </span>
+          </div>
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
 
@@ -789,28 +798,55 @@ export default function Results() {
         )}
 
         {plan.estimatedSessionTimeMinutes && (
-          <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
-            <Clock className="w-6 h-6 text-primary shrink-0" />
-            <p className="text-foreground font-semibold text-sm md:text-base">
-              ✅ {(t as any).sessionTimeBanner
-                ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
-                : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
+          <>
+            <p className="text-muted-foreground text-xs mb-1.5 px-1">
+              {(t as any).coachCalibration}
             </p>
-          </div>
+            <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
+              <Clock className="w-6 h-6 text-primary shrink-0" />
+              <p className="text-foreground font-semibold text-sm md:text-base">
+                ✅ {(t as any).sessionTimeBanner
+                  ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
+                  : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
+              </p>
+            </div>
+          </>
         )}
 
         {/* Program Overview */}
         {plan.programOverview && (
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-            <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-foreground text-xs font-bold">S</span>
+                </div>
+                <div>
+                  <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
+                  <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
+                </div>
+              </div>
+              <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+            </div>
           </div>
         )}
 
         {!plan.programOverview && plan.motivational_message && (
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-            <p className="text-foreground text-sm italic">{plan.motivational_message}</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-foreground text-xs font-bold">S</span>
+                </div>
+                <div>
+                  <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
+                  <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
+                </div>
+              </div>
+              <p className="text-foreground text-sm italic">{plan.motivational_message}</p>
+            </div>
           </div>
         )}
 
@@ -871,7 +907,8 @@ export default function Results() {
             {/* Weekly Split Overview */}
             {plan.weeklySplit && plan.weeklySplit.length > 0 && (
               <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-3">{(t as any).weeklySplitLabel || "Weekly Split"}</h3>
+                <h3 className="font-display font-bold text-foreground mb-1">{(t as any).weeklySplitLabel || "Weekly Split"}</h3>
+                <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeeklySplitSub}</p>
                 <div className="flex flex-wrap gap-2">
                   {plan.weeklySplit.map((split, i) => (
                     <span key={i} className="bg-primary/10 text-primary text-xs px-3 py-1.5 rounded-full font-medium">{split}</span>
@@ -895,6 +932,7 @@ export default function Results() {
                         <div>
                           <p className="text-foreground font-medium">{(t as any).restDayTitle || "Rest & Recovery"}</p>
                           <p className="text-muted-foreground text-xs mt-0.5">{(t as any).restDayTip || "Focus on mobility, nutrition, or light walks today."}</p>
+                          <p className="text-muted-foreground/60 text-xs mt-1">{(t as any).coachRestTip}</p>
                         </div>
                       </div>
                     </div>
@@ -1054,22 +1092,33 @@ export default function Results() {
           {planId && user && (
             <TabsContent value="progress" className="space-y-6">
               <WorkoutProgressSummary planId={planId} />
+              <p className="text-muted-foreground text-xs mb-3 -mt-4">{(t as any).coachWorkoutActivitySub}</p>
 
               {/* Progression Rules */}
               {plan.progressionRules && (
+                <>
+                <p className="text-muted-foreground text-xs mb-1.5 px-1">
+                  {(t as any).coachProgressionLabel}
+                </p>
                 <div className="card-gradient rounded-lg p-5 border border-primary/30">
                   <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
                     <Target className="w-4 h-4 text-primary" /> {(t as any).progressionRulesLabel || "Progression Rules"}
                   </h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.progressionRules}</p>
                 </div>
+                </>
               )}
 
               {/* Duration */}
               {plan.durationWeeks && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                  <Clock className="w-4 h-4 text-primary" />
-                  {(t as any).programDuration || "Program Duration"}: <span className="font-bold text-foreground">{plan.durationWeeks} {(t as any).weeksLabel || "weeks"}</span>
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Clock className="w-4 h-4 text-primary" />
+                    {(t as any).programDuration || "Program Duration"}: <span className="font-bold text-foreground">{plan.durationWeeks} {(t as any).weeksLabel || "weeks"}</span>
+                  </div>
+                  <p className="text-muted-foreground text-xs mt-1 mb-4">
+                    {(t as any).coachProgressMonitor}
+                  </p>
                 </div>
               )}
 
@@ -1109,7 +1158,8 @@ export default function Results() {
 
               {chartData.length >= 2 ? (
                 <div className="card-gradient rounded-lg p-5 border border-border/50">
-                  <h3 className="font-display font-bold text-foreground mb-4">{t.weightOverTime}</h3>
+                  <h3 className="font-display font-bold text-foreground mb-1">{t.weightOverTime}</h3>
+                  <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeightChartSub}</p>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={chartData}>
@@ -1136,7 +1186,8 @@ export default function Results() {
               )}
 
               <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-4">{t.logCheckIn}</h3>
+                <h3 className="font-display font-bold text-foreground mb-1">{t.logCheckIn}</h3>
+                <p className="text-muted-foreground text-xs mb-3">{(t as any).coachCheckInSub}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-2">
                     <Label>{t.date}</Label>
@@ -1157,8 +1208,9 @@ export default function Results() {
               </div>
 
               {sorted.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="font-display font-bold text-foreground mb-3">{t.history}</h3>
+              <div className="space-y-2">
+                  <h3 className="font-display font-bold text-foreground mb-1">{t.history}</h3>
+                  <p className="text-muted-foreground text-xs mb-3">{(t as any).coachHistorySub}</p>
                   {[...sorted].reverse().map((c) => (
                     <div key={c.id} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-3 text-sm">
                       <div className="flex items-center gap-4">
@@ -1187,7 +1239,7 @@ export default function Results() {
             style={{ backgroundColor: "#25D366" }}
           >
             <MessageCircle className="w-6 h-6" />
-            {t.whatsappCta}
+            {(t as any).whatsappCtaCoach}
           </a>
         </div>
       </div>

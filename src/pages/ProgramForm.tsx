@@ -189,6 +189,15 @@ export default function ProgramForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Coach Intro Banner */}
+          <div className="mb-5 px-4 py-3 rounded-2xl flex items-start gap-3"
+            style={{ backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+            <span className="text-xl flex-shrink-0">👋</span>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {(t as any).coachFormIntro}
+            </p>
+          </div>
+
           {/* Basic Info Section */}
           <div className="card-gradient rounded-lg p-6 border border-border/50 space-y-5">
             <h3 className="font-display font-bold text-foreground text-sm uppercase tracking-wider text-primary">{t.basicInfoSection}</h3>
@@ -471,6 +480,9 @@ export default function ProgramForm() {
               <h3 className="font-display font-bold text-foreground text-sm uppercase tracking-wider text-primary flex items-center gap-2">
                 <Activity className="w-4 h-4" /> {t.liveMetricsTitle}
               </h3>
+              <p className="text-muted-foreground text-xs mb-3">
+                {(t as any).coachMetricsSubtitle}
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-secondary/60 rounded-lg p-3 text-center">
                   <p className="text-[11px] text-muted-foreground">BMI</p>
@@ -520,6 +532,9 @@ export default function ProgramForm() {
           <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
             {loading ? <><Loader2 className="w-5 h-5 animate-spin mr-2" /> {t.generating}</> : t.generatePlan}
           </Button>
+          <p className="text-muted-foreground/60 text-xs text-center mt-2">
+            {(t as any).coachGenerateHelper}
+          </p>
         </form>
       </div>
     </div>

@@ -184,6 +184,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
                   <div>
                     <p className="text-foreground font-medium">{(t as any).restDayTitle || "Rest & Recovery"}</p>
                     <p className="text-muted-foreground text-xs mt-0.5">{(t as any).restDayTip || "Focus on mobility, nutrition, or light walks today."}</p>
+                    <p className="text-muted-foreground/60 text-xs mt-1">{(t as any).coachRestTip}</p>
                   </div>
                 </div>
               </div>
@@ -234,6 +235,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
                   );
                 })}
               </div>
+              {done === total && total > 0 && (
+                <p className="text-primary text-xs text-center mt-3 mb-1">{(t as any).coachCompletedDay}</p>
+              )}
               <DailyProgressImage
                 dayLabel={day.day}
                 exercises={day.exercises}

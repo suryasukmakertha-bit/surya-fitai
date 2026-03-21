@@ -32,6 +32,42 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_gif_cache: {
+        Row: {
+          equipment: string | null
+          exercise_name_display: string | null
+          exercise_name_normalized: string
+          fetched_at: string
+          gif_url: string | null
+          id: string
+          source: string | null
+          target_muscle: string | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          equipment?: string | null
+          exercise_name_display?: string | null
+          exercise_name_normalized: string
+          fetched_at?: string
+          gif_url?: string | null
+          id?: string
+          source?: string | null
+          target_muscle?: string | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          equipment?: string | null
+          exercise_name_display?: string | null
+          exercise_name_normalized?: string
+          fetched_at?: string
+          gif_url?: string | null
+          id?: string
+          source?: string | null
+          target_muscle?: string | null
+          thumbnail_url?: string | null
+        }
+        Relationships: []
+      }
       payment_transactions: {
         Row: {
           amount: number

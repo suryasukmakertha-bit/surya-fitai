@@ -153,7 +153,8 @@ export default function Progress() {
 
         {chartData.length >= 2 && (
           <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
-            <h3 className="font-display font-bold text-foreground mb-4">{t.weightOverTime}</h3>
+            <h3 className="font-display font-bold text-foreground mb-1">{t.weightOverTime}</h3>
+            <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeightChartSub}</p>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
@@ -182,7 +183,8 @@ export default function Progress() {
         )}
 
         <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
-          <h3 className="font-display font-bold text-foreground mb-4">{t.logCheckIn}</h3>
+          <h3 className="font-display font-bold text-foreground mb-1">{t.logCheckIn}</h3>
+          <p className="text-muted-foreground text-xs mb-3">{(t as any).coachCheckInSub}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div className="space-y-2">
               <Label>{t.date}</Label>
@@ -204,7 +206,8 @@ export default function Progress() {
 
         {sorted.length > 0 && (
           <div className="space-y-2">
-            <h3 className="font-display font-bold text-foreground mb-3">{t.history}</h3>
+            <h3 className="font-display font-bold text-foreground mb-1">{t.history}</h3>
+            <p className="text-muted-foreground text-xs mb-3">{(t as any).coachHistorySub}</p>
             {[...sorted].reverse().map((c) => (
               <div key={c.id} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-3 text-sm">
                 <div className="flex items-center gap-4">
