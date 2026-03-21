@@ -817,7 +817,18 @@ export default function Results() {
         {plan.programOverview && (
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-            <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-foreground text-xs font-bold">S</span>
+                </div>
+                <div>
+                  <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
+                  <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
+                </div>
+              </div>
+              <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+            </div>
           </div>
         )}
 
