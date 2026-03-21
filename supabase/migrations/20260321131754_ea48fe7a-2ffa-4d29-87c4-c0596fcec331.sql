@@ -1,0 +1,2 @@
+CREATE POLICY "Anyone can read exercise images" ON storage.objects FOR SELECT USING (bucket_id = 'exercise-images');
+CREATE POLICY "Service can upload exercise images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'exercise-images');
