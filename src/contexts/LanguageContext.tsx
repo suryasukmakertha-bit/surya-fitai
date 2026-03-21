@@ -729,7 +729,7 @@ const translations = {
     coachWeightChartSub: "Catat beratmu secara rutin agar Coach Surya bisa melacak perkembangan nyatamu.",
     coachCheckInSub: "Data check-in kamu membantu Coach Surya mengkalibrasi programmu seiring waktu.",
     coachHistorySub: "Perjalanan progressmu yang dipantau Coach Surya.",
-    whatsappCtaCoach: "💬 Konsultasi Langsung dengan Coach Surya",
+    whatsappCtaCoach: "Konsultasi Langsung dengan Coach Surya",
   },
   zh: {
     // Common
