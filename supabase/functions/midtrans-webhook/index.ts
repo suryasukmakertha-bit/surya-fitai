@@ -36,7 +36,13 @@ serve(async (req) => {
       .eq('midtrans_order_id', order_id)
       .maybeSingle()
 
-    if (!tx) return new Response(JSON.stringify({ error: 'Transaction not found' }), { status: 404 })
+    if (!tx) {
+      console.log('[midtrans-webhook] Order not found in DB (possibly a Midtrans test):', order_id)
+      return new Response(JSON.stringify({ received: true, note: 'Order not found, skipped' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
     if (tx.status === 'paid') return new Response(JSON.stringify({ received: true }), { status: 200 })
 
     const isSuccess =
