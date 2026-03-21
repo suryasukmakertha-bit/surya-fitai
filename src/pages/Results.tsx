@@ -907,7 +907,8 @@ export default function Results() {
             {/* Weekly Split Overview */}
             {plan.weeklySplit && plan.weeklySplit.length > 0 && (
               <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-3">{(t as any).weeklySplitLabel || "Weekly Split"}</h3>
+                <h3 className="font-display font-bold text-foreground mb-1">{(t as any).weeklySplitLabel || "Weekly Split"}</h3>
+                <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeeklySplitSub}</p>
                 <div className="flex flex-wrap gap-2">
                   {plan.weeklySplit.map((split, i) => (
                     <span key={i} className="bg-primary/10 text-primary text-xs px-3 py-1.5 rounded-full font-medium">{split}</span>
