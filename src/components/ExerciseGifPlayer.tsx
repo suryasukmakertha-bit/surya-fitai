@@ -20,7 +20,7 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
   const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [fallbackAttempted, setFallbackAttempted] = useState(false);
+  const [fallbackStage, setFallbackStage] = useState(0); // 0=initial, 1=muscles.wiki tried, 2=done
   const { lang } = useLanguage();
 
   useEffect(() => {
@@ -28,12 +28,11 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     setLoading(true);
     setError(false);
     setGifUrl(null);
-    setFallbackAttempted(false);
+    setFallbackStage(0);
 
     async function fetchGif() {
       try {
         const searchTerm = normalizeExerciseName(exerciseName);
-        // Use the exercise-gif-lookup function which has a static map + free API fallback
         const { data, error: fnError } = await supabase.functions.invoke("exercise-gif-lookup", {
           body: { exerciseName: searchTerm },
         });
@@ -62,10 +61,12 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
   }, [exerciseName]);
 
   const handleImgError = () => {
-    if (!fallbackAttempted && exerciseName) {
-      const musclesName = exerciseName.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+    if (fallbackStage === 0 && exerciseName) {
+      // Try muscles.wiki
+      const musclesName = exerciseName.toLowerCase().trim()
+        .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
       setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
-      setFallbackAttempted(true);
+      setFallbackStage(1);
     } else {
       setError(true);
       setGifUrl(null);

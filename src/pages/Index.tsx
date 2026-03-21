@@ -78,9 +78,7 @@ export default function Index() {
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-2">
             {t.heroDesc}
           </p>
-          <p className="text-muted-foreground text-sm mb-8 text-center">
-            {(t as any).coachSubtitle}
-          </p>
+          <div className="mb-8" />
           <Button size="lg" onClick={handleStartProgram} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
             {t.startProgram} <ChevronRight className="w-5 h-5 ml-1" />
           </Button>

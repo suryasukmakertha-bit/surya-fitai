@@ -8,7 +8,6 @@ const corsHeaders = {
 const B = "https://static.exercisedb.dev/media/";
 
 // Verified exercise GIF IDs from the free ExerciseDB API (exercisedb-api.vercel.app)
-// Each ID verified to show the correct animated exercise demonstration
 const GIF_MAP: Record<string, string> = {
   // Chest
   "dumbbell bench press": `${B}SpYC0Kp.gif`,
@@ -88,6 +87,9 @@ const GIF_MAP: Record<string, string> = {
   "barbell squat": `${B}yn8yg1r.gif`,
   "squat": `${B}yn8yg1r.gif`,
   "back squat": `${B}yn8yg1r.gif`,
+  "bodyweight squat": `${B}yn8yg1r.gif`,
+  "body weight squat": `${B}yn8yg1r.gif`,
+  "air squat": `${B}yn8yg1r.gif`,
   "barbell side split squat": `${B}W31mMjd.gif`,
   "split squat": `${B}W31mMjd.gif`,
   "bulgarian split squat": `${B}W31mMjd.gif`,
@@ -107,6 +109,9 @@ const GIF_MAP: Record<string, string> = {
   "lunge": `${B}W31mMjd.gif`,
   "walking lunge": `${B}W31mMjd.gif`,
   "dumbbell lunge": `${B}W31mMjd.gif`,
+  "reverse lunge": `${B}W31mMjd.gif`,
+  "bodyweight reverse lunge": `${B}W31mMjd.gif`,
+  "step back lunge": `${B}W31mMjd.gif`,
   "step up": `${B}W31mMjd.gif`,
 
   // Arms
@@ -130,7 +135,7 @@ const GIF_MAP: Record<string, string> = {
   "tricep extension": `${B}gAwDzB3.gif`,
   "cable reverse grip triceps pushdown": `${B}ThKP69G.gif`,
 
-  // Core — each with UNIQUE correct GIF IDs
+  // Core
   "dead bug": `${B}iny3m5y.gif`,
   "dead bug core": `${B}iny3m5y.gif`,
   "plank": `${B}VBAWRPG.gif`,
@@ -155,6 +160,9 @@ const GIF_MAP: Record<string, string> = {
   "bird dog": `${B}CosupLu.gif`,
   "lower back curl": `${B}ANbbry2.gif`,
   "cable crunch": `${B}s8nrDXF.gif`,
+  "cat cow": `${B}CosupLu.gif`,
+  "cat cow stretch": `${B}CosupLu.gif`,
+  "superman": `${B}ANbbry2.gif`,
 
   // Push-ups
   "push up": `${B}JmMVpR3.gif`,
@@ -189,6 +197,8 @@ const GIF_MAP: Record<string, string> = {
   "glute bridges": `${B}Pjbc0Kt.gif`,
   "wall sit": `${B}W7yh3Yo.gif`,
   "wall sits": `${B}W7yh3Yo.gif`,
+  "wall squat": `${B}W7yh3Yo.gif`,
+  "wall squat hold": `${B}W7yh3Yo.gif`,
   "incline push up hands on table counter": `${B}GdMa1ET.gif`,
   "incline push ups hands on table counter": `${B}GdMa1ET.gif`,
   "incline push-up hands on table/counter": `${B}GdMa1ET.gif`,
@@ -241,30 +251,78 @@ function findGifFromMap(exerciseName: string): string | null {
   return bestScore >= 35 ? bestUrl : null;
 }
 
-// Dynamic fallback: search the free ExerciseDB API
+// Dynamic fallback: search the free ExerciseDB API with smart equipment filtering
 async function searchExerciseDbApi(exerciseName: string): Promise<string | null> {
   try {
-    const searchTerm = encodeURIComponent(normalize(exerciseName));
-    const url = `https://exercisedb-api.vercel.app/api/v1/exercises?search=${searchTerm}&limit=3`;
+    const n = normalize(exerciseName);
+    const searchTerm = encodeURIComponent(n);
+    const url = `https://exercisedb-api.vercel.app/api/v1/exercises?search=${searchTerm}&limit=10`;
     const res = await fetch(url, {
       headers: { "Accept": "application/json" },
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return null;
     const json = await res.json();
-    if (json?.success && json?.data?.length > 0) {
-      // Find best match by checking if the exercise name appears in the result
-      const n = normalize(exerciseName);
-      for (const ex of json.data) {
-        const exName = normalize(ex.name || "");
-        if (exName.includes(n) || n.includes(exName)) {
-          return ex.gifUrl || null;
-        }
+    if (!json?.success || !json?.data?.length) return null;
+
+    const exercises = json.data;
+    const isBodyweight = /bodyweight|body weight/.test(n);
+    const mentionsEquipment = /barbell|dumbbell|cable|machine|kettlebell|band|resistance/.test(n);
+
+    let bestMatch = null;
+
+    if (isBodyweight) {
+      bestMatch = exercises.find((e: any) =>
+        e.equipment === 'body weight' || e.equipment === 'bodyweight'
+      );
+    } else if (!mentionsEquipment) {
+      // Prefer exact name match first
+      bestMatch = exercises.find((e: any) => normalize(e.name || "") === n);
+      // Then prefer bodyweight variant
+      if (!bestMatch) {
+        bestMatch = exercises.find((e: any) =>
+          e.equipment === 'body weight' || e.equipment === 'bodyweight'
+        );
       }
-      // Return first result as fallback
-      return json.data[0].gifUrl || null;
     }
+
+    // Final fallback: partial name match, then first result
+    if (!bestMatch) {
+      bestMatch = exercises.find((e: any) => {
+        const exName = normalize(e.name || "");
+        return exName.includes(n) || n.includes(exName);
+      }) || exercises[0];
+    }
+
+    return bestMatch?.gifUrl || null;
+  } catch {
     return null;
+  }
+}
+
+// Wger.de fallback (free, no API key)
+async function fetchFromWger(exerciseName: string): Promise<string | null> {
+  try {
+    const searchName = encodeURIComponent(exerciseName);
+    const res = await fetch(
+      `https://wger.de/api/v2/exercise/search/?term=${searchName}&language=english&format=json`,
+      { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(4000) }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const suggestions = data?.suggestions;
+    if (!suggestions || suggestions.length === 0) return null;
+    const baseId = suggestions[0]?.data?.base_id;
+    if (!baseId) return null;
+    const imgRes = await fetch(
+      `https://wger.de/api/v2/exerciseimage/?exercise_base=${baseId}&format=json`,
+      { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(4000) }
+    );
+    if (!imgRes.ok) return null;
+    const imgData = await imgRes.json();
+    const images = imgData?.results;
+    if (!images || images.length === 0) return null;
+    return images[0]?.image || null;
   } catch {
     return null;
   }
@@ -283,15 +341,27 @@ serve(async (req) => {
       });
     }
 
-    // Try static map first
-    let gifUrl = findGifFromMap(exerciseName);
+    console.log(`[exercise-gif-lookup] Searching: "${exerciseName}"`);
 
-    // Dynamic API fallback if static map misses
+    // 1. Try static map
+    let gifUrl = findGifFromMap(exerciseName);
+    let source = "static_map";
+
+    // 2. Dynamic ExerciseDB API fallback
     if (!gifUrl) {
       gifUrl = await searchExerciseDbApi(exerciseName);
+      source = "exercisedb_api";
     }
 
-    return new Response(JSON.stringify({ gifUrl }), {
+    // 3. Wger.de fallback
+    if (!gifUrl) {
+      gifUrl = await fetchFromWger(exerciseName);
+      source = "wger";
+    }
+
+    console.log(`[exercise-gif-lookup] Result: ${gifUrl ? source : "none"} for "${exerciseName}"`);
+
+    return new Response(JSON.stringify({ gifUrl, source }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
