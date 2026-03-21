@@ -153,7 +153,8 @@ export default function Progress() {
 
         {chartData.length >= 2 && (
           <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
-            <h3 className="font-display font-bold text-foreground mb-4">{t.weightOverTime}</h3>
+            <h3 className="font-display font-bold text-foreground mb-1">{t.weightOverTime}</h3>
+            <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeightChartSub}</p>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
