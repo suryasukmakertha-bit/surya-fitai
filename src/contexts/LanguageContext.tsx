@@ -1093,7 +1093,7 @@ const translations = {
     coachWeightChartSub: "定期记录您的体重，以便Surya教练跟踪您的真实进度。",
     coachCheckInSub: "您的打卡数据有助于Surya教练随时间调整您的计划。",
     coachHistorySub: "由Surya教练记录的您的进度之旅。",
-    whatsappCtaCoach: "💬 获得Coach Surya的一对一指导",
+    whatsappCtaCoach: "获得Coach Surya的一对一指导",
   },
 };
 
