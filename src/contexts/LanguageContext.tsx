@@ -365,7 +365,7 @@ const translations = {
     coachWeightChartSub: "Log your weight regularly so Coach Surya can track your real progress.",
     coachCheckInSub: "Your check-in data helps Coach Surya calibrate your plan over time.",
     coachHistorySub: "Your progress journey tracked by Coach Surya.",
-    whatsappCtaCoach: "💬 Get 1-on-1 Coaching from Coach Surya",
+    whatsappCtaCoach: "Get 1-on-1 Coaching from Coach Surya",
   },
   id: {
     // Common
