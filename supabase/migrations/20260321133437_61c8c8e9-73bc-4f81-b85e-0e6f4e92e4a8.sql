@@ -1,0 +1,1 @@
+DELETE FROM exercise_gif_cache WHERE exercise_name_normalized IN ('wall sit', 'wall sit exercise');
