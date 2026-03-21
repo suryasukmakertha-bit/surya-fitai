@@ -326,7 +326,7 @@ async function fetchFromWger(exerciseName: string): Promise<string | null> {
 
 // Static images for exercises not available in any external DB
 const STATIC_IMAGE_MAP: Record<string, string> = {
-  'wall sit': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Wall_squat.jpg/440px-Wall_squat.jpg',
+  'wall sit': 'https://hrxqvheudexwswmlqbgw.supabase.co/storage/v1/object/public/exercise-images/wall-sit.jpg',
   'hollow hold': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Hollow_hold.jpg/440px-Hollow_hold.jpg',
 };
 
