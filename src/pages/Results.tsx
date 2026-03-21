@@ -1185,7 +1185,8 @@ export default function Results() {
               )}
 
               <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-4">{t.logCheckIn}</h3>
+                <h3 className="font-display font-bold text-foreground mb-1">{t.logCheckIn}</h3>
+                <p className="text-muted-foreground text-xs mb-3">{(t as any).coachCheckInSub}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-2">
                     <Label>{t.date}</Label>
