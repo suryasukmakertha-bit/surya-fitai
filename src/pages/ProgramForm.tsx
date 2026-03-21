@@ -532,6 +532,9 @@ export default function ProgramForm() {
           <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
             {loading ? <><Loader2 className="w-5 h-5 animate-spin mr-2" /> {t.generating}</> : t.generatePlan}
           </Button>
+          <p className="text-muted-foreground/60 text-xs text-center mt-2">
+            {(t as any).coachGenerateHelper}
+          </p>
         </form>
       </div>
     </div>
