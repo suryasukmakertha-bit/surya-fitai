@@ -1110,9 +1110,14 @@ export default function Results() {
 
               {/* Duration */}
               {plan.durationWeeks && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                  <Clock className="w-4 h-4 text-primary" />
-                  {(t as any).programDuration || "Program Duration"}: <span className="font-bold text-foreground">{plan.durationWeeks} {(t as any).weeksLabel || "weeks"}</span>
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Clock className="w-4 h-4 text-primary" />
+                    {(t as any).programDuration || "Program Duration"}: <span className="font-bold text-foreground">{plan.durationWeeks} {(t as any).weeksLabel || "weeks"}</span>
+                  </div>
+                  <p className="text-muted-foreground text-xs mt-1 mb-4">
+                    {(t as any).coachProgressMonitor}
+                  </p>
                 </div>
               )}
 
