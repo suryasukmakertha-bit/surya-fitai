@@ -798,14 +798,19 @@ export default function Results() {
         )}
 
         {plan.estimatedSessionTimeMinutes && (
-          <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
-            <Clock className="w-6 h-6 text-primary shrink-0" />
-            <p className="text-foreground font-semibold text-sm md:text-base">
-              ✅ {(t as any).sessionTimeBanner
-                ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
-                : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
+          <>
+            <p className="text-muted-foreground text-xs mb-1.5 px-1">
+              {(t as any).coachCalibration}
             </p>
-          </div>
+            <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
+              <Clock className="w-6 h-6 text-primary shrink-0" />
+              <p className="text-foreground font-semibold text-sm md:text-base">
+                ✅ {(t as any).sessionTimeBanner
+                  ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
+                  : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
+              </p>
+            </div>
+          </>
         )}
 
         {/* Program Overview */}
