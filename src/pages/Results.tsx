@@ -1106,6 +1106,7 @@ export default function Results() {
                   </h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.progressionRules}</p>
                 </div>
+                </>
               )}
 
               {/* Duration */}
