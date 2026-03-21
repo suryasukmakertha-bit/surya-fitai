@@ -480,6 +480,9 @@ export default function ProgramForm() {
               <h3 className="font-display font-bold text-foreground text-sm uppercase tracking-wider text-primary flex items-center gap-2">
                 <Activity className="w-4 h-4" /> {t.liveMetricsTitle}
               </h3>
+              <p className="text-muted-foreground text-xs mb-3">
+                {(t as any).coachMetricsSubtitle}
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-secondary/60 rounded-lg p-3 text-center">
                   <p className="text-[11px] text-muted-foreground">BMI</p>
