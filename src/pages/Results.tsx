@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -775,16 +775,19 @@ export default function Results() {
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
             {t.yourPersonalized} <span className="text-gradient">{t.aiPlan}</span>
           </h1>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-primary text-xs font-semibold">
-              {(t as any).coachPreparedBy}
-            </span>
-            <span className="text-muted-foreground/60 text-xs">•</span>
-            <span className="text-muted-foreground text-xs">
-              {(t as any).coachCredential}
-            </span>
+          <div className="flex items-center gap-2 mt-3 mb-3">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
+              <UserCheck className="w-4 h-4 text-primary shrink-0" />
+              <span className="text-primary text-sm font-semibold">
+                {(t as any).coachPreparedBy}
+              </span>
+              <span className="text-muted-foreground/60 text-sm">•</span>
+              <span className="text-muted-foreground text-sm">
+                {(t as any).coachCredential}
+              </span>
+            </div>
           </div>
-          <p className="text-muted-foreground">{subtitle}</p>
+          <p className="text-muted-foreground text-sm leading-relaxed">{subtitle}</p>
         </div>
 
         {/* Trial Banner — only show when trial is active, not when trialNotStarted */}
@@ -1097,12 +1100,13 @@ export default function Results() {
               {/* Progression Rules */}
               {plan.progressionRules && (
                 <>
-                <p className="text-muted-foreground text-xs mb-1.5 px-1">
-                  {(t as any).coachProgressionLabel}
+                <p className="text-muted-foreground text-xs mb-1.5 px-1 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-primary/80 font-medium">{(t as any).coachProgressionLabel}</span>
                 </p>
                 <div className="card-gradient rounded-lg p-5 border border-primary/30">
                   <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-primary" /> {(t as any).progressionRulesLabel || "Progression Rules"}
+                    <TrendingUp className="w-4 h-4 text-primary" /> {(t as any).progressionRulesLabel || "Progression Rules"}
                   </h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.progressionRules}</p>
                 </div>

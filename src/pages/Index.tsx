@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
@@ -10,6 +10,31 @@ import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingCont
 
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
+
+function ScrollProgressBar() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(docHeight > 0 ? Math.min(1, scrollTop / docHeight) : 0);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  if (progress <= 0.01) return null;
+
+  return (
+    <div className="fixed right-0 top-0 bottom-0 w-1 z-50 pointer-events-none">
+      <div
+        className="w-full bg-primary/80 rounded-b-full transition-all duration-150"
+        style={{ height: `${progress * 100}%` }}
+      />
+    </div>
+  );
+}
 
 export default function Index() {
   const navigate = useNavigate();
@@ -51,8 +76,9 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
       <AppHeader />
+      <ScrollProgressBar />
 
 
       {/* Hero */}
@@ -66,9 +92,9 @@ export default function Index() {
             <span className="text-xs text-primary font-medium tracking-wide uppercase">{t.aiPowered}</span>
           </div>
           <div className="flex items-center justify-center gap-2 flex-wrap mt-2 mb-4">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ backgroundColor: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
-              {(t as any).coachCertified}
+            <span className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              <span className="text-xs text-primary font-medium tracking-wide uppercase">{(t as any).coachCertified}</span>
             </span>
           </div>
           <h1 className="text-5xl md:text-7xl font-display font-black text-foreground leading-tight mb-6">

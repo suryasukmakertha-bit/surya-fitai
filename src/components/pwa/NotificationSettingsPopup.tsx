@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X } from "lucide-react";
+import { X, Bell, BellOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -158,7 +158,10 @@ export default function NotificationSettingsPopup({ open, onOpenChange }: Props)
         : t.deniedDesktop;
     content = (
       <div className="space-y-3">
-        <h3 className="text-lg font-bold text-foreground">{t.deniedTitle}</h3>
+        <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+          <BellOff className="w-5 h-5 text-destructive" />
+          {lang === "id" ? "Notifikasi Nonaktif" : lang === "zh" ? "通知已关闭" : "Notifications are OFF"}
+        </h3>
         <p className="text-sm text-muted-foreground">{t.deniedDesc}</p>
         <div className="bg-secondary/40 rounded-lg p-3">
           <p className="text-sm text-foreground">{steps}</p>
@@ -172,8 +175,8 @@ export default function NotificationSettingsPopup({ open, onOpenChange }: Props)
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => onOpenChange(false)} />
       <div className="absolute bottom-0 left-0 right-0 max-h-[80vh] bg-card border-t border-border rounded-t-2xl shadow-2xl animate-in slide-in-from-bottom duration-300 overflow-y-auto">
         <div className="px-5 py-4 flex items-center justify-between border-b border-border">
-          <span className="font-display font-bold text-foreground text-lg">
-            🔔{" "}
+          <span className="font-display font-bold text-foreground text-lg flex items-center gap-2">
+            <Bell className="w-5 h-5 text-primary" />
             {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
           </span>
           <button
