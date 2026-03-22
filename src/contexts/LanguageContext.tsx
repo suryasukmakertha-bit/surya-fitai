@@ -715,7 +715,7 @@ const translations = {
     coachFormIntro: "Coach Surya membutuhkan detail ini untuk membangun program sempurna untukmu. Semakin akurat informasimu, semakin presisi program yang akan disesuaikan dengan tubuh dan gaya hidupmu.",
     coachMetricsSubtitle: "Coach Surya akan menggunakan angka-angka ini untuk mengkalibrasi target latihan dan nutrisi yang tepat untukmu.",
     coachGenerateHelper: "AI Coach Surya akan menganalisis semua datamu dan membangun program yang dikalibrasi khusus untukmu",
-    coachPreparedBy: "🏋️ Disiapkan oleh Coach Surya",
+    coachPreparedBy: "Disiapkan oleh Coach Surya",
     coachCredential: "Pelatih Bersertifikat & Ahli Gizi",
     coachCardTitle: "Coach Surya",
     coachCardSubtitle: "Pelatih Pribadi & Ahli Gizi Olahraga",
