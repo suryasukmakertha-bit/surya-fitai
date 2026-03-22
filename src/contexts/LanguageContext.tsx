@@ -358,7 +358,7 @@ const translations = {
     coachCalibration: "⚙️ Coach's Program Calibration",
     coachWeeklySplitSub: "Coach Surya's recommended training structure for your goals and schedule",
     coachWorkoutActivitySub: "Coach Surya is tracking your consistency. Every session counts.",
-    coachProgressionLabel: "🏋️ Coach Surya's Progressive Overload Protocol",
+    coachProgressionLabel: "Coach Surya's Progressive Overload Protocol",
     coachCompletedDay: "💪 Great work! Coach Surya is proud of your consistency.",
     coachRestTip: "— Coach Surya recommends: hydrate well and prioritize sleep tonight.",
     coachProgressMonitor: "Coach Surya is monitoring your progress throughout this program.",
