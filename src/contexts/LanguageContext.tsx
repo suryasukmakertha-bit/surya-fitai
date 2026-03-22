@@ -381,9 +381,9 @@ const translations = {
 
     // Hero
     aiPowered: "Latihan Berbasis AI",
-    heroTitle1: "Pelatih Pribadi",
-    heroTitle2: "AI Kamu",
-    heroDesc: "Dapatkan rencana latihan, panduan nutrisi, dan daftar belanja yang sepenuhnya dipersonalisasi — dibuat dalam hitungan detik oleh AI, disesuaikan dengan tubuh dan tujuanmu.",
+    heroTitle1: "Pelatih Personal",
+    heroTitle2: "Cerdas Anda",
+    heroDesc: "Dapatkan rencana latihan, panduan nutrisi, dan daftar belanja yang sepenuhnya dipersonalisasi — dibuat dalam hitungan detik oleh Coach Surya, disesuaikan dengan tubuh dan tujuanmu.",
     startProgram: "Mulai Program",
 
     // Features
