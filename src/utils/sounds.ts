@@ -49,19 +49,6 @@ export function playGeneratePlanSuccess() {
       o.connect(g).connect(ctx.destination); o.start(t + 0.42); o.stop(t + 1.15);
     });
 
-    setTimeout(() => {
-      try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance("Plan's ready. Let's crush it!");
-        u.rate = 1.15; u.pitch = 1.3; u.volume = 1.0;
-        const vs = speechSynthesis.getVoices();
-        const voice = vs.find(v => v.lang.startsWith('en') && v.name.includes('Male'))
-          || vs.find(v => v.lang.startsWith('en'))
-          || vs[0];
-        if (voice) u.voice = voice;
-        speechSynthesis.speak(u);
-      } catch(e) {}
-    }, 1000);
   } catch(e) {}
 }
 
