@@ -833,8 +833,8 @@ const translations = {
     foodStylePremium: "优质/全食物为主",
 
     // Results
-    yourPersonalized: "你的个性化",
-    aiPlan: "AI计划",
+    yourPersonalized: "您的专属",
+    aiPlan: "训练方案",
     heyUser: "你好 {name}！这是你的定制 {type} 计划。",
     hereCustom: "这是你的定制 {type} 计划。",
     dailyCalories: "每日热量",
