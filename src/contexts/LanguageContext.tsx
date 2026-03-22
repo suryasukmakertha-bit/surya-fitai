@@ -343,7 +343,7 @@ const translations = {
     draftRestored: "Recovered your last generated plan.",
 
     // Coach Surya persona
-    coachCertified: "🏆 Certified Personal Trainer",
+    coachCertified: "Certified Personal Trainer",
     coachExperience: "🌏 10+ Years • Global Clients",
     coachSubtitle: "Designed by Coach Surya — trusted by clients across Southeast Asia & beyond.",
     programsDescCoach: "Each program is personally designed by Coach Surya based on 10+ years of real client training. Select the one that matches your goal.",
