@@ -1071,7 +1071,7 @@ const translations = {
     draftRestored: "已恢复您上次生成的计划。",
 
     // Coach Surya persona
-    coachCertified: "🏆 认证私人教练",
+    coachCertified: "认证私人教练",
     coachExperience: "🌏 10年以上 • 全球客户",
     coachSubtitle: "由Surya教练设计 — 深受东南亚及全球客户信赖。",
     programsDescCoach: "每个计划均由Surya教练根据10年以上真实客户训练经验亲自设计。选择符合您目标的计划。",
