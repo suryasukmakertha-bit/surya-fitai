@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { playGeneratePlanSuccess } from "@/utils/sounds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -171,6 +172,7 @@ export default function ProgramForm() {
       // Generate a client ID for idempotent saves — do NOT auto-save
       const clientGeneratedId = crypto.randomUUID();
 
+      playGeneratePlanSuccess();
       navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle, startDate: startDateStr }, programType: type, clientGeneratedId } });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

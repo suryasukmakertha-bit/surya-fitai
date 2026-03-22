@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowLeft, Loader2, Dumbbell } from "lucide-react";
+import { playLoginSuccess } from "@/utils/sounds";
 import AppHeader from "@/components/AppHeader";
 
 export default function Auth() {
@@ -29,6 +30,7 @@ export default function Auth() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
+        playLoginSuccess();
         toast({ title: t.welcomeBackToast });
         navigate(redirectTo);
       } else {
