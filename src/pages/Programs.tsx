@@ -2,7 +2,7 @@ import ProgramCard from "@/components/ProgramCard";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 
 export default function Programs() {
