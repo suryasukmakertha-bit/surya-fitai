@@ -745,9 +745,9 @@ const translations = {
 
     // Hero
     aiPowered: "AI驱动训练",
-    heroTitle1: "你的私人",
-    heroTitle2: "AI教练",
-    heroDesc: "获取完全个性化的锻炼计划、营养指南和采购清单——由AI在几秒内生成，根据你的身体和目标量身定制。",
+    heroTitle1: "您的专属",
+    heroTitle2: "智能教练",
+    heroDesc: "获取完全个性化的锻炼计划、营养指南和采购清单——由Coach Surya在几秒内生成，根据你的身体和目标量身定制。",
     startProgram: "开始我的计划",
 
     // Features

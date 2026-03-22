@@ -86,7 +86,7 @@ export default function Index() {
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
-          <img src={logo} alt="Surya-FitAi" className="h-16 md:h-20 mx-auto mb-6 object-contain" />
+          <img src={logo} alt="Surya-FitAi" className="h-24 md:h-28 mx-auto mb-6 object-contain" />
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
             <Brain className="w-4 h-4 text-primary" />
             <span className="text-xs text-primary font-medium tracking-wide uppercase">{t.aiPowered}</span>
