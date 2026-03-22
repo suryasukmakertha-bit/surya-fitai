@@ -710,7 +710,7 @@ const translations = {
     coachCertified: "Pelatih Pribadi Bersertifikat",
     coachExperience: "🌏 10+ Tahun • Klien Global",
     coachSubtitle: "Dirancang oleh Coach Surya — dipercaya klien di Asia Tenggara & seluruh dunia.",
-    programsDescCoach: "Setiap program dirancang langsung oleh Coach Surya berdasarkan 10+ tahun pengalaman melatih klien nyata. Pilih yang sesuai dengan tujuanmu.",
+    programsDescCoach: "Setiap program dirancang khusus oleh Coach Surya, berdasarkan keahlian mendalam dalam fitness coaching dan perencanaan nutrisi. Pilih yang sesuai dengan tujuanmu.",
     coachProgramPill: "Coach Surya • Pelatih Pribadi Bersertifikat",
     coachFormIntro: "Coach Surya membutuhkan detail ini untuk membangun program sempurna untukmu. Semakin akurat informasimu, semakin presisi program yang akan disesuaikan dengan tubuh dan gaya hidupmu.",
     coachMetricsSubtitle: "Coach Surya akan menggunakan angka-angka ini untuk mengkalibrasi target latihan dan nutrisi yang tepat untukmu.",
