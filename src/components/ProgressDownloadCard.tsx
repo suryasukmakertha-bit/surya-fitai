@@ -74,7 +74,7 @@ export default function ProgressDownloadCard({
         <img src="${logoSrc}" style="height:40px;width:auto;object-fit:contain;margin:0 auto 8px;display:block;" crossorigin="anonymous" />
         <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:0.5px;">Surya-FitAi</div>
         <div style="font-size:13px;color:${GREY};margin-top:4px;">${t.progressReport}</div>
-        <div style="display:inline-block;background:${GREEN}22;border:1px solid ${GREEN}44;border-radius:20px;padding:4px 12px;margin-top:8px;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;background:${GREEN}22;border:1px solid ${GREEN}44;border-radius:20px;padding:6px 16px;margin-top:8px;">
           <span style="font-size:11px;color:${GREEN};font-weight:600;line-height:1;">Prepared by Coach Surya</span>
         </div>
       </div>
