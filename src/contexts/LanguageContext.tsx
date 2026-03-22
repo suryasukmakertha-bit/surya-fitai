@@ -351,7 +351,7 @@ const translations = {
     coachFormIntro: "Coach Surya needs these details to build your perfect plan. The more accurate your information, the more precisely your program will be calibrated to your body and lifestyle.",
     coachMetricsSubtitle: "Coach Surya will use these numbers to calibrate your exact training and nutrition targets.",
     coachGenerateHelper: "Coach Surya's AI will analyze all your data and build a plan calibrated specifically for you",
-    coachPreparedBy: "🏋️ Prepared by Coach Surya",
+    coachPreparedBy: "Prepared by Coach Surya",
     coachCredential: "Certified PT & Sports Nutritionist",
     coachCardTitle: "Coach Surya",
     coachCardSubtitle: "Personal Trainer & Sports Nutritionist",
