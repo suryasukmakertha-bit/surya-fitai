@@ -44,6 +44,13 @@ function mapExerciseName(name: string): string[] {
   return [...new Set(variants)]
 }
 
+const STATIC_GIF_MAP: Record<string, string> = {
+  'wall sit': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/wall-sit.jpg',
+  'reverse lunge': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/reverse-lunge.jpg',
+  'face pull': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/face-pull.jpg',
+  'face pulls': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/face-pull.jpg',
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
@@ -55,14 +62,25 @@ serve(async (req) => {
       })
     }
 
+    const normalizedName = normalizeExerciseName(exercise_name)
+    console.log(`[get-exercise-gif] Searching: "${exercise_name}", normalized: "${normalizedName}"`)
+
+    // 1. Check STATIC_GIF_MAP first
+    const staticUrl = STATIC_GIF_MAP[normalizedName]
+    if (staticUrl) {
+      console.log(`[get-exercise-gif] Static map hit for "${normalizedName}"`)
+      return new Response(
+        JSON.stringify({ gif_url: staticUrl, source: 'static' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
-    const normalizedName = normalizeExerciseName(exercise_name)
-    console.log(`[get-exercise-gif] Searching: "${exercise_name}", normalized: "${normalizedName}"`)
 
-    // Check cache first
+    // 2. Check cache
     const { data: cached } = await supabase
       .from('exercise_gif_cache')
       .select('*')
