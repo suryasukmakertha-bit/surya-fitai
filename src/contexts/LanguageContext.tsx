@@ -18,8 +18,8 @@ const translations = {
     // Hero
     aiPowered: "AI-Powered Training",
     heroTitle1: "Your Personal",
-    heroTitle2: "AI Trainer",
-    heroDesc: "Get a fully personalized workout plan, nutrition guide, and grocery list — generated in seconds by AI, tailored to your body and goals.",
+    heroTitle2: "Smart Coach",
+    heroDesc: "Get a fully personalized workout plan, nutrition guide, and grocery list — generated in seconds by Coach Surya, tailored to your body and goals.",
     startProgram: "Start My Program",
 
     // Features
@@ -381,9 +381,9 @@ const translations = {
 
     // Hero
     aiPowered: "Latihan Berbasis AI",
-    heroTitle1: "Pelatih Pribadi",
-    heroTitle2: "AI Kamu",
-    heroDesc: "Dapatkan rencana latihan, panduan nutrisi, dan daftar belanja yang sepenuhnya dipersonalisasi — dibuat dalam hitungan detik oleh AI, disesuaikan dengan tubuh dan tujuanmu.",
+    heroTitle1: "Pelatih Personal",
+    heroTitle2: "Cerdas Anda",
+    heroDesc: "Dapatkan rencana latihan, panduan nutrisi, dan daftar belanja yang sepenuhnya dipersonalisasi — dibuat dalam hitungan detik oleh Coach Surya, disesuaikan dengan tubuh dan tujuanmu.",
     startProgram: "Mulai Program",
 
     // Features
@@ -745,9 +745,9 @@ const translations = {
 
     // Hero
     aiPowered: "AI驱动训练",
-    heroTitle1: "你的私人",
-    heroTitle2: "AI教练",
-    heroDesc: "获取完全个性化的锻炼计划、营养指南和采购清单——由AI在几秒内生成，根据你的身体和目标量身定制。",
+    heroTitle1: "您的专属",
+    heroTitle2: "智能教练",
+    heroDesc: "获取完全个性化的锻炼计划、营养指南和采购清单——由Coach Surya在几秒内生成，根据你的身体和目标量身定制。",
     startProgram: "开始我的计划",
 
     // Features
