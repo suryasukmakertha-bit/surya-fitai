@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1095,7 +1095,7 @@ export default function Results() {
           {planId && user && (
             <TabsContent value="progress" className="space-y-6">
               <WorkoutProgressSummary planId={planId} />
-              <p className="text-muted-foreground text-xs mb-3 -mt-4">{(t as any).coachWorkoutActivitySub}</p>
+              <p className="text-xs mb-3 -mt-4 inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-md px-2.5 py-1.5 text-primary/80"><Activity className="w-3.5 h-3.5 text-primary shrink-0" />{(t as any).coachWorkoutActivitySub}</p>
 
               {/* Progression Rules */}
               {plan.progressionRules && (
@@ -1192,7 +1192,7 @@ export default function Results() {
 
               <div className="card-gradient rounded-lg p-5 border border-border/50">
                 <h3 className="font-display font-bold text-foreground mb-1">{t.logCheckIn}</h3>
-                <p className="text-muted-foreground text-xs mb-3">{(t as any).coachCheckInSub}</p>
+                <p className="text-xs mb-3 inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-md px-2.5 py-1.5 text-primary/80"><SlidersHorizontal className="w-3.5 h-3.5 text-primary shrink-0" />{(t as any).coachCheckInSub}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-2">
                     <Label>{t.date}</Label>
