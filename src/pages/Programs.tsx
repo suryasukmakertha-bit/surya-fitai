@@ -2,7 +2,7 @@ import ProgramCard from "@/components/ProgramCard";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 
 export default function Programs() {
@@ -30,6 +30,7 @@ export default function Programs() {
           <div className="flex items-center justify-center gap-2 mb-3 flex-wrap">
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
               style={{ backgroundColor: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
+              <ShieldCheck className="w-3.5 h-3.5" />
               {(t as any).coachProgramPill}
             </span>
           </div>
