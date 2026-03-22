@@ -66,9 +66,9 @@ export default function Index() {
             <span className="text-xs text-primary font-medium tracking-wide uppercase">{t.aiPowered}</span>
           </div>
           <div className="flex items-center justify-center gap-2 flex-wrap mt-2 mb-4">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ backgroundColor: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
-              {(t as any).coachCertified}
+            <span className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              <span className="text-xs text-primary font-medium tracking-wide uppercase">{(t as any).coachCertified}</span>
             </span>
           </div>
           <h1 className="text-5xl md:text-7xl font-display font-black text-foreground leading-tight mb-6">
