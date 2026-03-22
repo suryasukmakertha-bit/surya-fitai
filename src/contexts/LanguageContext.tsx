@@ -707,7 +707,7 @@ const translations = {
     draftRestored: "Rencana terakhir berhasil dipulihkan.",
 
     // Coach Surya persona
-    coachCertified: "🏆 Pelatih Pribadi Bersertifikat",
+    coachCertified: "Pelatih Pribadi Bersertifikat",
     coachExperience: "🌏 10+ Tahun • Klien Global",
     coachSubtitle: "Dirancang oleh Coach Surya — dipercaya klien di Asia Tenggara & seluruh dunia.",
     programsDescCoach: "Setiap program dirancang langsung oleh Coach Surya berdasarkan 10+ tahun pengalaman melatih klien nyata. Pilih yang sesuai dengan tujuanmu.",
