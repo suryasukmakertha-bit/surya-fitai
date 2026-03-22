@@ -346,7 +346,7 @@ const translations = {
     coachCertified: "Certified Personal Trainer",
     coachExperience: "🌏 10+ Years • Global Clients",
     coachSubtitle: "Designed by Coach Surya — trusted by clients across Southeast Asia & beyond.",
-    programsDescCoach: "Each program is personally designed by Coach Surya based on 10+ years of real client training. Select the one that matches your goal.",
+    programsDescCoach: "Each program is personally designed by Coach Surya, built on deep expertise in fitness coaching and nutrition planning. Select the one that matches your goal.",
     coachProgramPill: "Coach Surya • Certified Personal Trainer",
     coachFormIntro: "Coach Surya needs these details to build your perfect plan. The more accurate your information, the more precisely your program will be calibrated to your body and lifestyle.",
     coachMetricsSubtitle: "Coach Surya will use these numbers to calibrate your exact training and nutrition targets.",
