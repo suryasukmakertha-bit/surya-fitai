@@ -1214,7 +1214,7 @@ export default function Results() {
               {sorted.length > 0 && (
               <div className="space-y-2">
                   <h3 className="font-display font-bold text-foreground mb-1">{t.history}</h3>
-                  <p className="text-muted-foreground text-xs mb-3">{(t as any).coachHistorySub}</p>
+                  <p className="text-xs mb-3 inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-md px-2.5 py-1.5 text-primary/80"><Footprints className="w-3.5 h-3.5 text-primary shrink-0" />{(t as any).coachHistorySub}</p>
                   {[...sorted].reverse().map((c) => (
                     <div key={c.id} className="flex items-center justify-between bg-secondary/50 rounded-md px-4 py-3 text-sm">
                       <div className="flex items-center gap-4">
