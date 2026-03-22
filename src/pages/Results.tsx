@@ -339,6 +339,8 @@ export default function Results() {
   const [clientGeneratedId, setClientGeneratedId] = useState(stateClientGeneratedId || crypto.randomUUID());
   const [planId, setPlanId] = useState<string | undefined>(statePlanId);
 
+  const { access, checkSaveGuard, ensureSubscription, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail: subEmail, refetch: refetchSub, openPopup, savedPlansCount } = useSubscription();
+
   // Draft restore on mount
   useEffect(() => {
     if (!stateplan && !statePlanId) {
@@ -663,7 +665,6 @@ export default function Results() {
     );
   }
 
-  const { access, checkSaveGuard, ensureSubscription, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail: subEmail, refetch: refetchSub, openPopup, savedPlansCount } = useSubscription();
 
   const planLimitToastMsg = lang === "id" ? "Maksimal 3 plan tersimpan. Hapus 1 plan untuk menyimpan yang baru." : lang === "zh" ? "已达到最多3个计划。删除一个计划以保存新计划。" : "Maximum 3 plans reached. Delete a plan to save a new one.";
 
