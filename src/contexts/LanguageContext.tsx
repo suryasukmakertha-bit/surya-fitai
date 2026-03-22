@@ -1079,7 +1079,7 @@ const translations = {
     coachFormIntro: "Surya教练需要这些详细信息来为您制定完美计划。您的信息越准确，您的计划就会越精准地针对您的身体和生活方式进行调整。",
     coachMetricsSubtitle: "Surya教练将使用这些数字来精确校准您的训练和营养目标。",
     coachGenerateHelper: "Surya教练的AI将分析您的所有数据，为您专门制定精准计划",
-    coachPreparedBy: "🏋️ 由Surya教练准备",
+    coachPreparedBy: "由Surya教练准备",
     coachCredential: "认证私人教练及运动营养师",
     coachCardTitle: "Coach Surya",
     coachCardSubtitle: "私人教练及运动营养师",
