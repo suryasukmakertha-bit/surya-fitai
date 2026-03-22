@@ -339,6 +339,8 @@ export default function Results() {
   const [clientGeneratedId, setClientGeneratedId] = useState(stateClientGeneratedId || crypto.randomUUID());
   const [planId, setPlanId] = useState<string | undefined>(statePlanId);
 
+  const { access, checkSaveGuard, ensureSubscription, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail: subEmail, refetch: refetchSub, openPopup, savedPlansCount } = useSubscription();
+
   // Draft restore on mount
   useEffect(() => {
     if (!stateplan && !statePlanId) {
