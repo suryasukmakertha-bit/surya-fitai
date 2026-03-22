@@ -722,7 +722,7 @@ const translations = {
     coachCalibration: "⚙️ Kalibrasi Program Coach",
     coachWeeklySplitSub: "Struktur latihan yang direkomendasikan Coach Surya untuk tujuan dan jadwalmu",
     coachWorkoutActivitySub: "Coach Surya memantau konsistensimu. Setiap sesi itu berarti.",
-    coachProgressionLabel: "🏋️ Protokol Progressive Overload Coach Surya",
+    coachProgressionLabel: "Protokol Progressive Overload Coach Surya",
     coachCompletedDay: "💪 Kerja bagus! Coach Surya bangga dengan konsistensimu.",
     coachRestTip: "— Coach Surya menyarankan: hidrasi yang baik dan prioritaskan tidur malam ini.",
     coachProgressMonitor: "Coach Surya memantau progressmu sepanjang program ini.",
