@@ -18,8 +18,8 @@ const translations = {
     // Hero
     aiPowered: "AI-Powered Training",
     heroTitle1: "Your Personal",
-    heroTitle2: "AI Trainer",
-    heroDesc: "Get a fully personalized workout plan, nutrition guide, and grocery list — generated in seconds by AI, tailored to your body and goals.",
+    heroTitle2: "Smart Coach",
+    heroDesc: "Get a fully personalized workout plan, nutrition guide, and grocery list — generated in seconds by Coach Surya, tailored to your body and goals.",
     startProgram: "Start My Program",
 
     // Features
