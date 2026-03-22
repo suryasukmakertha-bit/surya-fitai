@@ -105,8 +105,8 @@ const translations = {
     foodStylePremium: "Premium / Whole Foods Focus",
 
     // Results
-    yourPersonalized: "Your Personalized",
-    aiPlan: "AI Plan",
+    yourPersonalized: "Your Custom",
+    aiPlan: "Training Blueprint",
     heyUser: "Hey {name}! Here's your custom {type} program.",
     hereCustom: "Here's your custom {type} program.",
     dailyCalories: "Daily Calories",
@@ -469,8 +469,8 @@ const translations = {
     foodStylePremium: "Premium / Fokus Whole Foods",
 
     // Results
-    yourPersonalized: "Rencana",
-    aiPlan: "AI Kamu",
+    yourPersonalized: "Program Latihan",
+    aiPlan: "Khusus Anda",
     heyUser: "Hai {name}! Ini program {type} khususmu.",
     hereCustom: "Ini program {type} khususmu.",
     dailyCalories: "Kalori Harian",
@@ -833,8 +833,8 @@ const translations = {
     foodStylePremium: "优质/全食物为主",
 
     // Results
-    yourPersonalized: "你的个性化",
-    aiPlan: "AI计划",
+    yourPersonalized: "您的专属",
+    aiPlan: "训练方案",
     heyUser: "你好 {name}！这是你的定制 {type} 计划。",
     hereCustom: "这是你的定制 {type} 计划。",
     dailyCalories: "每日热量",
