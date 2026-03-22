@@ -158,7 +158,10 @@ export default function NotificationSettingsPopup({ open, onOpenChange }: Props)
         : t.deniedDesktop;
     content = (
       <div className="space-y-3">
-        <h3 className="text-lg font-bold text-foreground">{t.deniedTitle}</h3>
+        <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+          <BellOff className="w-5 h-5 text-destructive" />
+          {lang === "id" ? "Notifikasi Nonaktif" : lang === "zh" ? "通知已关闭" : "Notifications are OFF"}
+        </h3>
         <p className="text-sm text-muted-foreground">{t.deniedDesc}</p>
         <div className="bg-secondary/40 rounded-lg p-3">
           <p className="text-sm text-foreground">{steps}</p>

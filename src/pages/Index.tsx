@@ -11,6 +11,31 @@ import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingCont
 import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
+function ScrollProgressBar() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(docHeight > 0 ? Math.min(1, scrollTop / docHeight) : 0);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  if (progress <= 0.01) return null;
+
+  return (
+    <div className="fixed right-0 top-0 bottom-0 w-1 z-50 pointer-events-none">
+      <div
+        className="w-full bg-primary/80 rounded-b-full transition-all duration-150"
+        style={{ height: `${progress * 100}%` }}
+      />
+    </div>
+  );
+}
+
 export default function Index() {
   const navigate = useNavigate();
   const { user } = useAuth();

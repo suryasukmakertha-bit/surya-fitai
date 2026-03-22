@@ -1100,12 +1100,13 @@ export default function Results() {
               {/* Progression Rules */}
               {plan.progressionRules && (
                 <>
-                <p className="text-muted-foreground text-xs mb-1.5 px-1">
-                  {(t as any).coachProgressionLabel}
+                <p className="text-muted-foreground text-xs mb-1.5 px-1 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-primary/80 font-medium">{(t as any).coachProgressionLabel}</span>
                 </p>
                 <div className="card-gradient rounded-lg p-5 border border-primary/30">
                   <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-primary" /> {(t as any).progressionRulesLabel || "Progression Rules"}
+                    <TrendingUp className="w-4 h-4 text-primary" /> {(t as any).progressionRulesLabel || "Progression Rules"}
                   </h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.progressionRules}</p>
                 </div>
