@@ -145,6 +145,16 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
       setCompletionState((prev) => ({ ...prev, [key]: previousState }));
       console.error("Toggle error:", error);
       toast({ title: t.failedToSave, variant: "destructive" });
+    } else if (newState) {
+      // Check if all exercises for this day are now complete
+      const dayPlan = workoutPlan?.find((d) => d.day === dayLabel);
+      if (dayPlan && dayPlan.exercises.length > 0) {
+        const updatedState = { ...completionState, [key]: newState };
+        const allDone = dayPlan.exercises.every(
+          (ex) => updatedState[buildKey(dayLabel, ex.name)] === true
+        );
+        if (allDone) playWorkoutComplete();
+      }
     }
   };
 
