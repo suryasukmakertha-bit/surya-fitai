@@ -105,8 +105,8 @@ const translations = {
     foodStylePremium: "Premium / Whole Foods Focus",
 
     // Results
-    yourPersonalized: "Your Personalized",
-    aiPlan: "AI Plan",
+    yourPersonalized: "Your Custom",
+    aiPlan: "Training Blueprint",
     heyUser: "Hey {name}! Here's your custom {type} program.",
     hereCustom: "Here's your custom {type} program.",
     dailyCalories: "Daily Calories",
