@@ -30,6 +30,7 @@ export default function Auth() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
+        playLoginSuccess();
         toast({ title: t.welcomeBackToast });
         navigate(redirectTo);
       } else {
