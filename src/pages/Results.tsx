@@ -775,16 +775,19 @@ export default function Results() {
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
             {t.yourPersonalized} <span className="text-gradient">{t.aiPlan}</span>
           </h1>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-primary text-xs font-semibold">
-              {(t as any).coachPreparedBy}
-            </span>
-            <span className="text-muted-foreground/60 text-xs">•</span>
-            <span className="text-muted-foreground text-xs">
-              {(t as any).coachCredential}
-            </span>
+          <div className="flex items-center gap-2 mt-3 mb-3">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
+              <UserCheck className="w-4 h-4 text-primary shrink-0" />
+              <span className="text-primary text-sm font-semibold">
+                {(t as any).coachPreparedBy}
+              </span>
+              <span className="text-muted-foreground/60 text-sm">•</span>
+              <span className="text-muted-foreground text-sm">
+                {(t as any).coachCredential}
+              </span>
+            </div>
           </div>
-          <p className="text-muted-foreground">{subtitle}</p>
+          <p className="text-muted-foreground text-sm leading-relaxed">{subtitle}</p>
         </div>
 
         {/* Trial Banner — only show when trial is active, not when trialNotStarted */}
