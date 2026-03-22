@@ -1086,7 +1086,7 @@ const translations = {
     coachCalibration: "⚙️ 教练程序校准",
     coachWeeklySplitSub: "Surya教练根据您的目标和时间表推荐的训练结构",
     coachWorkoutActivitySub: "Surya教练正在追踪您的坚持程度。每次训练都很重要。",
-    coachProgressionLabel: "🏋️ Surya教练的渐进超负荷方案",
+    coachProgressionLabel: "Surya教练的渐进超负荷方案",
     coachCompletedDay: "💪 干得好！Surya教练为您的坚持感到骄傲。",
     coachRestTip: "— Surya教练建议：今晚好好补水并优先保证睡眠。",
     coachProgressMonitor: "Surya教练全程监督您的进度。",
