@@ -1165,7 +1165,7 @@ export default function Results() {
               {chartData.length >= 2 ? (
                 <div className="card-gradient rounded-lg p-5 border border-border/50">
                   <h3 className="font-display font-bold text-foreground mb-1">{t.weightOverTime}</h3>
-                  <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeightChartSub}</p>
+                  <p className="text-xs mb-3 inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-md px-2.5 py-1.5 text-primary/80"><Activity className="w-3.5 h-3.5 text-primary shrink-0" />{(t as any).coachWeightChartSub}</p>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={chartData}>
