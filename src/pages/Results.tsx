@@ -1120,7 +1120,8 @@ export default function Results() {
                     <Clock className="w-4 h-4 text-primary" />
                     {(t as any).programDuration || "Program Duration"}: <span className="font-bold text-foreground">{plan.durationWeeks} {(t as any).weeksLabel || "weeks"}</span>
                   </div>
-                  <p className="text-muted-foreground text-xs mt-1 mb-4">
+                  <p className="text-xs mt-1 mb-4 inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-md px-2.5 py-1.5 text-primary/80">
+                    <Eye className="w-3.5 h-3.5 text-primary shrink-0" />
                     {(t as any).coachProgressMonitor}
                   </p>
                 </div>
