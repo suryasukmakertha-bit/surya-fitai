@@ -105,7 +105,7 @@ export default function ProgressDownloadCard({
 
     // Dark overlay
     const overlay = document.createElement("div");
-    overlay.style.cssText = "position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);border-radius:16px;";
+    overlay.style.cssText = "position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.80);border-radius:16px;";
     el.appendChild(overlay);
 
     // Content on top of overlay
