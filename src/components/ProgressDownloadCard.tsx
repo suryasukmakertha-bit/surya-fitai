@@ -52,7 +52,7 @@ export default function ProgressDownloadCard({
     { label: t.calorieTargetLabel, value: `${calorieTarget} kcal` },
   ];
 
-  const BG_IMAGE = "https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/wall-sit.jpg";
+  const BG_IMAGE = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1080&q=80";
 
   const generateImage = async (): Promise<Blob> => {
     const GREEN = "#16a34a";
