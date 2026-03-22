@@ -187,7 +187,10 @@ export default function Progress() {
 
         <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
           <h3 className="font-display font-bold text-foreground mb-1">{t.logCheckIn}</h3>
-          <p className="text-muted-foreground text-xs mb-3">{(t as any).coachCheckInSub}</p>
+          <div className="flex items-start gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2 mb-3">
+            <SlidersHorizontal className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <p className="text-primary text-xs">{(t as any).coachCheckInSub}</p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div className="space-y-2">
               <Label>{t.date}</Label>
