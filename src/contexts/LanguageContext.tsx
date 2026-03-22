@@ -1075,7 +1075,7 @@ const translations = {
     coachExperience: "🌏 10年以上 • 全球客户",
     coachSubtitle: "由Surya教练设计 — 深受东南亚及全球客户信赖。",
     programsDescCoach: "每个计划均由Surya教练根据10年以上真实客户训练经验亲自设计。选择符合您目标的计划。",
-    coachProgramPill: "🏆 Surya教练 • 认证私人教练",
+    coachProgramPill: "Surya教练 • 认证私人教练",
     coachFormIntro: "Surya教练需要这些详细信息来为您制定完美计划。您的信息越准确，您的计划就会越精准地针对您的身体和生活方式进行调整。",
     coachMetricsSubtitle: "Surya教练将使用这些数字来精确校准您的训练和营养目标。",
     coachGenerateHelper: "Surya教练的AI将分析您的所有数据，为您专门制定精准计划",
