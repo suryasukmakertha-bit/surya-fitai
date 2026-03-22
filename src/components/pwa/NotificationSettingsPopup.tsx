@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X } from "lucide-react";
+import { X, Bell, BellOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
