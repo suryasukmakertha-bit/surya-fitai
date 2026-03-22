@@ -1095,7 +1095,7 @@ export default function Results() {
           {planId && user && (
             <TabsContent value="progress" className="space-y-6">
               <WorkoutProgressSummary planId={planId} />
-              <p className="text-muted-foreground text-xs mb-3 -mt-4">{(t as any).coachWorkoutActivitySub}</p>
+              <p className="text-xs mb-3 -mt-4 inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-md px-2.5 py-1.5 text-primary/80"><Activity className="w-3.5 h-3.5 text-primary shrink-0" />{(t as any).coachWorkoutActivitySub}</p>
 
               {/* Progression Rules */}
               {plan.progressionRules && (
