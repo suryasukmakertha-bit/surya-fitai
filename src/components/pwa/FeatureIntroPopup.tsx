@@ -64,7 +64,7 @@ const slides = {
   ],
   zh: [
     {
-      title: "你的 AI 私人教练",
+      title: "您的私人智能教练",
       desc: "几秒钟内生成完全个性化的训练计划。",
       type: "ai" as const,
     },
