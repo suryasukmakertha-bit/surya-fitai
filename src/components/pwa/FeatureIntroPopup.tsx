@@ -20,7 +20,7 @@ const langs: { code: Lang; flag: string }[] = [
 const slides = {
   en: [
     {
-      title: "Your AI Personal Trainer",
+      title: "Your Personal Smart Coach",
       desc: "Generate a fully personalized workout plan in seconds.",
       type: "ai" as const,
     },
@@ -42,7 +42,7 @@ const slides = {
   ],
   id: [
     {
-      title: "Pelatih AI Pribadi Anda",
+      title: "Pelatih Cerdas Anda",
       desc: "Buat program latihan personal dalam hitungan detik.",
       type: "ai" as const,
     },
@@ -64,7 +64,7 @@ const slides = {
   ],
   zh: [
     {
-      title: "你的 AI 私人教练",
+      title: "您的私人智能教练",
       desc: "几秒钟内生成完全个性化的训练计划。",
       type: "ai" as const,
     },
