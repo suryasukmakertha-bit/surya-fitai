@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTour } from "@/contexts/OnboardingTourContext";
 import { supabase } from "@/integrations/supabase/client";
 import InstallBanner from "./InstallBanner";
 import InstallModal from "./InstallModal";
@@ -20,6 +21,7 @@ export default function PWAManager() {
   const { canPrompt, isInstalled, isIOS, triggerInstall, isStandalone } = usePWAInstall();
   const { permission, isSupported, requestPermission } = usePushNotifications();
   const { user, loading: authLoading } = useAuth();
+  const { startTour, tourCompleted } = useTour();
 
   const [showModal, setShowModal] = useState(false);
   const [showIOSModal, setShowIOSModal] = useState(false);
@@ -122,11 +124,15 @@ export default function PWAManager() {
   const handleIntroDone = () => {
     setIntroActive(false);
     navigate("/programs");
+    // Start onboarding tour (scenario 1: from intro)
+    setTimeout(() => startTour("intro"), 600);
   };
 
   const handleIntroSkip = () => {
     setIntroActive(false);
     navigate("/");
+    // Start onboarding tour (scenario 2: from landing)
+    setTimeout(() => startTour("landing"), 600);
   };
 
   if (!introChecked) return null;

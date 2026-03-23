@@ -79,6 +79,7 @@ export default function AppHeader() {
             {/* Language dropdown */}
             <div className="relative" ref={langRef}>
               <button
+                data-tour="language-selector"
                 onClick={() => setLangOpen(!langOpen)}
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
@@ -142,7 +143,7 @@ export default function AppHeader() {
 
           {/* Mobile hamburger */}
           <div className="sm:hidden">
-            <button onClick={() => setDrawerOpen(true)} className="text-muted-foreground hover:text-foreground p-1">
+            <button data-tour="language-selector" onClick={() => setDrawerOpen(true)} className="text-muted-foreground hover:text-foreground p-1">
               <Menu className="w-5 h-5" />
             </button>
           </div>

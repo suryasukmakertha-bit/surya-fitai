@@ -190,7 +190,7 @@ export default function ProgramForm() {
           <p className="text-muted-foreground">{t.tellUs}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form data-tour="form-fields" onSubmit={handleSubmit} className="space-y-6">
           {/* Coach Intro Banner */}
           <div className="mb-5 px-4 py-3 rounded-2xl flex items-start gap-3"
             style={{ backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
@@ -531,7 +531,7 @@ export default function ProgramForm() {
             </div>
           )}
 
-          <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
+          <Button data-tour="generate-button" type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
             {loading ? <><Loader2 className="w-5 h-5 animate-spin mr-2" /> {t.generating}</> : t.generatePlan}
           </Button>
           <p className="text-muted-foreground/60 text-xs text-center mt-2">

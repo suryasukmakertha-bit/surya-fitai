@@ -760,6 +760,7 @@ export default function Results() {
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
             <Button
+              data-tour="save-button"
               onClick={handleSave}
               disabled={saving || saved || isSaveDisabled}
               variant={saved ? "secondary" : "default"}
@@ -871,12 +872,12 @@ export default function Results() {
 
         <Tabs defaultValue="workout" className="space-y-6">
           <TabsList className="bg-secondary w-full justify-start overflow-x-auto flex-nowrap">
-            <TabsTrigger value="workout" className="whitespace-nowrap">{t.workoutPlan}</TabsTrigger>
-            <TabsTrigger value="meals" className="whitespace-nowrap">{t.mealPlan}</TabsTrigger>
-            <TabsTrigger value="grocery" className="whitespace-nowrap">{t.groceryList}</TabsTrigger>
-            <TabsTrigger value="info" className="whitespace-nowrap">{t.infoSafety}</TabsTrigger>
+            <TabsTrigger data-tour="tab-workout" value="workout" className="whitespace-nowrap">{t.workoutPlan}</TabsTrigger>
+            <TabsTrigger data-tour="tab-meals" value="meals" className="whitespace-nowrap">{t.mealPlan}</TabsTrigger>
+            <TabsTrigger data-tour="tab-grocery" value="grocery" className="whitespace-nowrap">{t.groceryList}</TabsTrigger>
+            <TabsTrigger data-tour="tab-info" value="info" className="whitespace-nowrap">{t.infoSafety}</TabsTrigger>
             {planId && user && (
-              <TabsTrigger value="progress" className="whitespace-nowrap">{t.progressTab}</TabsTrigger>
+              <TabsTrigger data-tour="tab-progress" value="progress" className="whitespace-nowrap">{t.progressTab}</TabsTrigger>
             )}
           </TabsList>
 
@@ -1238,6 +1239,7 @@ export default function Results() {
         {/* WhatsApp CTA */}
         <div className="mt-10">
           <a
+            data-tour="whatsapp-cta"
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
