@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTour } from "@/contexts/OnboardingTourContext";
 import { supabase } from "@/integrations/supabase/client";
 import InstallBanner from "./InstallBanner";
 import InstallModal from "./InstallModal";
