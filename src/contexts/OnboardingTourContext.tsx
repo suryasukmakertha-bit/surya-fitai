@@ -49,9 +49,9 @@ export function OnboardingTourProvider({ children }: { children: ReactNode }) {
       });
   }, [user, authLoading]);
 
-  // Restore from sessionStorage
+  // Restore from localStorage
   useEffect(() => {
-    const stored = sessionStorage.getItem(TOUR_STATE_KEY);
+    const stored = localStorage.getItem(TOUR_STATE_KEY);
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -60,19 +60,19 @@ export function OnboardingTourProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Persist to sessionStorage
+  // Persist to localStorage
   useEffect(() => {
     if (tourState?.active) {
-      sessionStorage.setItem(TOUR_STATE_KEY, JSON.stringify(tourState));
+      localStorage.setItem(TOUR_STATE_KEY, JSON.stringify(tourState));
     } else {
-      sessionStorage.removeItem(TOUR_STATE_KEY);
+      localStorage.removeItem(TOUR_STATE_KEY);
     }
   }, [tourState]);
 
   const completeTour = useCallback(async () => {
     setTourState(null);
     setTourCompleted(true);
-    sessionStorage.removeItem(TOUR_STATE_KEY);
+    localStorage.removeItem(TOUR_STATE_KEY);
     if (user) {
       await supabase
         .from("onboarding_progress" as any)
