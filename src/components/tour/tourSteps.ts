@@ -1,6 +1,7 @@
 import type { Lang } from "@/contexts/LanguageContext";
 
 export type TourScenario = "intro" | "landing";
+export type AdvanceTrigger = "lang-change" | "click" | "click-explore" | "continue" | "finish";
 
 export interface TourStepDef {
   id: string;
@@ -8,8 +9,10 @@ export interface TourStepDef {
   pathPattern: string;
   pathExact?: boolean;
   optional?: boolean;
+  advanceOn: AdvanceTrigger;
   title: Record<Lang, string>;
   explanation: Record<Lang, string>;
+  subHint?: Record<Lang, string>;
 }
 
 const SHARED_STEPS: TourStepDef[] = [
@@ -17,6 +20,7 @@ const SHARED_STEPS: TourStepDef[] = [
     id: "select-program",
     target: "beginner-card",
     pathPattern: "/programs",
+    advanceOn: "click",
     title: {
       en: "Start with Beginner Program",
       id: "Mulai dengan Program Pemula",
@@ -32,6 +36,7 @@ const SHARED_STEPS: TourStepDef[] = [
     id: "fill-form",
     target: "form-fields",
     pathPattern: "/program/",
+    advanceOn: "continue",
     title: {
       en: "Tell Coach Surya About Yourself",
       id: "Ceritakan Tentang Diri Anda",
@@ -47,6 +52,7 @@ const SHARED_STEPS: TourStepDef[] = [
     id: "generate-plan",
     target: "generate-button",
     pathPattern: "/program/",
+    advanceOn: "click",
     title: {
       en: "Generate Your Plan",
       id: "Buat Program Anda",
@@ -62,6 +68,7 @@ const SHARED_STEPS: TourStepDef[] = [
     id: "save-plan",
     target: "save-button",
     pathPattern: "/results",
+    advanceOn: "click",
     title: {
       en: "Save Your Plan",
       id: "Simpan Program Anda",
@@ -77,6 +84,7 @@ const SHARED_STEPS: TourStepDef[] = [
     id: "workout-tab",
     target: "tab-workout",
     pathPattern: "/results",
+    advanceOn: "click-explore",
     title: {
       en: "Explore Your Workout Plan",
       id: "Jelajahi Program Latihan Anda",
@@ -87,11 +95,17 @@ const SHARED_STEPS: TourStepDef[] = [
       id: "Tap setiap hari untuk melihat latihan. Gunakan Pilih Minggu untuk navigasi antar minggu program.",
       zh: "点击每天查看您的锻炼内容。使用选择周在计划的各周之间导航。",
     },
+    subHint: {
+      en: "Try tapping Select Week to navigate weeks",
+      id: "Coba tap Pilih Minggu untuk navigasi minggu",
+      zh: "尝试点击选择周来导航各周",
+    },
   },
   {
     id: "meal-tab",
     target: "tab-meals",
     pathPattern: "/results",
+    advanceOn: "click-explore",
     title: {
       en: "Your Personalized Meal Plan",
       id: "Rencana Makan Personal Anda",
@@ -107,6 +121,7 @@ const SHARED_STEPS: TourStepDef[] = [
     id: "grocery-tab",
     target: "tab-grocery",
     pathPattern: "/results",
+    advanceOn: "click",
     title: {
       en: "Your Grocery List",
       id: "Daftar Belanja Anda",
@@ -122,6 +137,7 @@ const SHARED_STEPS: TourStepDef[] = [
     id: "info-tab",
     target: "tab-info",
     pathPattern: "/results",
+    advanceOn: "click",
     title: {
       en: "Important Safety Info",
       id: "Info & Keamanan Penting",
@@ -138,6 +154,7 @@ const SHARED_STEPS: TourStepDef[] = [
     target: "tab-progress",
     pathPattern: "/results",
     optional: true,
+    advanceOn: "click-explore",
     title: {
       en: "Track Your Progress",
       id: "Pantau Perkembangan Anda",
@@ -148,11 +165,17 @@ const SHARED_STEPS: TourStepDef[] = [
       id: "Catat berat badan dan check-in di sini. Coach Surya memantau konsistensi Anda dari waktu ke waktu.",
       zh: "在这里记录您的体重和打卡。Coach Surya会持续监测您的坚持情况。",
     },
+    subHint: {
+      en: "Scroll down to see all progress features",
+      id: "Scroll ke bawah untuk melihat semua fitur progress",
+      zh: "向下滚动查看所有进度功能",
+    },
   },
   {
     id: "whatsapp-cta",
     target: "whatsapp-cta",
     pathPattern: "/results",
+    advanceOn: "finish",
     title: {
       en: "Want Personal Coaching?",
       id: "Mau Pelatihan Personal?",
@@ -171,6 +194,7 @@ export const INTRO_TOUR_STEPS: TourStepDef[] = [
     id: "language-programs",
     target: "language-selector",
     pathPattern: "/programs",
+    advanceOn: "lang-change",
     title: {
       en: "Choose Your Language",
       id: "Pilih Bahasa Anda",
@@ -191,6 +215,7 @@ export const LANDING_TOUR_STEPS: TourStepDef[] = [
     target: "language-selector",
     pathPattern: "/",
     pathExact: true,
+    advanceOn: "lang-change",
     title: {
       en: "Choose Your Language",
       id: "Pilih Bahasa Anda",
@@ -207,6 +232,7 @@ export const LANDING_TOUR_STEPS: TourStepDef[] = [
     target: "start-program",
     pathPattern: "/",
     pathExact: true,
+    advanceOn: "click",
     title: {
       en: "Start Your Journey",
       id: "Mulai Perjalanan Anda",
@@ -222,7 +248,8 @@ export const LANDING_TOUR_STEPS: TourStepDef[] = [
 ];
 
 export const TOUR_UI = {
-  next: { en: "Next", id: "Lanjut", zh: "下一步" } as Record<Lang, string>,
   skip: { en: "Skip Tour", id: "Lewati Tur", zh: "跳过导览" } as Record<Lang, string>,
-  done: { en: "Done", id: "Selesai", zh: "完成" } as Record<Lang, string>,
+  done: { en: "Finish Tour", id: "Selesai", zh: "完成导览" } as Record<Lang, string>,
+  continueTour: { en: "Continue Tour →", id: "Lanjutkan Tur →", zh: "继续导览 →" } as Record<Lang, string>,
+  finishTour: { en: "Finish Tour", id: "Selesai Tur", zh: "完成导览" } as Record<Lang, string>,
 };
