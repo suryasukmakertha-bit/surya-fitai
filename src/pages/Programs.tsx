@@ -11,6 +11,19 @@ export default function Programs() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { t } = useLanguage();
+  const { startTour, tourCompleted } = useTour();
+
+  // Check for pending onboarding tour after sign-in
+  useEffect(() => {
+    if (loading || !user) return;
+    const pending = localStorage.getItem("onboarding_pending");
+    const scenario = localStorage.getItem("onboarding_scenario");
+    if (pending === "true" && scenario === "intro") {
+      localStorage.removeItem("onboarding_pending");
+      localStorage.removeItem("onboarding_scenario");
+      setTimeout(() => startTour("intro"), 600);
+    }
+  }, [user, loading, startTour]);
 
   if (loading) {
     return (
