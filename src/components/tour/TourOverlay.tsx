@@ -249,18 +249,6 @@ export default function TourOverlay() {
         }}
       />
 
-      {/* Skip Tour — top right */}
-      <button
-        onClick={skipTour}
-        className="fixed z-[10001] top-4 right-4 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors pointer-events-auto"
-        style={{
-          backgroundColor: "rgba(0,0,0,0.7)",
-          color: "#9ca3af",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        {TOUR_UI.skip[lang]}
-      </button>
 
       {/* Tooltip */}
       <div
