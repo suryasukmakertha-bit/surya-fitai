@@ -79,6 +79,7 @@ export default function AppHeader() {
             {/* Language dropdown */}
             <div className="relative" ref={langRef}>
               <button
+                data-tour="language-selector"
                 onClick={() => setLangOpen(!langOpen)}
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
