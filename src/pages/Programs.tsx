@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import ProgramCard from "@/components/ProgramCard";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTour } from "@/contexts/OnboardingTourContext";
 import { Loader2, ShieldCheck } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 
