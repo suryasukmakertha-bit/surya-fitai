@@ -30,8 +30,18 @@ export default function PWAManager() {
   const [introChecked, setIntroChecked] = useState(false);
 
   // Check if intro should show — based on backend saved plans count
+  // NEVER show intro if onboarding tour is pending or active
   useEffect(() => {
     if (authLoading) return;
+
+    const tourPending = localStorage.getItem("onboarding_pending") === "true";
+
+    // If tour is pending (user just signed in after tapping Start My First Plan), skip intro entirely
+    if (tourPending) {
+      setIntroActive(false);
+      setIntroChecked(true);
+      return;
+    }
 
     if (!user) {
       const seen = localStorage.getItem(INTRO_SEEN_KEY) === "true";
@@ -47,6 +57,13 @@ export default function PWAManager() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .then(({ count }) => {
+        // Re-check tour pending inside async callback too
+        const stillPending = localStorage.getItem("onboarding_pending") === "true";
+        if (stillPending) {
+          setIntroActive(false);
+          setIntroChecked(true);
+          return;
+        }
         if (count === 0 || count === null) {
           // Zero plans — force intro to show again for this account
           localStorage.removeItem(INTRO_SEEN_KEY);
