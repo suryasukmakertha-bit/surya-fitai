@@ -42,7 +42,7 @@ const slides = {
   ],
   id: [
     {
-      title: "Pelatih AI Pribadi Anda",
+      title: "Pelatih Cerdas Anda",
       desc: "Buat program latihan personal dalam hitungan detik.",
       type: "ai" as const,
     },
