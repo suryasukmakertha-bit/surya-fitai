@@ -294,6 +294,13 @@ export default function TourOverlay() {
               />
             ))}
           </div>
+          <button
+            onClick={skipTour}
+            className="mt-2 w-full text-center text-[12px] transition-colors pointer-events-auto"
+            style={{ color: "#5a5a6a" }}
+          >
+            {TOUR_UI.skip[lang]}
+          </button>
         </div>
       </div>
 
