@@ -143,7 +143,7 @@ export default function AppHeader() {
 
           {/* Mobile hamburger */}
           <div className="sm:hidden">
-            <button onClick={() => setDrawerOpen(true)} className="text-muted-foreground hover:text-foreground p-1">
+            <button data-tour="language-selector" onClick={() => setDrawerOpen(true)} className="text-muted-foreground hover:text-foreground p-1">
               <Menu className="w-5 h-5" />
             </button>
           </div>

@@ -105,7 +105,7 @@ export default function Index() {
             {t.heroDesc}
           </p>
           <div className="mb-8" />
-          <Button size="lg" onClick={handleStartProgram} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
+          <Button data-tour="start-program" size="lg" onClick={handleStartProgram} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
             {t.startProgram} <ChevronRight className="w-5 h-5 ml-1" />
           </Button>
 

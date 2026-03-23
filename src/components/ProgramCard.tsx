@@ -43,6 +43,7 @@ export default function ProgramCard({ onSelect }: { onSelect?: (id: string) => v
         return (
           <button
             key={program.id}
+            data-tour={program.id === "beginner" ? "beginner-card" : undefined}
             onClick={() => handleSelect(program.id)}
             className="card-gradient rounded-lg p-6 text-left border border-border/50 hover:neon-border transition-all duration-300 group"
             style={{ animationDelay: `${i * 0.1}s` }}
