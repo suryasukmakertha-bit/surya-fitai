@@ -760,6 +760,7 @@ export default function Results() {
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
             <Button
+              data-tour="save-button"
               onClick={handleSave}
               disabled={saving || saved || isSaveDisabled}
               variant={saved ? "secondary" : "default"}
