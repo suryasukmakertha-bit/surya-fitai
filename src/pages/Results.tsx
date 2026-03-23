@@ -872,12 +872,12 @@ export default function Results() {
 
         <Tabs defaultValue="workout" className="space-y-6">
           <TabsList className="bg-secondary w-full justify-start overflow-x-auto flex-nowrap">
-            <TabsTrigger value="workout" className="whitespace-nowrap">{t.workoutPlan}</TabsTrigger>
-            <TabsTrigger value="meals" className="whitespace-nowrap">{t.mealPlan}</TabsTrigger>
-            <TabsTrigger value="grocery" className="whitespace-nowrap">{t.groceryList}</TabsTrigger>
-            <TabsTrigger value="info" className="whitespace-nowrap">{t.infoSafety}</TabsTrigger>
+            <TabsTrigger data-tour="tab-workout" value="workout" className="whitespace-nowrap">{t.workoutPlan}</TabsTrigger>
+            <TabsTrigger data-tour="tab-meals" value="meals" className="whitespace-nowrap">{t.mealPlan}</TabsTrigger>
+            <TabsTrigger data-tour="tab-grocery" value="grocery" className="whitespace-nowrap">{t.groceryList}</TabsTrigger>
+            <TabsTrigger data-tour="tab-info" value="info" className="whitespace-nowrap">{t.infoSafety}</TabsTrigger>
             {planId && user && (
-              <TabsTrigger value="progress" className="whitespace-nowrap">{t.progressTab}</TabsTrigger>
+              <TabsTrigger data-tour="tab-progress" value="progress" className="whitespace-nowrap">{t.progressTab}</TabsTrigger>
             )}
           </TabsList>
 
