@@ -190,7 +190,7 @@ export default function ProgramForm() {
           <p className="text-muted-foreground">{t.tellUs}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form data-tour="form-fields" onSubmit={handleSubmit} className="space-y-6">
           {/* Coach Intro Banner */}
           <div className="mb-5 px-4 py-3 rounded-2xl flex items-start gap-3"
             style={{ backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
