@@ -20,7 +20,7 @@ const langs: { code: Lang; flag: string }[] = [
 const slides = {
   en: [
     {
-      title: "Your AI Personal Trainer",
+      title: "Your Personal Smart Coach",
       desc: "Generate a fully personalized workout plan in seconds.",
       type: "ai" as const,
     },
