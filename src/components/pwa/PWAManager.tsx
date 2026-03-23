@@ -21,6 +21,7 @@ export default function PWAManager() {
   const { canPrompt, isInstalled, isIOS, triggerInstall, isStandalone } = usePWAInstall();
   const { permission, isSupported, requestPermission } = usePushNotifications();
   const { user, loading: authLoading } = useAuth();
+  const { startTour, tourCompleted } = useTour();
 
   const [showModal, setShowModal] = useState(false);
   const [showIOSModal, setShowIOSModal] = useState(false);
