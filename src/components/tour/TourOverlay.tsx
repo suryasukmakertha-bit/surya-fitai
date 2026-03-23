@@ -26,69 +26,56 @@ function findVisibleTarget(target: string): HTMLElement | null {
   return null;
 }
 
-/** Calculate tooltip position: mobile = fixed bottom, desktop = smart positioning */
+/** Calculate tooltip position: always on OPPOSITE side of target element */
 function calcTooltipStyle(
   targetRect: DOMRect,
   isMobileView: boolean
 ): React.CSSProperties {
-  const tooltipWidth = isMobileView
-    ? undefined // full width via left/right
-    : Math.min(320, window.innerWidth - 24);
+  const midY = window.innerHeight * 0.5;
+  const targetInBottomHalf = targetRect.bottom > midY;
 
   if (isMobileView) {
-    // Fixed at bottom on mobile/tablet
+    // Mobile/tablet: full-width fixed, opposite side of target
+    if (targetInBottomHalf) {
+      return {
+        position: "fixed",
+        top: 80,
+        left: 16,
+        right: 16,
+        maxHeight: Math.max(100, targetRect.top - 80 - 24),
+        overflowY: "auto" as const,
+        zIndex: 10000,
+      };
+    }
     return {
       position: "fixed",
       bottom: 16,
       left: 16,
       right: 16,
-      maxHeight: 180,
+      maxHeight: Math.max(100, window.innerHeight - targetRect.bottom - 16 - 24),
       overflowY: "auto" as const,
       zIndex: 10000,
     };
   }
 
-  // Desktop: smart positioning
-  const gap = 16;
-  const spaceBelow = window.innerHeight - targetRect.bottom - gap;
-  const spaceAbove = targetRect.top - gap;
-  const spaceLeft = targetRect.left - gap;
-  const spaceRight = window.innerWidth - targetRect.right - gap;
-  const tw = tooltipWidth as number;
+  // Desktop: opposite side, max 380px, centered on target
+  const tw = Math.min(380, window.innerWidth - 24);
+  const gap = 24;
+  const centeredLeft = Math.max(12, Math.min(window.innerWidth - tw - 12, targetRect.left + targetRect.width / 2 - tw / 2));
 
-  // Priority: bottom → left → right → top
-  if (spaceBelow >= 160) {
+  if (targetInBottomHalf) {
     return {
       position: "fixed",
-      top: targetRect.bottom + gap,
-      left: Math.max(12, Math.min(window.innerWidth - tw - 12, targetRect.left + targetRect.width / 2 - tw / 2)),
+      top: 80,
+      left: centeredLeft,
       width: tw,
       zIndex: 10000,
     };
   }
-  if (spaceLeft >= tw + 20) {
-    return {
-      position: "fixed",
-      top: Math.max(12, targetRect.top + targetRect.height / 2 - 80),
-      left: targetRect.left - tw - gap,
-      width: tw,
-      zIndex: 10000,
-    };
-  }
-  if (spaceRight >= tw + 20) {
-    return {
-      position: "fixed",
-      top: Math.max(12, targetRect.top + targetRect.height / 2 - 80),
-      left: targetRect.right + gap,
-      width: tw,
-      zIndex: 10000,
-    };
-  }
-  // top
   return {
     position: "fixed",
-    bottom: window.innerHeight - targetRect.top + gap,
-    left: Math.max(12, Math.min(window.innerWidth - tw - 12, targetRect.left + targetRect.width / 2 - tw / 2)),
+    bottom: 16,
+    left: centeredLeft,
     width: tw,
     zIndex: 10000,
   };
