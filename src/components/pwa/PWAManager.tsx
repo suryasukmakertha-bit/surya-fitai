@@ -78,16 +78,18 @@ export default function PWAManager() {
       });
   }, [user, authLoading]);
 
-  // Track page visits for install modal trigger — delay if intro is active
+  // Track page visits for install modal trigger — delay if intro is active or tour not done
   useEffect(() => {
     if (introActive || !introChecked) return;
+    // Don't show install modal until tour is completed/skipped
+    if (tourCompleted !== true) return;
     const visits = parseInt(localStorage.getItem(PAGE_VISIT_KEY) || "0", 10) + 1;
     localStorage.setItem(PAGE_VISIT_KEY, visits.toString());
 
     if (visits >= 3 && !isInstalled && !isStandalone && !localStorage.getItem(MODAL_DISMISS_KEY)) {
       setTimeout(() => setShowModal(true), 1000);
     }
-  }, [isInstalled, isStandalone, introActive, introChecked]);
+  }, [isInstalled, isStandalone, introActive, introChecked, tourCompleted]);
 
   // Show notification prompt on every load when permission is still 'default'
   useEffect(() => {
@@ -169,7 +171,7 @@ export default function PWAManager() {
   return (
     <>
       {introActive && <FeatureIntroPopup onDone={handleIntroDone} onSkip={handleIntroSkip} forceOpen />}
-      {!introActive && !isInstalled && !isStandalone && (
+      {!introActive && !isInstalled && !isStandalone && tourCompleted === true && (
         <InstallBanner onInstallClick={handleInstallClick} />
       )}
       <InstallModal open={showModal} onOpenChange={handleModalClose} onInstall={handleInstall} />
