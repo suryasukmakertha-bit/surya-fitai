@@ -1239,6 +1239,7 @@ export default function Results() {
         {/* WhatsApp CTA */}
         <div className="mt-10">
           <a
+            data-tour="whatsapp-cta"
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"

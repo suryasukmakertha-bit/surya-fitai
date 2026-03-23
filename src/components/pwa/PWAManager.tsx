@@ -124,11 +124,15 @@ export default function PWAManager() {
   const handleIntroDone = () => {
     setIntroActive(false);
     navigate("/programs");
+    // Start onboarding tour (scenario 1: from intro)
+    setTimeout(() => startTour("intro"), 600);
   };
 
   const handleIntroSkip = () => {
     setIntroActive(false);
     navigate("/");
+    // Start onboarding tour (scenario 2: from landing)
+    setTimeout(() => startTour("landing"), 600);
   };
 
   if (!introChecked) return null;

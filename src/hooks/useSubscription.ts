@@ -117,9 +117,19 @@ export function useSubscription() {
   /** Create subscription record on first save. Returns true if created or already exists. */
   const ensureSubscription = useCallback(async (): Promise<boolean> => {
     if (!userId) return false;
-    // Already have a subscription — don't recreate
-    if (subscription) return true;
 
+    // Always check DB to prevent trial reset (Part B fix)
+    const { data: existing } = await supabase
+      .from('subscriptions' as any).select('*').eq('user_id', userId).maybeSingle();
+
+    if (existing) {
+      // Record exists — never overwrite trial_start
+      setSubscription(existing);
+      setAccess(computeAccess(existing, userEmail));
+      return true;
+    }
+
+    // No existing subscription — create new trial
     const trialEnd = new Date();
     trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
     try {
@@ -142,7 +152,7 @@ export function useSubscription() {
       console.error('[ensureSubscription]', err);
       return false;
     }
-  }, [userId, subscription, userEmail, computeAccess, fetchSubscription]);
+  }, [userId, userEmail, computeAccess, fetchSubscription]);
 
   // Guard for save plan button — returns 'allow' | 'popup' | 'toast_limit'
   const checkSaveGuard = useCallback((): 'allow' | 'popup' | 'toast_limit' => {
