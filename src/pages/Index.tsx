@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTour } from "@/contexts/OnboardingTourContext";
 import AppHeader from "@/components/AppHeader";
 import PricingCard from "@/components/pricing/PricingCard";
 import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
