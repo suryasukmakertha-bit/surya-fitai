@@ -123,16 +123,28 @@ export default function PWAManager() {
 
   const handleIntroDone = () => {
     setIntroActive(false);
-    navigate("/programs");
-    // Start onboarding tour (scenario 1: from intro)
-    setTimeout(() => startTour("intro"), 600);
+    if (user) {
+      // Already signed in — start tour immediately
+      navigate("/programs");
+      setTimeout(() => startTour("intro"), 600);
+    } else {
+      // Not signed in — save pending flag and redirect to auth
+      localStorage.setItem("onboarding_pending", "true");
+      localStorage.setItem("onboarding_scenario", "intro");
+      navigate("/auth", { state: { redirectTo: "/programs" } });
+    }
   };
 
   const handleIntroSkip = () => {
     setIntroActive(false);
-    navigate("/");
-    // Start onboarding tour (scenario 2: from landing)
-    setTimeout(() => startTour("landing"), 600);
+    if (user) {
+      navigate("/");
+      setTimeout(() => startTour("landing"), 600);
+    } else {
+      localStorage.setItem("onboarding_pending", "true");
+      localStorage.setItem("onboarding_scenario", "landing");
+      navigate("/");
+    }
   };
 
   if (!introChecked) return null;
