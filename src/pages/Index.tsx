@@ -39,10 +39,23 @@ function ScrollProgressBar() {
 
 export default function Index() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t, lang } = useLanguage();
+  const { startTour } = useTour();
   const featuresRef = useRef<HTMLElement>(null);
   const [showArrow, setShowArrow] = useState(true);
+
+  // Check for pending landing tour after sign-in
+  useEffect(() => {
+    if (authLoading || !user) return;
+    const pending = localStorage.getItem("onboarding_pending");
+    const scenario = localStorage.getItem("onboarding_scenario");
+    if (pending === "true" && scenario === "landing") {
+      localStorage.removeItem("onboarding_pending");
+      localStorage.removeItem("onboarding_scenario");
+      setTimeout(() => startTour("landing"), 600);
+    }
+  }, [user, authLoading, startTour]);
 
   const handleStartProgram = () => {
     if (user) {
