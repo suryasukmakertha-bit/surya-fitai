@@ -70,8 +70,8 @@ export default function AppHeader() {
     <>
       <nav className={`${isHome ? "absolute" : "sticky"} top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm border-b border-border/30`}>
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={() => navigate("/")} className="font-display font-bold text-foreground text-lg hover:text-primary transition-colors">
-            Surya-FitAi
+          <button onClick={() => navigate("/")} className={`font-display font-bold text-lg transition-colors ${isHome ? "text-foreground hover:text-primary" : "text-primary hover:opacity-80"}`}>
+            {isHome ? "Surya-FitAi" : <Home className="w-6 h-6" />}
           </button>
 
           {/* Desktop nav */}
