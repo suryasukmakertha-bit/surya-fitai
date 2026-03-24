@@ -358,6 +358,10 @@ const STATIC_IMAGE_MAP: Record<string, string> = {
   'farmers march': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/farmer-March.jpg',
   'dumbbell bicep curl': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-bicep-curls.jpg',
   'dumbbell bicep curls': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-bicep-curls.jpg',
+  'lat pulldown': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-wide-grip.jpg',
+  'lat pulldown wide grip': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-wide-grip.jpg',
+  'wide grip lat pulldown': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-wide-grip.jpg',
+  'lat pull down': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-wide-grip.jpg',
 };
 
 serve(async (req) => {
