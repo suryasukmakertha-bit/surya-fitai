@@ -816,7 +816,7 @@ const translations = {
     limitationsPlaceholder: "例如：膝盖受伤、腰痛...",
     allergies: "食物过敏（可选）",
     allergiesPlaceholder: "例如：坚果、乳制品、麸质...",
-    generatePlan: "生成我的AI计划",
+    generatePlan: "生成我的计划",
     generating: "正在生成你的计划...",
     fillRequired: "请填写所有必填项",
     trainingStartDate: "训练开始日期 *",
