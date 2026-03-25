@@ -452,7 +452,7 @@ const translations = {
     limitationsPlaceholder: "Contoh: cedera lutut, nyeri punggung bawah...",
     allergies: "Alergi Makanan (opsional)",
     allergiesPlaceholder: "Contoh: kacang, susu, gluten...",
-    generatePlan: "Buat Rencana AI Saya",
+    generatePlan: "Buat Rencana Saya",
     generating: "Membuat Rencanamu...",
     fillRequired: "Harap isi semua kolom wajib",
     trainingStartDate: "Tanggal Mulai Latihan *",
