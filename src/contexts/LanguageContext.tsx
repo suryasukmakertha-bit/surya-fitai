@@ -88,7 +88,7 @@ const translations = {
     limitationsPlaceholder: "E.g., knee injury, lower back pain...",
     allergies: "Food Allergies (optional)",
     allergiesPlaceholder: "E.g., nuts, dairy, gluten...",
-    generatePlan: "Generate My AI Plan",
+    generatePlan: "Generate My Plan",
     generating: "Generating Your Plan...",
     fillRequired: "Please fill all required fields",
     trainingStartDate: "Training Start Date *",
