@@ -1,0 +1,1 @@
+UPDATE subscriptions SET trial_end = NOW() - INTERVAL '1 day' WHERE user_id = (SELECT id FROM auth.users WHERE email = 'suryadmnstrs@gmail.com');
