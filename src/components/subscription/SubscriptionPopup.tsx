@@ -112,12 +112,12 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
       const { data, error: fnError } = await supabase.functions.invoke('midtrans-create-transaction');
       if (fnError || !data?.token) throw new Error(data?.error || 'Failed');
 
-      const isProduction = false;
+      const isProduction = true;
       const snapUrl = isProduction
         ? 'https://app.midtrans.com/snap/snap.js'
         : 'https://app.sandbox.midtrans.com/snap/snap.js';
       const clientKey = isProduction
-        ? 'YOUR_PRODUCTION_CLIENT_KEY'
+        ? 'Mid-client-b1Akn_LySkSNXQsq'
         : 'Mid-client-tj7pH-iKW9cGss7f';
 
       await loadSnapScript(snapUrl, clientKey);
