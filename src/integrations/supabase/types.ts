@@ -213,6 +213,7 @@ export type Database = {
           p256dh: string
           platform: string | null
           timezone: string
+          user_id: string | null
         }
         Insert: {
           auth: string
@@ -225,6 +226,7 @@ export type Database = {
           p256dh: string
           platform?: string | null
           timezone?: string
+          user_id?: string | null
         }
         Update: {
           auth?: string
@@ -237,6 +239,7 @@ export type Database = {
           p256dh?: string
           platform?: string | null
           timezone?: string
+          user_id?: string | null
         }
         Relationships: []
       }
