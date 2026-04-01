@@ -159,6 +159,9 @@ async function saveSubscription(subscription: PushSubscription) {
   const subJson = subscription.toJSON();
   if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) return;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const lang = getLang();
   const platform = detectPlatform();
@@ -171,6 +174,7 @@ async function saveSubscription(subscription: PushSubscription) {
       timezone,
       lang,
       platform,
+      user_id: user.id,
     },
     { onConflict: "endpoint" }
   );
