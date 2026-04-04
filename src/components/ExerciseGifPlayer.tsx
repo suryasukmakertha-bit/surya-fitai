@@ -19,8 +19,9 @@ function normalizeExerciseName(name: string): string {
 export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerProps) {
   const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const [error, setError] = useState(false);
-  const [fallbackStage, setFallbackStage] = useState(0); // 0=initial, 1=muscles.wiki tried, 2=done
+  const [fallbackStage, setFallbackStage] = useState(0);
   const { lang } = useLanguage();
 
   useEffect(() => {
@@ -41,7 +42,6 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
         if (cancelled) return;
 
         if (fnError || !data?.gifUrl) {
-          // Try muscles.wiki fallback
           const musclesName = searchTerm.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
           setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
         } else {
@@ -63,10 +63,10 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
 
   const handleImgError = () => {
     if (fallbackStage === 0 && exerciseName) {
-      // Try muscles.wiki
       const musclesName = exerciseName.toLowerCase().trim()
         .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
       setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
+      setImgLoaded(false);
       setFallbackStage(1);
     } else {
       setError(true);
@@ -81,9 +81,19 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
 
   if (loading) {
     return (
-      <div className="w-full aspect-square rounded-xl bg-secondary/60 flex flex-col items-center justify-center gap-2">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
-        <span className="text-muted-foreground text-xs">{loadingText}</span>
+      <div className="w-full rounded-xl overflow-hidden border border-border/30">
+        <div className="px-3 pt-3 mb-1">
+          <Skeleton className="h-4 w-40" />
+        </div>
+        <div className="px-3 mb-2">
+          <Skeleton className="h-3 w-56 mt-1" />
+        </div>
+        <div className="mx-3 rounded-lg overflow-hidden">
+          <Skeleton className="aspect-square w-full" />
+        </div>
+        <div className="py-2 flex justify-center">
+          <Skeleton className="h-3 w-24" />
+        </div>
       </div>
     );
   }
@@ -104,11 +114,16 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
       </div>
       <p className="text-muted-foreground text-xs px-3 mb-2">{watchText}</p>
       <div className="relative aspect-square bg-black mx-3 rounded-lg overflow-hidden">
+        {!imgLoaded && (
+          <Skeleton className="absolute inset-0 w-full h-full rounded-none" />
+        )}
         <img
           src={gifUrl}
           alt={`${exerciseName} demonstration`}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-opacity duration-200 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
           loading="eager"
+          fetchPriority="high"
+          onLoad={() => setImgLoaded(true)}
           onError={handleImgError}
         />
       </div>
