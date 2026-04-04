@@ -364,6 +364,7 @@ Generate the complete plan now.`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
+        stream: true,
       }),
     });
 
@@ -383,15 +384,39 @@ Generate the complete plan now.`;
       throw new Error("AI gateway error");
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    // Collect streamed tokens
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = "";
+    let textBuffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      textBuffer += decoder.decode(value, { stream: true });
+
+      let newlineIndex: number;
+      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+        let line = textBuffer.slice(0, newlineIndex);
+        textBuffer = textBuffer.slice(newlineIndex + 1);
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        if (!line.startsWith("data: ")) continue;
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === "[DONE]") break;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) fullContent += content;
+        } catch { /* partial chunk, skip */ }
+      }
+    }
 
     let plan;
     try {
-      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      const cleaned = fullContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       plan = JSON.parse(cleaned);
     } catch {
-      console.error("Failed to parse AI response:", content);
+      console.error("Failed to parse AI response:", fullContent);
       throw new Error("Failed to parse AI response");
     }
 
