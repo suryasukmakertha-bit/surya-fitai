@@ -59,6 +59,7 @@ export default function ProgramForm() {
   const { t, lang } = useLanguage();
   const program = programs.find((p) => p.id === type);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 
   const titleKey = `${type}Title` as keyof typeof t;
