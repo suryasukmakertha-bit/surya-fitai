@@ -28,6 +28,7 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     setLoading(true);
     setError(false);
     setGifUrl(null);
+    setImgLoaded(false);
     setFallbackStage(0);
 
     async function fetchGif() {
