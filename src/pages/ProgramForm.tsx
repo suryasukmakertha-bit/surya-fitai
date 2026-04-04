@@ -129,6 +129,10 @@ export default function ProgramForm() {
       return;
     }
     setLoading(true);
+    setLoadingStep(0);
+    const stepInterval = setInterval(() => {
+      setLoadingStep((prev) => (prev < 3 ? prev + 1 : prev));
+    }, 8000);
     try {
       const occupation = form.occupation === "other" ? form.occupationOther : form.occupation;
       const startDateStr = format(startDate, "yyyy-MM-dd");
