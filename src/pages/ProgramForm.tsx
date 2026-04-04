@@ -539,7 +539,14 @@ export default function ProgramForm() {
           )}
 
           <Button data-tour="generate-button" type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
-            {loading ? <><Loader2 className="w-5 h-5 animate-spin mr-2" /> {t.generating}</> : t.generatePlan}
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                <span className="animate-pulse">
+                  {[(t as any).generatingStep1, (t as any).generatingStep2, (t as any).generatingStep3, (t as any).generatingStep4][loadingStep]}
+                </span>
+              </>
+            ) : t.generatePlan}
           </Button>
           <p className="text-muted-foreground/60 text-xs text-center mt-2">
             {(t as any).coachGenerateHelper}
