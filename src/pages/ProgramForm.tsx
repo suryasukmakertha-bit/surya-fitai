@@ -59,6 +59,7 @@ export default function ProgramForm() {
   const { t, lang } = useLanguage();
   const program = programs.find((p) => p.id === type);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 
   const titleKey = `${type}Title` as keyof typeof t;
@@ -128,6 +129,10 @@ export default function ProgramForm() {
       return;
     }
     setLoading(true);
+    setLoadingStep(0);
+    const stepInterval = setInterval(() => {
+      setLoadingStep((prev) => (prev < 3 ? prev + 1 : prev));
+    }, 8000);
     try {
       const occupation = form.occupation === "other" ? form.occupationOther : form.occupation;
       const startDateStr = format(startDate, "yyyy-MM-dd");
@@ -177,7 +182,9 @@ export default function ProgramForm() {
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
+      clearInterval(stepInterval);
       setLoading(false);
+      setLoadingStep(0);
     }
   };
 
@@ -532,7 +539,14 @@ export default function ProgramForm() {
           )}
 
           <Button data-tour="generate-button" type="submit" disabled={loading} className="w-full h-12 text-lg font-semibold">
-            {loading ? <><Loader2 className="w-5 h-5 animate-spin mr-2" /> {t.generating}</> : t.generatePlan}
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                <span className="animate-pulse">
+                  {[(t as any).generatingStep1, (t as any).generatingStep2, (t as any).generatingStep3, (t as any).generatingStep4][loadingStep]}
+                </span>
+              </>
+            ) : t.generatePlan}
           </Button>
           <p className="text-muted-foreground/60 text-xs text-center mt-2">
             {(t as any).coachGenerateHelper}
