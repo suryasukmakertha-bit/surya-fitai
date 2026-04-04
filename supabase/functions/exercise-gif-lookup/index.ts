@@ -362,6 +362,63 @@ const STATIC_IMAGE_MAP: Record<string, string> = {
   'lat pulldown wide grip': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-wide-grip.jpg',
   'wide grip lat pulldown': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-wide-grip.jpg',
   'lat pull down': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-wide-grip.jpg',
+
+  // ── PRONE BACK EXTENSION ──
+  'prone back extension': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/prone-back-extension.jpg',
+  'ekstensi punggung tengkurap': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/prone-back-extension.jpg',
+  'gerakan punggung tengkurap': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/prone-back-extension.jpg',
+  '俯卧背部伸展': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/prone-back-extension.jpg',
+  '俯卧挺身': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/prone-back-extension.jpg',
+
+  // ── SEATED TRICEP DIPS ──
+  'seated tricep dips': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+  'seated tricep dips (kursi)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+  'chair dips': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+  'tricep dips kursi': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+  'dips trisep kursi': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+  '坐姿三头肌撑体': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+  '椅子撑体': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+  '椅子臂屈伸': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/seated-tricep-dips-kursi.jpg',
+
+  // ── INVERTED ROW / NEGATIVE PULL-UP ──
+  'negative pull-up / inverted row (gunakan meja)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  'inverted row': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  'inverted row (gunakan meja)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  'negative pull-up': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  'inverted row (use table)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  'body row': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  'tarik badan di bawah meja': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  'rowing terbalik': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  '反向划船': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  '反向划船（使用桌子）': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+  '负引体向上': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/inverted-row-table.jpg',
+
+  // ── STANDING CALF RAISES ──
+  'standing calf raises': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-calf-raises.jpg',
+  'jinjit berdiri': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-calf-raises.jpg',
+  'angkat tumit berdiri': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-calf-raises.jpg',
+  '站姿提踵': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-calf-raises.jpg',
+  '站立提踵': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-calf-raises.jpg',
+
+  // ── SIDE PLANK KNEE VERSION ──
+  'side plank (knee version)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+  'side plank knee version': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+  'side plank (versi lutut)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+  'side plank versi lutut': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+  'plank samping (lutut)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+  '侧平板支撑（膝盖版）': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+  '侧平板支撑膝盖版': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+  '跪姿侧平板': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/side-plank-knee-version.jpg',
+
+  // ── HOLLOW BODY HOLD BEGINNER ──
+  'hollow body hold (beginner)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+  'hollow body hold': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+  'hollow body hold (pemula)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+  'hollow body hold pemula': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+  'tahan posisi hollow body': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+  '空心体支撑（初学者）': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+  '空心体支撑初学者': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+  '空心撑': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
 };
 
 serve(async (req) => {
