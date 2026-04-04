@@ -419,6 +419,17 @@ const STATIC_IMAGE_MAP: Record<string, string> = {
   '空心体支撑（初学者）': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
   '空心体支撑初学者': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
   '空心撑': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hollow-body-hold-beginner.jpg',
+
+  // ── PLANK / PLANK (HOLD) ──
+  'plank (hold)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  'plank hold': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  'plank': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  'plank (tahan)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  'tahan plank': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  'posisi plank': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  '平板支撑': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  '平板支撑（保持）': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
+  '保持平板支撑': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/plank-hold.jpg',
 };
 
 serve(async (req) => {
