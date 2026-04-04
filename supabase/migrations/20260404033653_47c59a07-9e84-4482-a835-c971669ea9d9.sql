@@ -1,0 +1,1 @@
+DELETE FROM exercise_gif_cache WHERE exercise_name_normalized IN ('plank (hold)', 'plank hold', 'plank', 'plank (tahan)', 'tahan plank', 'posisi plank', '平板支撑', '平板支撑（保持）', '保持平板支撑');
