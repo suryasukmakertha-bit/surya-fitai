@@ -182,7 +182,9 @@ export default function ProgramForm() {
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
+      clearInterval(stepInterval);
       setLoading(false);
+      setLoadingStep(0);
     }
   };
 
