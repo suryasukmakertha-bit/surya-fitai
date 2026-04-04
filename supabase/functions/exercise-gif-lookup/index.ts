@@ -456,7 +456,6 @@ const STATIC_IMAGE_MAP: Record<string, string> = {
   '弹力带二头肌弯举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/bicep-curls-with-band.jpg',
 
   // ── TRICEP OVERHEAD EXTENSION WITH BAND ──
-  'tricep overhead extension': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-overhead-extension-band.jpg',
   'tricep overhead extension with band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-overhead-extension-band.jpg',
   'overhead tricep extension band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-overhead-extension-band.jpg',
   'ekstensi trisep overhead dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-overhead-extension-band.jpg',
