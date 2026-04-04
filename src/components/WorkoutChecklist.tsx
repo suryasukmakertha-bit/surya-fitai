@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { playWorkoutComplete } from "@/utils/sounds";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { X } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
 import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
+import { usePreloadExerciseMedia } from "@/hooks/usePreloadExerciseMedia";
 
 interface Exercise {
   name: string;
