@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ExerciseGifPlayerProps {
   exerciseName: string;
