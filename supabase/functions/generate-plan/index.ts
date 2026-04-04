@@ -249,6 +249,13 @@ EXPERIENCE-LEVEL SPECIFIC RULES:
 - Intermediate: 3-4 sets per exercise, 4-5 exercises per session, balanced cues, rest 75-105s
 - Advanced: 4-5 sets per exercise, 5-6 exercises per session, concise advanced cues, rest 60-90s
 
+EXERCISE NAMING RULE FOR RESISTANCE BAND EXERCISES:
+- When generating any exercise that uses a resistance band as the primary equipment, the exercise name MUST always include the word "band", "banded", or "resistance band" in the name itself.
+- Examples: "Tricep Overhead Extension with Band", "Banded Bicep Curl", "Resistance Band Chest Press", "Banded Squat", "Banded Romanian Deadlift", "Banded Overhead Press", "Resistance Band Seated Row", "Standing Band Abduction"
+- In Bahasa Indonesia: sertakan kata "band" atau "dengan band" di nama exercise (contoh: "Bicep Curl dengan Band", "Squat dengan Band")
+- In Simplified Chinese: 在动作名称中加入"弹力带" (例如: "弹力带深蹲", "弹力带胸推", "弹力带二头弯举")
+- This rule applies to ALL exercises using resistance bands regardless of language.
+
 PROGRAM-SPECIFIC RULES:
 - "senior" program: low-impact exercises, avoid heavy lifts, add balance/flexibility work, extra safety notes, bodyweight or light loads only
 - "beginner" program: simple exercises with detailed form cues, moderate volume, focus on compound movements
