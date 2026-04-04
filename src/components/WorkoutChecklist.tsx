@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { playWorkoutComplete } from "@/utils/sounds";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { X } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
 import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
+import { usePreloadExerciseMedia } from "@/hooks/usePreloadExerciseMedia";
 
 interface Exercise {
   name: string;
@@ -47,6 +48,12 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+
+  // Preload all exercise demo images in background
+  const allExerciseNames = useMemo(() => {
+    return workoutPlan?.flatMap(day => day.exercises.map(ex => ex.name)) || [];
+  }, [workoutPlan]);
+  usePreloadExerciseMedia(allExerciseNames);
 
   // Extract date from day label like "Week 1 - Friday, 2026-02-20" or fallback to today
   const extractDate = (dayLabel: string): string => {
