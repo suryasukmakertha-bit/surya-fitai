@@ -368,7 +368,21 @@ Generate the complete plan now.`;
       }),
     });
 
-    // error handling moved into streaming block above
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI usage limit reached. Please add credits." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const errText = await response.text();
+      console.error("AI gateway error:", response.status, errText);
+      throw new Error("AI gateway error");
+    }
 
     // Collect streamed tokens
     const reader = response.body!.getReader();
