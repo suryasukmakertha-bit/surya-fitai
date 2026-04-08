@@ -478,6 +478,63 @@ const STATIC_IMAGE_MAP: Record<string, string> = {
   'chest press dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/resistance-band-chest-press.jpg',
   'banded chest press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/resistance-band-chest-press.jpg',
   '弹力带胸部推举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/resistance-band-chest-press.jpg',
+
+  // ── BICEP CURL DENGAN BAND (ID variant) ──
+  'bicep curl dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/bicep-curls-with-band.jpg',
+  'bicep curls dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/bicep-curls-with-band.jpg',
+
+  // ── TRICEP OVERHEAD EXTENSION DENGAN BAND (ID variant) ──
+  'tricep overhead extension dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-overhead-extension-band.jpg',
+
+  // ── ASSISTED PULL-UP MACHINE ──
+  'assisted pullup machine': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/assisted-pullup-machine.jpg',
+  'mesin pullup assisted': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/assisted-pullup-machine.jpg',
+  '辅助引体向上机': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/assisted-pullup-machine.jpg',
+
+  // ── STANDING BAND CHEST FLY ──
+  'standing band chest fly': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-band-chest-fly.jpg',
+  'band chest fly': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-band-chest-fly.jpg',
+  'chest fly dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-band-chest-fly.jpg',
+  '弹力带站姿胸部飞鸟': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/standing-band-chest-fly.jpg',
+
+  // ── BANDED GOOD MORNINGS ──
+  'banded good mornings': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-good-mornings.jpg',
+  'banded good morning': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-good-mornings.jpg',
+  'good morning dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-good-mornings.jpg',
+  '弹力带早安式': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-good-mornings.jpg',
+
+  // ── DUMBBELL LUNGE ──
+  'dumbbell lunge': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-lunge.jpg',
+  'lunge dumbbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-lunge.jpg',
+  '哑铃弓步': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-lunge.jpg',
+
+  // ── MACHINE SHOULDER PRESS ──
+  'machine shoulder press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/machine-shoulder-press.jpg',
+  'shoulder press machine': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/machine-shoulder-press.jpg',
+  'mesin shoulder press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/machine-shoulder-press.jpg',
+  '器械肩部推举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/machine-shoulder-press.jpg',
+
+  // ── BANDED SPLIT SQUAT ──
+  'banded split squat': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-split-squat.jpg',
+  'split squat dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-split-squat.jpg',
+  '弹力带分腿蹲': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-split-squat.jpg',
+
+  // ── BANDED LATERAL RAISE ──
+  'banded lateral raise': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-raise.jpg',
+  'lateral raise dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-raise.jpg',
+  'angkat samping dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-raise.jpg',
+  '弹力带侧平举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-raise.jpg',
+
+  // ── BANDED BICYCLE CRUNCH ──
+  'banded bicycle crunch': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-bicycle-crunch.jpg',
+  'bicycle crunch dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-bicycle-crunch.jpg',
+  '弹力带自行车卷腹': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-bicycle-crunch.jpg',
+
+  // ── BARBELL UPRIGHT ROW ──
+  'barbell upright row': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-upright-row.jpg',
+  'upright row barbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-upright-row.jpg',
+  'barbell upright rowing': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-upright-row.jpg',
+  '杠铃直立划船': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-upright-row.jpg',
 };
 
 serve(async (req) => {
