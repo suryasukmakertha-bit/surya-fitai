@@ -91,8 +91,9 @@ export default function DailyProgressImage({
     canvas.height = H;
     const ctx = canvas.getContext("2d")!;
 
-    // Transparent background
-    ctx.clearRect(0, 0, W, H);
+    // Dark/black background
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, W, H);
 
     // ── LOGO (graphical, centered, with glow) ──
     if (logoRef.current) {
