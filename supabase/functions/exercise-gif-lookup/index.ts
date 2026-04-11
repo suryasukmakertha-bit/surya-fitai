@@ -535,6 +535,111 @@ const STATIC_IMAGE_MAP: Record<string, string> = {
   'upright row barbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-upright-row.jpg',
   'barbell upright rowing': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-upright-row.jpg',
   '杠铃直立划船': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-upright-row.jpg',
+
+  // ── BANDED LATERAL WALK ──
+  'banded lateral walk': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-walk.jpg',
+  'lateral walk dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-walk.jpg',
+  'jalan samping dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-walk.jpg',
+  '弹力带侧走': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-lateral-walk.jpg',
+
+  // ── T-BAR ROW ──
+  't-bar row': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/t-bar-row.jpg',
+  't bar row': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/t-bar-row.jpg',
+  'rowing t-bar': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/t-bar-row.jpg',
+  'T型杠铃划船': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/t-bar-row.jpg',
+
+  // ── ASSISTED PULL-UP MACHINE ──
+  'assisted pull-up machine': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/assisted-pullup-machine.jpg',
+  'assisted pullup machine': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/assisted-pullup-machine.jpg',
+  'mesin pull-up assisted': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/assisted-pullup-machine.jpg',
+  '辅助引体向上机': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/assisted-pullup-machine.jpg',
+
+  // ── CABLE CROSSOVER ──
+  'cable crossover': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/cable-crossover.jpg',
+  'kabel crossover': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/cable-crossover.jpg',
+  '绳索交叉': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/cable-crossover.jpg',
+
+  // ── WEIGHTED DIPS ──
+  'weighted dips': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/weighted-dips.jpg',
+  'dips dengan beban': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/weighted-dips.jpg',
+  '负重双杠臂屈伸': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/weighted-dips.jpg',
+
+  // ── BANDED FACE PULLS ──
+  'banded face pulls': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-face-pulls.jpg',
+  'banded face pull': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-face-pulls.jpg',
+  'face pull dengan band': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-face-pulls.jpg',
+  '弹力带面部拉伸': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/banded-face-pulls.jpg',
+
+  // ── BARBELL LUNGE ──
+  'barbell lunge': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-lunge.jpg',
+  'barbell lunges': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-lunge.jpg',
+  'lunge barbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-lunge.jpg',
+  '杠铃弓步': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-lunge.jpg',
+
+  // ── BARBELL GLUTE BRIDGE ──
+  'barbell glute bridge': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-glute-bridge.jpg',
+  'glute bridge barbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-glute-bridge.jpg',
+  '杠铃臀桥': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-glute-bridge.jpg',
+
+  // ── BARBELL OVERHEAD PRESS STANDING ──
+  'barbell overhead press (standing)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-overhead-press-standing.jpg',
+  'barbell overhead press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-overhead-press-standing.jpg',
+  'standing barbell overhead press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-overhead-press-standing.jpg',
+  'overhead press barbell berdiri': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-overhead-press-standing.jpg',
+  '杠铃站姿推举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-overhead-press-standing.jpg',
+
+  // ── BARBELL BICEP CURL ──
+  'barbell bicep curl': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bicep-curl.jpg',
+  'barbell bicep curls': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bicep-curl.jpg',
+  'curl bisep barbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bicep-curl.jpg',
+  '杠铃弯举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bicep-curl.jpg',
+
+  // ── BARBELL FLOOR PRESS ──
+  'barbell floor press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-floor-press.jpg',
+  'floor press barbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-floor-press.jpg',
+  '杠铃地板推举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-floor-press.jpg',
+
+  // ── HAMMER CURLS ──
+  'hammer curls': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hammer-curls.jpg',
+  'hammer curl': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hammer-curls.jpg',
+  '锤式弯举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/hammer-curls.jpg',
+
+  // ── LAT PULLDOWN CLOSE GRIP ──
+  'lat pulldown (close grip)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-close-grip.jpg',
+  'lat pulldown close grip': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-close-grip.jpg',
+  'lat pulldown (narrow grip)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-close-grip.jpg',
+  '窄距下拉': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lat-pulldown-close-grip.jpg',
+
+  // ── CONCENTRATION CURLS ──
+  'concentration curls': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/concentration-curls.jpg',
+  'concentration curl': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/concentration-curls.jpg',
+  'curl konsentrasi': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/concentration-curls.jpg',
+  '集中弯举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/concentration-curls.jpg',
+
+  // ── SKULL CRUSHERS ──
+  'skull crushers': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/skull-crushers.jpg',
+  'skull crusher': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/skull-crushers.jpg',
+  'ez bar skull crushers': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/skull-crushers.jpg',
+  '颅骨破碎者': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/skull-crushers.jpg',
+
+  // ── INCLINE BARBELL PRESS ──
+  'incline barbell press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/incline-barbell-press.jpg',
+  'incline barbell bench press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/incline-barbell-press.jpg',
+  'press barbell incline': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/incline-barbell-press.jpg',
+  '上斜杠铃推举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/incline-barbell-press.jpg',
+
+  // ── TRICEP ROPE EXTENSION ──
+  'tricep rope extension': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-rope-extension.jpg',
+  'triceps rope extension': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-rope-extension.jpg',
+  'rope tricep pushdown': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-rope-extension.jpg',
+  'tricep pushdown rope': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-rope-extension.jpg',
+  '绳索三头肌下压': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/tricep-rope-extension.jpg',
+
+  // ── ROMANIAN DEADLIFT DUMBBELL ──
+  'romanian deadlift (dumbbell)': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/romanian-deadlift-dumbbell.jpg',
+  'dumbbell romanian deadlift': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/romanian-deadlift-dumbbell.jpg',
+  'rdl dumbbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/romanian-deadlift-dumbbell.jpg',
+  '哑铃罗马尼亚硬拉': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/romanian-deadlift-dumbbell.jpg',
 };
 
 serve(async (req) => {
