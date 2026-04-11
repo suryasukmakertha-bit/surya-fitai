@@ -77,16 +77,17 @@ export default function DailyProgressImage({
 
   const handleDownload = useCallback(async () => {
     const canvas = document.createElement("canvas");
+    const PAD = 40;
     const W = 800;
-    const itemH = 52;
-    const logoAreaH = 120;
-    const taglineAreaH = 80;
-    const fractionAreaH = 40;
-    const listTopPad = 30;
+    const itemH = 64;
+    const logoAreaH = 60;
+    const taglineAreaH = 50;
+    const fractionAreaH = 36;
+    const listTopPad = 60;
     const footerH = 80;
-    const headerH = logoAreaH + taglineAreaH + fractionAreaH;
+    const headerH = PAD + logoAreaH + taglineAreaH + fractionAreaH;
     const listH = completedList.length * itemH;
-    const H = headerH + listTopPad + listH + footerH + 20;
+    const H = headerH + listTopPad + listH + footerH + PAD;
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext("2d")!;
@@ -94,52 +95,48 @@ export default function DailyProgressImage({
     // Transparent background
     ctx.clearRect(0, 0, W, H);
 
-    // ── LOGO (graphical, centered, with glow) ──
+    // ── SMALL LOGO + "FitAi" text at top center ──
+    const logoY = PAD + 10;
     if (logoRef.current) {
       const logo = logoRef.current;
-      const logoMaxW = 280;
+      const logoH = 44;
       const aspect = logo.naturalWidth / logo.naturalHeight;
-      const logoW = logoMaxW;
-      const logoH = logoW / aspect;
-      const logoX = (W - logoW) / 2;
-      const logoY = 20;
+      const logoW = logoH * aspect;
 
-      // Green glow behind logo
-      ctx.save();
-      ctx.shadowColor = "#22c55e";
-      ctx.shadowBlur = 18;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.drawImage(logo, logoX, logoY, logoW, logoH);
-      ctx.restore();
+      // Measure "FitAi" text width for centering the group
+      ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
+      const fitaiTextW = ctx.measureText("FitAi").width;
+      const gap = 8;
+      const totalW = logoW + gap + fitaiTextW;
+      const startX = (W - totalW) / 2;
 
-      // Draw logo again without shadow for crispness
-      ctx.drawImage(logo, logoX, logoY, logoW, logoH);
+      // Draw logo small
+      ctx.drawImage(logo, startX, logoY - logoH / 2 + 8, logoW, logoH);
+
+      // Draw "FitAi" text
+      ctx.textAlign = "left";
+      ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
+      ctx.fillStyle = "#4ade80";
+      ctx.fillText("FitAi", startX + logoW + gap, logoY + 18);
     } else {
-      // Fallback: text logo if image not loaded
       ctx.textAlign = "center";
-      ctx.font = "bold 48px 'Space Grotesk', system-ui, sans-serif";
-      ctx.shadowColor = "#22c55e";
-      ctx.shadowBlur = 18;
-      ctx.fillStyle = "#22c55e";
-      ctx.fillText("Surya-FitAi", W / 2, 75);
-      ctx.shadowBlur = 0;
+      ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
+      ctx.fillStyle = "#4ade80";
+      ctx.fillText("FitAi", W / 2, logoY + 18);
     }
 
     // ── TAGLINE: "THIS IS YOU VS YOU! 🏆" ──
-    const taglineY = logoAreaH + 30;
+    const taglineY = PAD + logoAreaH + 36;
     ctx.textAlign = "center";
 
-    // "THIS IS " in bold green
-    ctx.font = "bold 30px 'Space Grotesk', system-ui, sans-serif";
+    // Measure parts
+    ctx.font = "bold 26px 'Space Grotesk', system-ui, sans-serif";
     const thisIsWidth = ctx.measureText(thisIs).width;
 
-    // "YOU VS YOU!" in bold italic green
-    ctx.font = "bold italic 30px 'Space Grotesk', system-ui, sans-serif";
+    ctx.font = "bold italic 26px 'Space Grotesk', system-ui, sans-serif";
     const youVsYouWidth = ctx.measureText(youVsYou).width;
 
-    // Trophy emoji
-    ctx.font = "30px serif";
+    ctx.font = "26px serif";
     const trophyWidth = ctx.measureText(" 🏆").width;
 
     const totalTaglineW = thisIsWidth + youVsYouWidth + trophyWidth;
@@ -147,86 +144,63 @@ export default function DailyProgressImage({
 
     // Draw "THIS IS "
     ctx.textAlign = "left";
-    ctx.font = "bold 30px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#22c55e";
+    ctx.font = "bold 26px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillStyle = "#4ade80";
     ctx.fillText(thisIs, tagX, taglineY);
     tagX += thisIsWidth;
 
     // Draw "YOU VS YOU!" italic
-    ctx.font = "bold italic 30px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#22c55e";
+    ctx.font = "bold italic 26px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillStyle = "#4ade80";
     ctx.fillText(youVsYou, tagX, taglineY);
     tagX += youVsYouWidth;
 
     // Draw trophy
-    ctx.font = "30px serif";
+    ctx.font = "26px serif";
     ctx.fillText(" 🏆", tagX, taglineY);
 
     // ── PROGRESS FRACTION ──
-    const fractionY = taglineY + 38;
+    const fractionY = taglineY + 32;
     ctx.textAlign = "center";
-    ctx.font = "bold 18px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#6b7280";
+    ctx.font = "16px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillStyle = "#9ca3af";
     ctx.fillText(
       `${completedList.length}/${totalExercises} ${completedLabel}`,
       W / 2,
       fractionY
     );
 
-    // ── Measure max exercise name width for centering ──
-    ctx.font = "bold 20px 'Space Grotesk', system-ui, sans-serif";
-    let maxNameW = 0;
-    completedList.forEach((ex) => {
-      const w = ctx.measureText(ex.name).width;
-      if (w > maxNameW) maxNameW = w;
-    });
+    // ── EXERCISE LIST ──
+    const listStartY = headerH + listTopPad;
+    const listLeft = 140; // left-aligned area
+    const barWidth = 6;
+    const barX = listLeft;
+    const checkRadius = 16;
+    const gapBarToCheck = 24;
+    const gapCheckToText = 16;
 
-    // Group dimensions: bar(18) + gap(16) + checkCircle(30) + gap(14) + text
-    const barWidth = 18;
-    const gapBarToCheck = 16;
-    const checkDiam = 30;
-    const gapCheckToText = 14;
-    const groupW = barWidth + gapBarToCheck + checkDiam + gapCheckToText + maxNameW;
-    const groupLeft = (W - groupW) / 2;
-
-    const barX = groupLeft + barWidth / 2;
-    const barTop = headerH + listTopPad;
+    // Green vertical bar (full height, with glow)
+    const barTop = listStartY;
     const barHeight = listH;
     const barRadius = barWidth / 2;
 
-    // Bar background track
-    ctx.fillStyle = "rgba(200, 200, 200, 0.25)";
+    ctx.save();
+    ctx.shadowColor = "#4ade80";
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = "#4ade80";
     roundedRect(ctx, barX - barWidth / 2, barTop, barWidth, barHeight, barRadius);
     ctx.fill();
+    ctx.restore();
 
-    // Bar fill (from bottom)
-    const fillHeight = barHeight * progress;
-    if (fillHeight > 0) {
-      ctx.save();
-      ctx.shadowColor = "#22c55e";
-      ctx.shadowBlur = 14;
-      ctx.fillStyle = "#22c55e";
-      roundedRect(
-        ctx,
-        barX - barWidth / 2,
-        barTop + barHeight - fillHeight,
-        barWidth,
-        fillHeight,
-        barRadius
-      );
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // ── EXERCISE LIST (centered as group) ──
-    const listX = groupLeft + barWidth + gapBarToCheck + checkDiam / 2;
+    // Draw each exercise item
+    const checkCenterX = barX + gapBarToCheck + checkRadius;
     ctx.textAlign = "left";
     completedList.forEach((ex, i) => {
-      const y = barTop + i * itemH + 32;
+      const y = listStartY + i * itemH + itemH / 2;
 
-      // Green checkmark circle
+      // Green filled circle
       ctx.beginPath();
-      ctx.arc(listX, y - 6, 15, 0, Math.PI * 2);
+      ctx.arc(checkCenterX, y, checkRadius, 0, Math.PI * 2);
       ctx.fillStyle = "#22c55e";
       ctx.fill();
       ctx.closePath();
@@ -234,28 +208,27 @@ export default function DailyProgressImage({
       // White checkmark
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
       ctx.beginPath();
-      ctx.moveTo(listX - 5, y - 7);
-      ctx.lineTo(listX - 1, y - 3);
-      ctx.lineTo(listX + 6, y - 12);
+      ctx.moveTo(checkCenterX - 6, y - 1);
+      ctx.lineTo(checkCenterX - 2, y + 4);
+      ctx.lineTo(checkCenterX + 7, y - 5);
       ctx.stroke();
 
-      // Exercise name: white text with black stroke
-      const textX = listX + checkDiam / 2 + gapCheckToText;
-      ctx.font = "bold 20px 'Space Grotesk', system-ui, sans-serif";
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 2;
-      ctx.strokeText(ex.name, textX, y);
+      // Exercise name in white bold
+      const textX = checkCenterX + checkRadius + gapCheckToText;
+      ctx.font = "bold 22px 'Space Grotesk', system-ui, sans-serif";
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(ex.name, textX, y);
+      ctx.fillText(ex.name, textX, y + 7);
     });
 
     // ── DATE (bottom center) ──
     const dateText = extractReadableDate(dayLabel).toLowerCase();
     ctx.textAlign = "center";
-    ctx.font = "16px 'Space Grotesk', system-ui, sans-serif";
+    ctx.font = "15px 'Space Grotesk', system-ui, sans-serif";
     ctx.fillStyle = "#9ca3af";
-    ctx.fillText(dateText, W / 2, H - 25);
+    ctx.fillText(dateText, W / 2, H - PAD);
 
     // Download
     const link = document.createElement("a");
