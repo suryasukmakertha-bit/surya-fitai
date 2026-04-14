@@ -237,6 +237,48 @@ TRAINING SCIENCE RULES:
 - Use proper training splits based on ${workoutDays} training days per week
 - Only use exercises doable with: ${equipmentStr}
 
+CRITICAL EXERCISE ASSIGNMENT RULES (MUST FOLLOW WITHOUT EXCEPTION):
+
+1. EXERCISES MUST MATCH THE DAY'S FOCUS TITLE EXACTLY
+   Every exercise in a training day MUST directly target the muscle groups stated in that day's title:
+   - "Upper Body Push" day → bench press, overhead press, dips, push-ups, chest fly, tricep exercises. NO rows, NO deadlifts, NO leg exercises.
+   - "Upper Body Pull" day → pull-ups, lat pulldown, rows, face pulls, bicep curls. NO pressing movements, NO leg exercises.
+   - "Lower Body Quad Focus" day → squats, leg press, lunges, leg extension, step-ups. NO upper body exercises.
+   - "Lower Body Posterior/Hamstrings" day → Romanian deadlift, leg curl, hip hinge movements, glute bridge. NO quad-dominant exercises.
+   - "Full Body" day → 1-2 exercises per major muscle group, balanced push/pull/legs. NO repetition of exercises from other days in the same week.
+   - "Core & Unilateral" day → planks, dead bugs, single-leg exercises, anti-rotation movements. NO bilateral compound lifts.
+   - Any other focus title → exercises MUST directly target the muscles named in the title. Zero exceptions.
+
+2. ZERO EXERCISE REPETITION WITHIN THE SAME WEEK
+   An exercise that appears on Day 1 MUST NOT appear on Day 2, 3, 4, 5, 6, or 7 of the same week.
+   Every training day must have a completely unique set of exercises.
+   If the weekly split requires similar muscle groups on different days (e.g. two upper body days), use DIFFERENT exercises for each day.
+   Example: Day 1 has Barbell Bench Press → Day 5 must use Dumbbell Incline Press or Cable Fly instead, never Barbell Bench Press again.
+
+3. EXERCISE COUNT MUST MATCH THE DAY'S VOLUME INTENT
+   - Heavy compound focus days (strength): 4-5 exercises, higher sets (4-5), lower reps (5-8)
+   - Hypertrophy days: 5-6 exercises, moderate sets (3-4), moderate reps (8-15)
+   - Endurance/metabolic days: 5-7 exercises, lower sets (3), higher reps (15-20)
+   - Core/mobility days: 4-6 exercises, appropriate tempo and hold durations
+
+4. EQUIPMENT CONSISTENCY
+   All exercises on EVERY day MUST use equipment consistent with the user's selection: ${equipmentStr}.
+   If "bodyweight" → zero gym equipment exercises. If "dumbbells" → no barbell exercises. If "full-gym" → any equipment is valid.
+   If "resistance-band" → all exercises must use bands. Check EVERY exercise on EVERY day.
+
+5. PROGRESSIVE OVERLOAD ACROSS WEEKS
+   If the plan spans multiple weeks, Week 2+ exercises should either:
+   (a) be the same exercises with increased sets/reps/weight, OR
+   (b) be exercise progressions (e.g. bodyweight squat → goblet squat → barbell squat).
+   Never regress or randomize week-to-week.
+
+SELF-VALIDATION (PERFORM BEFORE OUTPUTTING):
+Before outputting the final plan, internally verify:
+- "Does every exercise on Day X target the muscles in Day X's title?" — If NO, replace the mismatched exercises.
+- "Does any exercise name appear more than once in the same week?" — If YES, replace duplicates with alternatives.
+- "Does any exercise use equipment the user does not have?" — If YES, replace with an appropriate alternative.
+If any check fails, fix that day's exercises before outputting. Do NOT output a plan that fails these checks.
+
 RECOVERY & LIFESTYLE ADJUSTMENTS:
 - User sleep: ${sleepHours || "Not specified"} hours, quality ${sleepQuality || "N/A"}/10
 - User stress: ${stressLevel || "N/A"}/10${nightShift ? ", works night shifts/overtime" : ""}
