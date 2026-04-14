@@ -1,5 +1,5 @@
-// Surya-FitAi Service Worker v4
-const CACHE_NAME = 'surya-fitai-v4';
+// Surya-FitAi Service Worker v5
+const CACHE_NAME = 'surya-fitai-v5';
 const DB_NAME = 'surya-fitai-sw';
 const STORE_NAME = 'reminders';
 
@@ -121,38 +121,6 @@ async function checkAndShowReminders() {
         actions: [{ action: 'open', title: 'Open App' }],
       });
       await dbSet('lastEveningDate', today);
-    }
-  }
-}
-        body: msg.body,
-        icon: '/icons/icon-192.png?v=2',
-        badge: '/icons/icon-192.png?v=2',
-        vibrate: [100, 50, 100],
-        data: { url: '/saved-plans' },
-        tag: 'morning-reminder',
-        renotify: true,
-        actions: [{ action: 'open', title: 'Open App' }],
-      });
-      await dbSet('lastMorningDate', today);
-    }
-  }
-
-  // Afternoon 15:00–16:00
-  if (hour >= 15 && hour < 16) {
-    const lastAfternoon = await dbGet('lastAfternoonDate');
-    if (lastAfternoon !== today) {
-      const msg = afternoonMessages[lang];
-      await self.registration.showNotification(msg.title, {
-        body: msg.body,
-        icon: '/icons/icon-192.png?v=2',
-        badge: '/icons/icon-192.png?v=2',
-        vibrate: [100, 50, 100],
-        data: { url: '/saved-plans' },
-        tag: 'afternoon-reminder',
-        renotify: true,
-        actions: [{ action: 'open', title: 'Open App' }],
-      });
-      await dbSet('lastAfternoonDate', today);
     }
   }
 }
