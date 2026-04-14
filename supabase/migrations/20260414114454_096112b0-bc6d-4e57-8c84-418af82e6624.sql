@@ -1,0 +1,1 @@
+ALTER TABLE public.push_subscriptions ADD COLUMN last_evening_sent date;

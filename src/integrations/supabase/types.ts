@@ -209,6 +209,7 @@ export type Database = {
           id: string
           lang: string
           last_afternoon_sent: string | null
+          last_evening_sent: string | null
           last_morning_sent: string | null
           p256dh: string
           platform: string | null
@@ -222,6 +223,7 @@ export type Database = {
           id?: string
           lang?: string
           last_afternoon_sent?: string | null
+          last_evening_sent?: string | null
           last_morning_sent?: string | null
           p256dh: string
           platform?: string | null
@@ -235,6 +237,7 @@ export type Database = {
           id?: string
           lang?: string
           last_afternoon_sent?: string | null
+          last_evening_sent?: string | null
           last_morning_sent?: string | null
           p256dh?: string
           platform?: string | null

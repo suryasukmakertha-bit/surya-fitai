@@ -348,13 +348,11 @@ serve(async (req) => {
         updateField = "last_afternoon_sent";
       }
 
-      // Evening: 18:00–22:59 — reuse last_morning_sent with eve suffix to avoid schema change
-      const eveKey = todayStr + "-eve";
-      if (!payload && hour >= 18 && hour < 23 && sub.last_morning_sent !== eveKey) {
+      // Evening: 18:00–22:59
+      if (!payload && hour >= 18 && hour < 23 && sub.last_evening_sent !== todayStr) {
         const msg = eveningMessages[lang] || eveningMessages.en;
         payload = { ...msg, tag: "evening-reminder" };
-        updateField = "last_morning_sent";
-        updateValue = eveKey;
+        updateField = "last_evening_sent";
       }
 
       if (payload && updateField) {
