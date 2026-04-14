@@ -34,15 +34,21 @@ async function dbSet(key, value) {
 
 // ── Messages ──
 const morningMessages = {
-  en: { title: "Hey champion! 💪", body: "It's 7 AM — time to train with your AI trainer 💪 Let's make today strong!" },
-  id: { title: "Hei juara! 💪", body: "Jam 7 pagi — waktunya latihan dengan AI trainer kamu 💪 Ayo buat hari ini kuat!" },
-  zh: { title: "嘿，冠军！💪", body: "现在是早上7点 — 该和你的AI教练一起训练了 💪 让我们让今天更强大！" },
+  en: { title: "Good morning! 💪", body: "Good morning! 💪 Time to crush your workout with AI trainer. Let's go!" },
+  id: { title: "Selamat pagi! 💪", body: "Selamat pagi! 💪 Waktunya workout bareng Coach Surya. Ayo mulai!" },
+  zh: { title: "早上好！💪", body: "早上好！💪 是时候和AI教练一起训练了。加油！" },
 };
 
 const afternoonMessages = {
-  en: { title: "Good afternoon! 💪", body: "It's 3 PM — perfect time for your workout with AI trainer 💪 Keep the momentum going!" },
-  id: { title: "Selamat sore! 💪", body: "Jam 3 siang — waktu yang tepat untuk latihan dengan AI trainer kamu 💪 Jaga semangatnya!" },
-  zh: { title: "下午好！💪", body: "现在是下午3点 — 完美的时间和AI教练一起训练 💪 保持动力！" },
+  en: { title: "Good afternoon! 💪", body: "Good afternoon! 💪 It's time for your workout with AI trainer 💪 Keep the momentum going!" },
+  id: { title: "Selamat siang! 💪", body: "Selamat siang! 💪 Saatnya latihan hari ini. Coach Surya sudah menunggu!" },
+  zh: { title: "下午好！💪", body: "下午好！💪 今天的训练时间到了。保持动力！" },
+};
+
+const eveningMessages = {
+  en: { title: "Good evening! 🌙", body: "Good evening! 🌙 Don't skip today's workout. Your AI trainer is ready!" },
+  id: { title: "Selamat malam! 🌙", body: "Selamat malam! 🌙 Jangan lewatkan workout hari ini. Coach Surya siap menemanimu!" },
+  zh: { title: "晚上好！🌙", body: "晚上好！🌙 不要跳过今天的训练。你的AI教练已经准备好了！" },
 };
 
 function todayStr() {
