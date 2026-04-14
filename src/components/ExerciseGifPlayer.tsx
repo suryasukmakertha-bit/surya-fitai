@@ -21,7 +21,6 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
   const [loading, setLoading] = useState(true);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [error, setError] = useState(false);
-  const [fallbackStage, setFallbackStage] = useState(0);
   const { lang } = useLanguage();
 
   useEffect(() => {
@@ -30,7 +29,6 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     setError(false);
     setGifUrl(null);
     setImgLoaded(false);
-    setFallbackStage(0);
 
     async function fetchGif() {
       try {
