@@ -21,7 +21,6 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
   const [loading, setLoading] = useState(true);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [error, setError] = useState(false);
-  const [fallbackStage, setFallbackStage] = useState(0);
   const { lang } = useLanguage();
 
   useEffect(() => {
@@ -30,7 +29,6 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     setError(false);
     setGifUrl(null);
     setImgLoaded(false);
-    setFallbackStage(0);
 
     async function fetchGif() {
       try {
@@ -42,15 +40,15 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
         if (cancelled) return;
 
         if (fnError || !data?.gifUrl) {
-          const musclesName = searchTerm.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
-          setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
+          setGifUrl(null);
+          setError(true);
         } else {
           setGifUrl(data.gifUrl);
         }
       } catch {
         if (!cancelled) {
-          const musclesName = normalizeExerciseName(exerciseName).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
-          setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
+          setGifUrl(null);
+          setError(true);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -62,20 +60,12 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
   }, [exerciseName]);
 
   const handleImgError = () => {
-    if (fallbackStage === 0 && exerciseName) {
-      const musclesName = exerciseName.toLowerCase().trim()
-        .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
-      setGifUrl(`https://muscles.wiki/exercises/${musclesName}.gif`);
-      setImgLoaded(false);
-      setFallbackStage(1);
-    } else {
-      setError(true);
-      setGifUrl(null);
-    }
+    setError(true);
+    setGifUrl(null);
   };
 
   const loadingText = lang === "id" ? "Memuat demo..." : lang === "zh" ? "加载演示中..." : "Loading demo...";
-  const errorText = lang === "id" ? "Demo tidak tersedia" : lang === "zh" ? "演示不可用" : "Demo not available";
+  const errorText = lang === "id" ? "Demo belum tersedia. Perhatikan tips di bawah." : lang === "zh" ? "演示暂不可用。请参考下方提示。" : "Demo not available. Focus on the tips below.";
   const coachLabel = lang === "id" ? "🎯 Demo Coach Surya" : lang === "zh" ? "🎯 Surya教练演示" : "🎯 Coach Surya's Demo";
   const watchText = lang === "id" ? "Perhatikan form dan teknik yang benar" : lang === "zh" ? "观察正确的姿势和技巧" : "Watch the correct form and technique";
 
@@ -100,9 +90,20 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
 
   if (error || !gifUrl) {
     return (
-      <div className="w-full aspect-square rounded-xl bg-secondary/60 flex flex-col items-center justify-center gap-2 border border-border/30">
-        <span className="text-3xl">🏋️</span>
-        <p className="text-xs text-muted-foreground">{errorText}</p>
+      <div className="w-full rounded-xl overflow-hidden border border-border/30">
+        <div className="flex items-center gap-1.5 px-3 pt-3 mb-1">
+          <span className="text-primary text-xs font-semibold">{coachLabel}</span>
+        </div>
+        <div className="relative aspect-square bg-black/80 mx-3 rounded-lg overflow-hidden flex flex-col items-center justify-center gap-3">
+          <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+              <path d="M6.5 6.5h11v11h-11z" opacity="0" />
+              <path d="M17.5 4.5c-.7 0-1.3.3-1.7.8L12 10l-3.8-4.7c-.4-.5-1-.8-1.7-.8C5.1 4.5 4 5.6 4 7v10c0 1.4 1.1 2.5 2.5 2.5.7 0 1.3-.3 1.7-.8L12 14l3.8 4.7c.4.5 1 .8 1.7.8 1.4 0 2.5-1.1 2.5-2.5V7c0-1.4-1.1-2.5-2.5-2.5z" />
+            </svg>
+          </div>
+          <p className="text-muted-foreground text-xs text-center px-6 leading-relaxed">{errorText}</p>
+        </div>
+        <div className="py-2" />
       </div>
     );
   }

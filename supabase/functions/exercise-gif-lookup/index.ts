@@ -247,7 +247,39 @@ function findGifFromMap(exerciseName: string): string | null {
   return bestScore >= 35 ? bestUrl : null;
 }
 
-// Dynamic fallback: search the free ExerciseDB API with smart equipment filtering
+// Equipment keywords for strict matching
+const EQUIPMENT_KEYWORDS = [
+  { query: ['barbell'], required: ['barbell'] },
+  { query: ['dumbbell'], required: ['dumbbell'] },
+  { query: ['band', 'banded', 'resistance band'], required: ['band'] },
+  { query: ['cable'], required: ['cable'] },
+  { query: ['machine'], required: ['machine'] },
+  { query: ['kettlebell'], required: ['kettlebell'] },
+];
+
+function strictEquipmentMatch(queryName: string, resultName: string): boolean {
+  const q = normalize(queryName);
+  const r = normalize(resultName);
+
+  for (const rule of EQUIPMENT_KEYWORDS) {
+    const queryHasEquipment = rule.query.some(kw => q.includes(kw));
+    if (queryHasEquipment) {
+      const resultHasEquipment = rule.required.some(kw => r.includes(kw));
+      if (!resultHasEquipment) return false;
+    }
+  }
+
+  // If query implies bodyweight, reject results with equipment names
+  const isBodyweight = /bodyweight|body weight/.test(q);
+  if (isBodyweight) {
+    const hasEquip = /barbell|dumbbell|cable|machine|kettlebell|band/.test(r);
+    if (hasEquip) return false;
+  }
+
+  return true;
+}
+
+// Dynamic fallback: search the free ExerciseDB API with strict equipment matching
 async function searchExerciseDbApi(exerciseName: string): Promise<string | null> {
   try {
     const n = normalize(exerciseName);
@@ -262,69 +294,47 @@ async function searchExerciseDbApi(exerciseName: string): Promise<string | null>
     if (!json?.success || !json?.data?.length) return null;
 
     const exercises = json.data;
-    const isBodyweight = /bodyweight|body weight/.test(n);
-    const mentionsEquipment = /barbell|dumbbell|cable|machine|kettlebell|band|resistance/.test(n);
 
-    let bestMatch = null;
+    // Only accept results that pass strict equipment matching
+    const strictMatches = exercises.filter((e: any) =>
+      strictEquipmentMatch(exerciseName, e.name || "")
+    );
 
-    if (isBodyweight) {
-      bestMatch = exercises.find((e: any) =>
-        e.equipment === 'body weight' || e.equipment === 'bodyweight'
-      );
-    } else if (!mentionsEquipment) {
-      // Prefer exact name match first
-      bestMatch = exercises.find((e: any) => normalize(e.name || "") === n);
-      // Then prefer bodyweight variant
-      if (!bestMatch) {
-        bestMatch = exercises.find((e: any) =>
-          e.equipment === 'body weight' || e.equipment === 'bodyweight'
-        );
-      }
-    }
+    if (strictMatches.length === 0) return null;
 
-    // Final fallback: partial name match, then first result
-    if (!bestMatch) {
-      bestMatch = exercises.find((e: any) => {
-        const exName = normalize(e.name || "");
-        return exName.includes(n) || n.includes(exName);
-      }) || exercises[0];
-    }
+    // Prefer exact name match
+    const exactMatch = strictMatches.find((e: any) => normalize(e.name || "") === n);
+    if (exactMatch?.gifUrl) return exactMatch.gifUrl;
 
-    return bestMatch?.gifUrl || null;
+    // Prefer partial name containment
+    const partialMatch = strictMatches.find((e: any) => {
+      const exName = normalize(e.name || "");
+      return exName.includes(n) || n.includes(exName);
+    });
+    if (partialMatch?.gifUrl) return partialMatch.gifUrl;
+
+    // First strict match
+    return strictMatches[0]?.gifUrl || null;
   } catch {
     return null;
   }
 }
 
-// Wger.de fallback (free, no API key)
-async function fetchFromWger(exerciseName: string): Promise<string | null> {
-  try {
-    const searchName = encodeURIComponent(exerciseName);
-    const res = await fetch(
-      `https://wger.de/api/v2/exercise/search/?term=${searchName}&language=english&format=json`,
-      { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(4000) }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const suggestions = data?.suggestions;
-    if (!suggestions || suggestions.length === 0) return null;
-    const baseId = suggestions[0]?.data?.base_id;
-    if (!baseId) return null;
-    const imgRes = await fetch(
-      `https://wger.de/api/v2/exerciseimage/?exercise_base=${baseId}&format=json`,
-      { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(4000) }
-    );
-    if (!imgRes.ok) return null;
-    const imgData = await imgRes.json();
-    const images = imgData?.results;
-    if (!images || images.length === 0) return null;
-    return images[0]?.image || null;
-  } catch {
-    return null;
-  }
-}
+// Wger.de fallback REMOVED — was returning wrong equipment demos
 
-// Static images for exercises not available in any external DB
+/*
+ * STATIC_GIF_MAP RULES — READ BEFORE EDITING:
+ * 1. Keys must exactly match normalizeExerciseName() output
+ * 2. Equipment words in exercise name MUST match equipment shown
+ *    in the image: barbell key → barbell image, band key → band
+ *    image, dumbbell key → dumbbell image. Never mix equipment.
+ * 3. Add keys for all 3 language variants when adding a new entry:
+ *    English key + Bahasa Indonesia key + Simplified Chinese key
+ * 4. After adding entries, always run the SQL DELETE cache command
+ *    for affected exercise names to clear stale cache
+ * 5. Never add generic keys (e.g. 'tricep extension') that could
+ *    match multiple equipment variants — always be specific
+ */
 const STATIC_IMAGE_MAP: Record<string, string> = {
   'wall sit': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/wall-sit.jpg',
   'reverse lunge': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/reverse-lunge.jpg',
@@ -640,6 +650,26 @@ const STATIC_IMAGE_MAP: Record<string, string> = {
   'dumbbell romanian deadlift': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/romanian-deadlift-dumbbell.jpg',
   'rdl dumbbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/romanian-deadlift-dumbbell.jpg',
   '哑铃罗马尼亚硬拉': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/romanian-deadlift-dumbbell.jpg',
+
+  // ── OVERHEAD PRESS DUMBBELL ──
+  'overhead press dumbbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-overhead-press-seated.jpg',
+  'dumbbell overhead press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-overhead-press-seated.jpg',
+  'seated overhead press dumbbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-overhead-press-seated.jpg',
+  'overhead press dumbbell duduk': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-overhead-press-seated.jpg',
+  '哑铃推举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-overhead-press-seated.jpg',
+  '坐姿哑铃推举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/dumbbell-overhead-press-seated.jpg',
+
+  // ── BARBELL BENCH PRESS FLAT ──
+  'barbell bench press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bench-press-flat.jpg',
+  'bench press barbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bench-press-flat.jpg',
+  'flat barbell bench press': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bench-press-flat.jpg',
+  '杠铃卧推': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/barbell-bench-press-flat.jpg',
+
+  // ── DUMBBELL LATERAL RAISE ──
+  'dumbbell lateral raise': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lateral-raise-dumbbell.jpg',
+  'lateral raise dumbbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lateral-raise-dumbbell.jpg',
+  '哑铃侧平举': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lateral-raise-dumbbell.jpg',
+  'lateral raise dumbbell': 'https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/lateral-raise-dumbbell.jpg',
 };
 
 serve(async (req) => {
@@ -674,17 +704,13 @@ serve(async (req) => {
     let gifUrl = findGifFromMap(exerciseName);
     let source = "static_map";
 
-    // 2. Dynamic ExerciseDB API fallback
+    // 2. Dynamic ExerciseDB API fallback (strict equipment matching)
     if (!gifUrl) {
       gifUrl = await searchExerciseDbApi(exerciseName);
       source = "exercisedb_api";
     }
 
-    // 3. Wger.de fallback
-    if (!gifUrl) {
-      gifUrl = await fetchFromWger(exerciseName);
-      source = "wger";
-    }
+    // No further fallbacks — return null if no match to avoid wrong demos
 
     console.log(`[exercise-gif-lookup] Result: ${gifUrl ? source : "none"} for "${exerciseName}"`);
 
