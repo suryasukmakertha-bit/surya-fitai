@@ -67,12 +67,63 @@ async function checkAndShowReminders() {
   const today = todayStr();
   const lang = await getLang();
 
-  // Morning 7:00–8:00
-  if (hour >= 7 && hour < 8) {
+  // Morning 5:00–11:59
+  if (hour >= 5 && hour < 12) {
     const lastMorning = await dbGet('lastMorningDate');
     if (lastMorning !== today) {
       const msg = morningMessages[lang];
       await self.registration.showNotification(msg.title, {
+        body: msg.body,
+        icon: '/icons/icon-192.png?v=2',
+        badge: '/icons/icon-192.png?v=2',
+        vibrate: [100, 50, 100],
+        data: { url: '/saved-plans' },
+        tag: 'morning-reminder',
+        renotify: true,
+        actions: [{ action: 'open', title: 'Open App' }],
+      });
+      await dbSet('lastMorningDate', today);
+    }
+  }
+
+  // Afternoon 12:00–17:59
+  if (hour >= 12 && hour < 18) {
+    const lastAfternoon = await dbGet('lastAfternoonDate');
+    if (lastAfternoon !== today) {
+      const msg = afternoonMessages[lang];
+      await self.registration.showNotification(msg.title, {
+        body: msg.body,
+        icon: '/icons/icon-192.png?v=2',
+        badge: '/icons/icon-192.png?v=2',
+        vibrate: [100, 50, 100],
+        data: { url: '/saved-plans' },
+        tag: 'afternoon-reminder',
+        renotify: true,
+        actions: [{ action: 'open', title: 'Open App' }],
+      });
+      await dbSet('lastAfternoonDate', today);
+    }
+  }
+
+  // Evening 18:00–22:59
+  if (hour >= 18 && hour < 23) {
+    const lastEvening = await dbGet('lastEveningDate');
+    if (lastEvening !== today) {
+      const msg = eveningMessages[lang];
+      await self.registration.showNotification(msg.title, {
+        body: msg.body,
+        icon: '/icons/icon-192.png?v=2',
+        badge: '/icons/icon-192.png?v=2',
+        vibrate: [100, 50, 100],
+        data: { url: '/saved-plans' },
+        tag: 'evening-reminder',
+        renotify: true,
+        actions: [{ action: 'open', title: 'Open App' }],
+      });
+      await dbSet('lastEveningDate', today);
+    }
+  }
+}
         body: msg.body,
         icon: '/icons/icon-192.png?v=2',
         badge: '/icons/icon-192.png?v=2',
