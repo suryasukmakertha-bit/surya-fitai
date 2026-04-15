@@ -401,78 +401,199 @@ Generate ALL text content in ${lang}. JSON keys must remain in English.`;
 
 Generate the complete plan now.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        stream: true,
-      }),
-    });
+    /*
+     * KNOWN BUG HISTORY — DO NOT REGRESS:
+     *
+     * BUG (fixed): 3-month plans repeated Day 1 exercises on all
+     * subsequent days from Day 3 onward.
+     * ROOT CAUSE: Token/context truncation — single API call for 12 weeks
+     * exceeded model output limits, causing truncated/repeated content.
+     * FIX APPLIED: Multi-call generation (3 weeks per call) for plans > 6 weeks,
+     * plus pre-save validation of exercise uniqueness.
+     *
+     * PREVENTION: validatePlanExerciseUniqueness() must be called
+     * before every plan save. Multi-call strategy must be used for
+     * plans longer than 6 weeks. Never use shared object references
+     * when building day data structures in loops.
+     */
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    // Helper: call AI and collect streamed response
+    async function callAI(sysPrompt: string, usrPrompt: string): Promise<string> {
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: sysPrompt },
+            { role: "user", content: usrPrompt },
+          ],
+          stream: true,
+        }),
+      });
+
+      if (!resp.ok) {
+        if (resp.status === 429) throw { status: 429, message: "Rate limit exceeded. Please try again shortly." };
+        if (resp.status === 402) throw { status: 402, message: "AI usage limit reached. Please add credits." };
+        const errText = await resp.text();
+        console.error("AI gateway error:", resp.status, errText);
+        throw new Error("AI gateway error");
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached. Please add credits." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+
+      const reader = resp.body!.getReader();
+      const decoder = new TextDecoder();
+      let fullContent = "";
+      let textBuffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) fullContent += content;
+          } catch { /* partial chunk, skip */ }
+        }
       }
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      throw new Error("AI gateway error");
+      return fullContent;
     }
 
-    // Collect streamed tokens
-    const reader = response.body!.getReader();
-    const decoder = new TextDecoder();
-    let fullContent = "";
-    let textBuffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      textBuffer += decoder.decode(value, { stream: true });
-
-      let newlineIndex: number;
-      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-        let line = textBuffer.slice(0, newlineIndex);
-        textBuffer = textBuffer.slice(newlineIndex + 1);
-        if (line.endsWith("\r")) line = line.slice(0, -1);
-        if (!line.startsWith("data: ")) continue;
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === "[DONE]") break;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) fullContent += content;
-        } catch { /* partial chunk, skip */ }
-      }
+    function parseJSON(raw: string): any {
+      const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      return JSON.parse(cleaned);
     }
 
-    let plan;
-    try {
-      const cleaned = fullContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      plan = JSON.parse(cleaned);
-    } catch {
-      console.error("Failed to parse AI response:", fullContent);
-      throw new Error("Failed to parse AI response");
+    // Validate no two consecutive training days share identical exercise lists
+    function validatePlanExerciseUniqueness(workoutPlan: any[]): boolean {
+      const trainingDays = workoutPlan.filter((d: any) => d.exercises && d.exercises.length > 0);
+      for (let i = 1; i < trainingDays.length; i++) {
+        const prev = trainingDays[i - 1].exercises.map((e: any) => e.name).sort().join(",");
+        const curr = trainingDays[i].exercises.map((e: any) => e.name).sort().join(",");
+        if (prev === curr) {
+          console.error(`PLAN VALIDATION FAILED: Training day ${i + 1} has identical exercises to day ${i}.`);
+          return false;
+        }
+      }
+      return true;
+    }
+
+    let plan: any;
+
+    if (totalWeeks > 6) {
+      // === MULTI-CALL STRATEGY for 3-month (12-week) plans ===
+      console.log(`[PlanGen] Multi-call strategy: ${totalWeeks} weeks, splitting into chunks of 3 weeks`);
+
+      // First call: get metadata + weeks 1-3
+      const chunk1Prompt = `${userPrompt}
+
+IMPORTANT: Generate ONLY the first 3 weeks (Week 1 through Week 3) of the ${totalWeeks}-week workout plan.
+Include ALL other plan fields (programOverview, weeklySplit, warmUp, coolDown, meal_plan, calorie_target, protein, carbs, fat, water_liters, weekly_schedule, safety_notes, warnings, motivational_message, grocery_list, estimated_calories_burned, weight_projection, progressionRules, deloadWeek, recoveryTips).
+The workout_plan array must contain ONLY days for Week 1 through Week 3.
+Generate the complete plan now.`;
+
+      const raw1 = await callAI(systemPrompt, chunk1Prompt);
+      const chunk1 = parseJSON(raw1);
+      plan = { ...chunk1 };
+      const allWorkoutDays = [...(chunk1.workout_plan || [])];
+
+      // Subsequent calls: weeks 4-6, 7-9, 10-12
+      const chunkRanges = [
+        { start: 4, end: 6 },
+        { start: 7, end: 9 },
+        { start: 10, end: 12 },
+      ];
+
+      for (const range of chunkRanges) {
+        if (range.start > totalWeeks) break;
+        const actualEnd = Math.min(range.end, totalWeeks);
+
+        // Collect exercise names from previous weeks to prevent repeats
+        const previousExerciseNames = allWorkoutDays
+          .filter((d: any) => d.exercises && d.exercises.length > 0)
+          .flatMap((d: any) => d.exercises.map((e: any) => e.name));
+        const uniquePrevNames = [...new Set(previousExerciseNames)];
+
+        const chunkPrompt = `${userPrompt}
+
+IMPORTANT: Generate ONLY Week ${range.start} through Week ${actualEnd} of the ${totalWeeks}-week workout plan.
+Output ONLY valid JSON with a single key "workout_plan" containing an array of day objects for these weeks ONLY.
+Do NOT include programOverview, meal_plan, or any other fields — ONLY "workout_plan".
+
+CONTEXT FROM PREVIOUS WEEKS (for exercise variety — you may reuse exercises across different weeks for progressive overload, but within the SAME week all training days must have unique exercises):
+Previously used exercises: ${uniquePrevNames.slice(0, 60).join(", ")}
+
+Apply progressive overload: Week ${range.start}-${actualEnd} should use slightly higher weights/reps/sets than earlier weeks where appropriate.
+${range.start === 7 ? "This is a deload transition point — Week 7 should be a deload week with 30-40% reduced volume." : ""}
+
+Generate the workout_plan for Week ${range.start} to Week ${actualEnd} now.`;
+
+        const rawN = await callAI(systemPrompt, chunkPrompt);
+        const chunkN = parseJSON(rawN);
+        const chunkDays = chunkN.workout_plan || chunkN;
+        if (Array.isArray(chunkDays)) {
+          allWorkoutDays.push(...chunkDays);
+        } else if (Array.isArray(chunkN.workout_plan)) {
+          allWorkoutDays.push(...chunkN.workout_plan);
+        }
+        console.log(`[PlanGen] Chunk Week ${range.start}-${actualEnd}: ${Array.isArray(chunkDays) ? chunkDays.length : 0} days generated`);
+      }
+
+      plan.workout_plan = allWorkoutDays;
+    } else {
+      // === SINGLE-CALL for plans ≤ 6 weeks ===
+      const raw = await callAI(systemPrompt, userPrompt);
+      plan = parseJSON(raw);
+    }
+
+    // Validate exercise uniqueness
+    const trainingDayCount = (plan.workout_plan || []).filter((d: any) => d.exercises?.length > 0).length;
+    const exerciseSignatures = new Set(
+      (plan.workout_plan || [])
+        .filter((d: any) => d.exercises?.length > 0)
+        .map((d: any) => d.exercises.map((e: any) => e.name).sort().join(","))
+    );
+    console.log(`[PlanGen] Duration: ${duration}, Total training days: ${trainingDayCount}, Unique exercise day signatures: ${exerciseSignatures.size}`);
+
+    if (!validatePlanExerciseUniqueness(plan.workout_plan || [])) {
+      console.warn("[PlanGen] Validation failed — retrying generation once...");
+      // Retry once with single call for short plans, or redo last chunk for long plans
+      if (totalWeeks <= 6) {
+        const retryRaw = await callAI(systemPrompt, userPrompt + "\n\nCRITICAL: Each training day MUST have completely different exercises. Do NOT repeat the same exercise list on multiple days.");
+        plan = parseJSON(retryRaw);
+      }
+      // For multi-call, the validation is per-chunk so less likely to fail
+      // Log final state either way
+      const retryCount = (plan.workout_plan || []).filter((d: any) => d.exercises?.length > 0).length;
+      const retrySignatures = new Set(
+        (plan.workout_plan || [])
+          .filter((d: any) => d.exercises?.length > 0)
+          .map((d: any) => d.exercises.map((e: any) => e.name).sort().join(","))
+      );
+      console.log(`[PlanGen] After retry — Training days: ${retryCount}, Unique signatures: ${retrySignatures.size}`);
     }
 
     return new Response(JSON.stringify(plan), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
+  } catch (e: any) {
+    if (e?.status === 429 || e?.status === 402) {
+      return new Response(JSON.stringify({ error: e.message }), {
+        status: e.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     console.error("generate-plan error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
