@@ -554,53 +554,100 @@ Generate the complete plan now.`;
     let plan: any;
 
     if (totalWeeks > 6) {
-      // === MULTI-CALL STRATEGY for 3-month (12-week) plans ===
-      // Reduced from 4 chunks to 2 chunks to stay under the 140s budget.
-      // Chunk 1: full plan metadata + weeks 1-6.
-      // Chunk 2: weeks 7-12 (workout_plan only) with previous-exercise context.
-      console.log("[PlanGen] Multi-call strategy", { totalWeeks, chunks: 2 });
+      // === PARALLEL MULTI-CALL STRATEGY for 3-month (12-week) plans ===
+      // 4 chunks of 3 weeks each, executed CONCURRENTLY via Promise.all
+      // to bring total wall-clock time from ~96s down to ~40-50s
+      // (the slowest chunk's duration, not the sum).
+      //
+      // Chunk A: full plan metadata + Weeks 1-3 (largest payload)
+      // Chunk B: Weeks 4-6 (workout_plan only)
+      // Chunk C: Weeks 7-9 (workout_plan only, includes deload at W7)
+      // Chunk D: Weeks 10-12 (workout_plan only, peak phase)
+      //
+      // Cross-chunk uniqueness is enforced by phase-specific instructions
+      // baked into each prompt (different focus per phase) since chunks
+      // run in parallel and cannot pass exercise context to each other.
+      console.log("[PlanGen] Parallel multi-call strategy", { totalWeeks, chunks: 4 });
 
-      const chunk1Prompt = `${userPrompt}
+      const buildWeekRangePrompt = (
+        startWeek: number,
+        endWeek: number,
+        phaseLabel: string,
+        phaseInstructions: string,
+        includeFullMetadata: boolean,
+      ) => {
+        if (includeFullMetadata) {
+          return `${userPrompt}
 
-IMPORTANT: Generate ONLY the first 6 weeks (Week 1 through Week 6) of the ${totalWeeks}-week workout plan.
+IMPORTANT: Generate ONLY Week ${startWeek} through Week ${endWeek} of the ${totalWeeks}-week workout plan (${phaseLabel}).
 Include ALL other plan fields (programOverview, weeklySplit, warmUp, coolDown, meal_plan, calorie_target, protein, carbs, fat, water_liters, weekly_schedule, safety_notes, warnings, motivational_message, grocery_list, estimated_calories_burned, weight_projection, progressionRules, deloadWeek, recoveryTips).
-The workout_plan array must contain ONLY days for Week 1 through Week 6.
-Apply progressive overload across these 6 weeks. Each training day in each week MUST have unique exercises matching its focus title.
+The workout_plan array must contain ONLY days for Week ${startWeek} through Week ${endWeek}.
+${phaseInstructions}
+Each training day MUST have unique exercises matching its focus title. Do NOT repeat the same exercise list on consecutive days.
 Generate the complete plan now.`;
+        }
+        return `${userPrompt}
 
-      const raw1 = await callAI(systemPrompt, chunk1Prompt, "chunk1-weeks-1-6");
-      const chunk1 = safeParseJSON(raw1, "chunk1");
-      plan = { ...chunk1 };
-      const allWorkoutDays = [...(chunk1.workout_plan || [])];
-
-      // Build context list of exercises already used in weeks 1-6
-      const previousExerciseNames = allWorkoutDays
-        .filter((d: any) => d.exercises && d.exercises.length > 0)
-        .flatMap((d: any) => d.exercises.map((e: any) => e.name));
-      const uniquePrevNames = [...new Set(previousExerciseNames)];
-
-      const chunk2Prompt = `${userPrompt}
-
-IMPORTANT: Generate ONLY Week 7 through Week 12 of the ${totalWeeks}-week workout plan.
+IMPORTANT: Generate ONLY Week ${startWeek} through Week ${endWeek} of the ${totalWeeks}-week workout plan (${phaseLabel}).
 Output ONLY valid JSON with a single key "workout_plan" containing an array of day objects for these weeks ONLY.
 Do NOT include programOverview, meal_plan, or any other fields — ONLY "workout_plan".
+${phaseInstructions}
+Each training day MUST have unique exercises matching its focus title. Do NOT repeat the same exercise list on consecutive days.
+Generate the workout_plan for Week ${startWeek} through Week ${endWeek} now.`;
+      };
 
-CONTEXT FROM WEEKS 1-6 (you may reuse these exercises for progressive overload, but within the SAME week all training days must still have unique exercises):
-Previously used exercises: ${uniquePrevNames.slice(0, 80).join(", ")}
+      const chunkAPrompt = buildWeekRangePrompt(
+        1, 3, "Phase 1 - Foundation",
+        "Use moderate volume and focus on form. Establish baseline RPE 6-7 for all working sets.",
+        true,
+      );
+      const chunkBPrompt = buildWeekRangePrompt(
+        4, 6, "Phase 2 - Accumulation",
+        "Apply progressive overload: increase weight or reps by ~5% vs Phase 1. Vary exercise variations (e.g. swap flat bench for incline, swap conventional deadlift for Romanian) to avoid repeating the exact same exercises as weeks 1-3.",
+        false,
+      );
+      const chunkCPrompt = buildWeekRangePrompt(
+        7, 9, "Phase 3 - Intensification (Week 7 = Deload)",
+        "Week 7 is a DELOAD week: reduce volume by 30-40% and use lighter loads (RPE 5-6). Weeks 8-9 push intensity higher than Phase 2 with new exercise variations. Use different equipment angles or unilateral variations vs weeks 1-6.",
+        false,
+      );
+      const chunkDPrompt = buildWeekRangePrompt(
+        10, 12, "Phase 4 - Peak & Consolidation",
+        "Peak phase: highest intensity (RPE 8-9) with slightly reduced volume. Use compound-focused movements and introduce 1-2 advanced variations per training day that did NOT appear in weeks 1-9 (e.g. tempo work, pause reps, drop sets noted in the notes field).",
+        false,
+      );
 
-Apply progressive overload: Weeks 7-12 should use slightly higher weights/reps/sets than weeks 1-6 where appropriate.
-Week 7 is a deload transition point — use 30-40% reduced volume for week 7, then build back up through week 12.
+      // Fire all 4 calls in PARALLEL — total wall-clock = max(chunk durations)
+      const parallelStart = Date.now();
+      const [rawA, rawB, rawC, rawD] = await Promise.all([
+        callAI(systemPrompt, chunkAPrompt, "chunkA-weeks-1-3"),
+        callAI(systemPrompt, chunkBPrompt, "chunkB-weeks-4-6"),
+        callAI(systemPrompt, chunkCPrompt, "chunkC-weeks-7-9"),
+        callAI(systemPrompt, chunkDPrompt, "chunkD-weeks-10-12"),
+      ]);
+      console.log("[PlanGen] All 4 parallel chunks complete", {
+        totalParallelMs: Date.now() - parallelStart,
+      });
 
-Generate the workout_plan for Week 7 through Week 12 now.`;
+      const chunkA = safeParseJSON(rawA, "chunkA");
+      const chunkB = safeParseJSON(rawB, "chunkB");
+      const chunkC = safeParseJSON(rawC, "chunkC");
+      const chunkD = safeParseJSON(rawD, "chunkD");
 
-      const raw2 = await callAI(systemPrompt, chunk2Prompt, "chunk2-weeks-7-12");
-      const chunk2 = safeParseJSON(raw2, "chunk2");
-      const chunk2Days = Array.isArray(chunk2) ? chunk2 : (chunk2.workout_plan || []);
-      if (Array.isArray(chunk2Days)) {
-        allWorkoutDays.push(...chunk2Days);
-      }
-      console.log("[PlanGen] Chunk 2 (Weeks 7-12) days generated", {
-        count: Array.isArray(chunk2Days) ? chunk2Days.length : 0,
+      plan = { ...chunkA };
+      const extractDays = (c: any): any[] => Array.isArray(c) ? c : (c?.workout_plan || []);
+      const allWorkoutDays = [
+        ...extractDays(chunkA),
+        ...extractDays(chunkB),
+        ...extractDays(chunkC),
+        ...extractDays(chunkD),
+      ];
+      console.log("[PlanGen] Merged chunks", {
+        chunkA: extractDays(chunkA).length,
+        chunkB: extractDays(chunkB).length,
+        chunkC: extractDays(chunkC).length,
+        chunkD: extractDays(chunkD).length,
+        total: allWorkoutDays.length,
       });
 
       plan.workout_plan = allWorkoutDays;
