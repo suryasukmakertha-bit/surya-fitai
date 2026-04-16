@@ -432,26 +432,24 @@ Generate the complete plan now.`;
      * BUG #2 (fixed): "Edge Function returned a non-2xx status code"
      * on 3-month plan generation.
      * ROOT CAUSE: 4 sequential AI calls (~50s each) exceeded the
-     * Supabase edge function 150s wall-clock limit, causing the
-     * runtime to hard-kill the function before it could send a
-     * response — the browser saw a transport-level failure with no
-     * CORS headers.
+     * Supabase edge function 150s wall-clock limit.
      * FIX:
-     *   1. Reduced 12-week generation from 4 chunks (3w each) to
-     *      2 chunks (6w each) so it finishes in ~100s.
-     *   2. Added Promise.race timeout guard (140s) returning a clean
-     *      JSON 408 with CORS headers if generation runs long.
-     *   3. Wrapped entire serve handler in try/catch so any error
-     *      returns a JSON response with CORS headers, never a crash.
-     *   4. Wrapped JSON.parse in safeParseJSON returning a tagged
-     *      422 instead of a raw throw.
+     *   1. Promise.race timeout guard (140s) returning a clean JSON 408.
+     *   2. try/catch wrapping entire serve handler (always returns CORS).
+     *   3. safeParseJSON returning a tagged 422 instead of a raw throw.
+     *
+     * BUG #3 (fixed): 3-month generation took ~96s (2 sequential chunks).
+     * ROOT CAUSE: Sequential await of chunk1 then chunk2.
+     * FIX: 4 PARALLEL chunks via Promise.all (3 weeks each). Total
+     * wall-clock = max(chunk durations) ≈ 40-50s instead of sum.
+     * Cross-chunk uniqueness is enforced by phase-specific prompts
+     * (Foundation / Accumulation / Intensification / Peak) since
+     * parallel chunks cannot share dynamic exercise context.
      *
      * PREVENTION:
-     *  - validatePlanExerciseUniqueness() must run before returning
-     *    a plan to the client.
+     *  - validatePlanExerciseUniqueness() must run before returning.
      *  - Multi-call strategy is mandatory for plans > 6 weeks.
-     *  - Never increase the chunk count for 3-month plans without
-     *    also re-measuring total wall-clock time vs the 140s budget.
+     *  - Keep chunks ≤ 4 to avoid AI gateway rate limits when parallel.
      *  - Every Response must use jsonResponse() (with CORS).
      */
 
