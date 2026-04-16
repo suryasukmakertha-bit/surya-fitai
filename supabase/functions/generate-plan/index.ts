@@ -86,12 +86,16 @@ function calculateTargetSets(sessionDurationMinutes: number, experienceLevel: st
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Outer try/catch: GUARANTEES every code path returns a CORS-headed
+  // JSON response. Without this, an unhandled rejection produces a
+  // transport-level non-2xx that the browser surfaces as
+  // "Edge Function returned a non-2xx status code".
   try {
+    // Wall-clock guard: race the actual work against a hard timeout.
+    const work = (async () => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: 'auth_required', message: 'Authentication required' }, 401);
     }
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -101,17 +105,13 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: 'invalid_auth', message: 'Invalid authentication' }, 401);
     }
 
     const body = await req.json();
     const validationErrors = validateInput(body);
     if (validationErrors.length > 0) {
-      return new Response(JSON.stringify({ error: 'Invalid input', details: validationErrors }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+      return jsonResponse({ error: 'invalid_input', message: 'Invalid input', details: validationErrors }, 400);
     }
 
     const {
