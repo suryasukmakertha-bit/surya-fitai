@@ -144,6 +144,16 @@ serve(async (req) => {
     const totalWeeks = duration === "3 Months" ? 12 : 4;
     const equipmentStr = Array.isArray(equipment) && equipment.length > 0 ? equipment.join(", ") : "Not specified";
 
+    console.log("[PlanGen] START", {
+      duration,
+      totalWeeks,
+      userId: claimsData.claims.sub?.substring(0, 8),
+      equipment: equipmentStr,
+      experience,
+      lang: language,
+      timestamp: new Date().toISOString(),
+    });
+
     const systemPrompt = `You are Coach Surya, a certified professional personal trainer and sports nutritionist with 10+ years of real client experience across Southeast Asia and globally. You are not a generic AI — you are a professional coach who uses AI to scale your expertise.
 
 When generating plans, always:
