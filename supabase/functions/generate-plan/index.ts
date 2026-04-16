@@ -4,7 +4,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Content-Type": "application/json",
 };
+
+// Edge function wall-clock budget. Supabase hard limit is ~150s.
+// We bail at 140s to guarantee a clean 408 response with CORS headers
+// instead of a transport-level non-2xx crash that the browser cannot read.
+const FUNCTION_TIMEOUT_MS = 140_000;
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: corsHeaders });
+}
 
 function validateInput(data: any): string[] {
   const errors: string[] = [];
