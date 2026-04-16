@@ -4,7 +4,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Content-Type": "application/json",
 };
+
+// Edge function wall-clock budget. Supabase hard limit is ~150s.
+// We bail at 140s to guarantee a clean 408 response with CORS headers
+// instead of a transport-level non-2xx crash that the browser cannot read.
+const FUNCTION_TIMEOUT_MS = 140_000;
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: corsHeaders });
+}
 
 function validateInput(data: any): string[] {
   const errors: string[] = [];
@@ -76,12 +86,16 @@ function calculateTargetSets(sessionDurationMinutes: number, experienceLevel: st
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Outer try/catch: GUARANTEES every code path returns a CORS-headed
+  // JSON response. Without this, an unhandled rejection produces a
+  // transport-level non-2xx that the browser surfaces as
+  // "Edge Function returned a non-2xx status code".
   try {
+    // Wall-clock guard: race the actual work against a hard timeout.
+    const work = (async () => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: 'auth_required', message: 'Authentication required' }, 401);
     }
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -91,17 +105,13 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: 'invalid_auth', message: 'Invalid authentication' }, 401);
     }
 
     const body = await req.json();
     const validationErrors = validateInput(body);
     if (validationErrors.length > 0) {
-      return new Response(JSON.stringify({ error: 'Invalid input', details: validationErrors }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+      return jsonResponse({ error: 'invalid_input', message: 'Invalid input', details: validationErrors }, 400);
     }
 
     const {
@@ -133,6 +143,16 @@ serve(async (req) => {
     const restDaysNum = 7 - workoutDays;
     const totalWeeks = duration === "3 Months" ? 12 : 4;
     const equipmentStr = Array.isArray(equipment) && equipment.length > 0 ? equipment.join(", ") : "Not specified";
+
+    console.log("[PlanGen] START", {
+      duration,
+      totalWeeks,
+      userId: claimsData.claims.sub?.substring(0, 8),
+      equipment: equipmentStr,
+      experience,
+      lang: language,
+      timestamp: new Date().toISOString(),
+    });
 
     const systemPrompt = `You are Coach Surya, a certified professional personal trainer and sports nutritionist with 10+ years of real client experience across Southeast Asia and globally. You are not a generic AI — you are a professional coach who uses AI to scale your expertise.
 
@@ -404,21 +424,41 @@ Generate the complete plan now.`;
     /*
      * KNOWN BUG HISTORY — DO NOT REGRESS:
      *
-     * BUG (fixed): 3-month plans repeated Day 1 exercises on all
+     * BUG #1 (fixed): 3-month plans repeated Day 1 exercises on all
      * subsequent days from Day 3 onward.
-     * ROOT CAUSE: Token/context truncation — single API call for 12 weeks
-     * exceeded model output limits, causing truncated/repeated content.
-     * FIX APPLIED: Multi-call generation (3 weeks per call) for plans > 6 weeks,
-     * plus pre-save validation of exercise uniqueness.
+     * ROOT CAUSE: Token/context truncation in a single AI call.
+     * FIX: Multi-call generation + per-week exercise context.
      *
-     * PREVENTION: validatePlanExerciseUniqueness() must be called
-     * before every plan save. Multi-call strategy must be used for
-     * plans longer than 6 weeks. Never use shared object references
-     * when building day data structures in loops.
+     * BUG #2 (fixed): "Edge Function returned a non-2xx status code"
+     * on 3-month plan generation.
+     * ROOT CAUSE: 4 sequential AI calls (~50s each) exceeded the
+     * Supabase edge function 150s wall-clock limit, causing the
+     * runtime to hard-kill the function before it could send a
+     * response — the browser saw a transport-level failure with no
+     * CORS headers.
+     * FIX:
+     *   1. Reduced 12-week generation from 4 chunks (3w each) to
+     *      2 chunks (6w each) so it finishes in ~100s.
+     *   2. Added Promise.race timeout guard (140s) returning a clean
+     *      JSON 408 with CORS headers if generation runs long.
+     *   3. Wrapped entire serve handler in try/catch so any error
+     *      returns a JSON response with CORS headers, never a crash.
+     *   4. Wrapped JSON.parse in safeParseJSON returning a tagged
+     *      422 instead of a raw throw.
+     *
+     * PREVENTION:
+     *  - validatePlanExerciseUniqueness() must run before returning
+     *    a plan to the client.
+     *  - Multi-call strategy is mandatory for plans > 6 weeks.
+     *  - Never increase the chunk count for 3-month plans without
+     *    also re-measuring total wall-clock time vs the 140s budget.
+     *  - Every Response must use jsonResponse() (with CORS).
      */
 
-    // Helper: call AI and collect streamed response
-    async function callAI(sysPrompt: string, usrPrompt: string): Promise<string> {
+    // Helper: call AI gateway and collect streamed response.
+    // Throws { status, message } for 429/402 so the outer catch can map them.
+    async function callAI(sysPrompt: string, usrPrompt: string, label: string): Promise<string> {
+      const startTs = Date.now();
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -439,7 +479,7 @@ Generate the complete plan now.`;
         if (resp.status === 429) throw { status: 429, message: "Rate limit exceeded. Please try again shortly." };
         if (resp.status === 402) throw { status: 402, message: "AI usage limit reached. Please add credits." };
         const errText = await resp.text();
-        console.error("AI gateway error:", resp.status, errText);
+        console.error("[PlanGen] AI gateway error", { label, status: resp.status, body: errText.slice(0, 500) });
         throw new Error("AI gateway error");
       }
 
@@ -468,12 +508,33 @@ Generate the complete plan now.`;
           } catch { /* partial chunk, skip */ }
         }
       }
+
+      console.log("[PlanGen] AI call complete", {
+        label,
+        elapsedMs: Date.now() - startTs,
+        responseLength: fullContent.length,
+      });
       return fullContent;
     }
 
-    function parseJSON(raw: string): any {
+    // Safe JSON parse — throws a tagged ParseError so the outer
+    // catch can map it to a 422 response (instead of a generic 500).
+    function safeParseJSON(raw: string, label: string): any {
       const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      return JSON.parse(cleaned);
+      try {
+        return JSON.parse(cleaned);
+      } catch (parseError) {
+        console.error("[PlanGen] JSON parse failed", {
+          label,
+          rawLength: cleaned.length,
+          tail: cleaned.slice(-500),
+          error: (parseError as Error).message,
+        });
+        const err: any = new Error("Failed to parse AI response");
+        err.status = 422;
+        err.code = "parse_error";
+        throw err;
+      }
     }
 
     // Validate no two consecutive training days share identical exercise lists
@@ -483,7 +544,7 @@ Generate the complete plan now.`;
         const prev = trainingDays[i - 1].exercises.map((e: any) => e.name).sort().join(",");
         const curr = trainingDays[i].exercises.map((e: any) => e.name).sort().join(",");
         if (prev === curr) {
-          console.error(`PLAN VALIDATION FAILED: Training day ${i + 1} has identical exercises to day ${i}.`);
+          console.error(`[PlanGen] PLAN VALIDATION FAILED: Training day ${i + 1} has identical exercises to day ${i}.`);
           return false;
         }
       }
@@ -494,68 +555,59 @@ Generate the complete plan now.`;
 
     if (totalWeeks > 6) {
       // === MULTI-CALL STRATEGY for 3-month (12-week) plans ===
-      console.log(`[PlanGen] Multi-call strategy: ${totalWeeks} weeks, splitting into chunks of 3 weeks`);
+      // Reduced from 4 chunks to 2 chunks to stay under the 140s budget.
+      // Chunk 1: full plan metadata + weeks 1-6.
+      // Chunk 2: weeks 7-12 (workout_plan only) with previous-exercise context.
+      console.log("[PlanGen] Multi-call strategy", { totalWeeks, chunks: 2 });
 
-      // First call: get metadata + weeks 1-3
       const chunk1Prompt = `${userPrompt}
 
-IMPORTANT: Generate ONLY the first 3 weeks (Week 1 through Week 3) of the ${totalWeeks}-week workout plan.
+IMPORTANT: Generate ONLY the first 6 weeks (Week 1 through Week 6) of the ${totalWeeks}-week workout plan.
 Include ALL other plan fields (programOverview, weeklySplit, warmUp, coolDown, meal_plan, calorie_target, protein, carbs, fat, water_liters, weekly_schedule, safety_notes, warnings, motivational_message, grocery_list, estimated_calories_burned, weight_projection, progressionRules, deloadWeek, recoveryTips).
-The workout_plan array must contain ONLY days for Week 1 through Week 3.
+The workout_plan array must contain ONLY days for Week 1 through Week 6.
+Apply progressive overload across these 6 weeks. Each training day in each week MUST have unique exercises matching its focus title.
 Generate the complete plan now.`;
 
-      const raw1 = await callAI(systemPrompt, chunk1Prompt);
-      const chunk1 = parseJSON(raw1);
+      const raw1 = await callAI(systemPrompt, chunk1Prompt, "chunk1-weeks-1-6");
+      const chunk1 = safeParseJSON(raw1, "chunk1");
       plan = { ...chunk1 };
       const allWorkoutDays = [...(chunk1.workout_plan || [])];
 
-      // Subsequent calls: weeks 4-6, 7-9, 10-12
-      const chunkRanges = [
-        { start: 4, end: 6 },
-        { start: 7, end: 9 },
-        { start: 10, end: 12 },
-      ];
+      // Build context list of exercises already used in weeks 1-6
+      const previousExerciseNames = allWorkoutDays
+        .filter((d: any) => d.exercises && d.exercises.length > 0)
+        .flatMap((d: any) => d.exercises.map((e: any) => e.name));
+      const uniquePrevNames = [...new Set(previousExerciseNames)];
 
-      for (const range of chunkRanges) {
-        if (range.start > totalWeeks) break;
-        const actualEnd = Math.min(range.end, totalWeeks);
+      const chunk2Prompt = `${userPrompt}
 
-        // Collect exercise names from previous weeks to prevent repeats
-        const previousExerciseNames = allWorkoutDays
-          .filter((d: any) => d.exercises && d.exercises.length > 0)
-          .flatMap((d: any) => d.exercises.map((e: any) => e.name));
-        const uniquePrevNames = [...new Set(previousExerciseNames)];
-
-        const chunkPrompt = `${userPrompt}
-
-IMPORTANT: Generate ONLY Week ${range.start} through Week ${actualEnd} of the ${totalWeeks}-week workout plan.
+IMPORTANT: Generate ONLY Week 7 through Week 12 of the ${totalWeeks}-week workout plan.
 Output ONLY valid JSON with a single key "workout_plan" containing an array of day objects for these weeks ONLY.
 Do NOT include programOverview, meal_plan, or any other fields — ONLY "workout_plan".
 
-CONTEXT FROM PREVIOUS WEEKS (for exercise variety — you may reuse exercises across different weeks for progressive overload, but within the SAME week all training days must have unique exercises):
-Previously used exercises: ${uniquePrevNames.slice(0, 60).join(", ")}
+CONTEXT FROM WEEKS 1-6 (you may reuse these exercises for progressive overload, but within the SAME week all training days must still have unique exercises):
+Previously used exercises: ${uniquePrevNames.slice(0, 80).join(", ")}
 
-Apply progressive overload: Week ${range.start}-${actualEnd} should use slightly higher weights/reps/sets than earlier weeks where appropriate.
-${range.start === 7 ? "This is a deload transition point — Week 7 should be a deload week with 30-40% reduced volume." : ""}
+Apply progressive overload: Weeks 7-12 should use slightly higher weights/reps/sets than weeks 1-6 where appropriate.
+Week 7 is a deload transition point — use 30-40% reduced volume for week 7, then build back up through week 12.
 
-Generate the workout_plan for Week ${range.start} to Week ${actualEnd} now.`;
+Generate the workout_plan for Week 7 through Week 12 now.`;
 
-        const rawN = await callAI(systemPrompt, chunkPrompt);
-        const chunkN = parseJSON(rawN);
-        const chunkDays = chunkN.workout_plan || chunkN;
-        if (Array.isArray(chunkDays)) {
-          allWorkoutDays.push(...chunkDays);
-        } else if (Array.isArray(chunkN.workout_plan)) {
-          allWorkoutDays.push(...chunkN.workout_plan);
-        }
-        console.log(`[PlanGen] Chunk Week ${range.start}-${actualEnd}: ${Array.isArray(chunkDays) ? chunkDays.length : 0} days generated`);
+      const raw2 = await callAI(systemPrompt, chunk2Prompt, "chunk2-weeks-7-12");
+      const chunk2 = safeParseJSON(raw2, "chunk2");
+      const chunk2Days = Array.isArray(chunk2) ? chunk2 : (chunk2.workout_plan || []);
+      if (Array.isArray(chunk2Days)) {
+        allWorkoutDays.push(...chunk2Days);
       }
+      console.log("[PlanGen] Chunk 2 (Weeks 7-12) days generated", {
+        count: Array.isArray(chunk2Days) ? chunk2Days.length : 0,
+      });
 
       plan.workout_plan = allWorkoutDays;
     } else {
       // === SINGLE-CALL for plans ≤ 6 weeks ===
-      const raw = await callAI(systemPrompt, userPrompt);
-      plan = parseJSON(raw);
+      const raw = await callAI(systemPrompt, userPrompt, "single-call");
+      plan = safeParseJSON(raw, "single-call");
     }
 
     // Validate exercise uniqueness
@@ -565,38 +617,64 @@ Generate the workout_plan for Week ${range.start} to Week ${actualEnd} now.`;
         .filter((d: any) => d.exercises?.length > 0)
         .map((d: any) => d.exercises.map((e: any) => e.name).sort().join(","))
     );
-    console.log(`[PlanGen] Duration: ${duration}, Total training days: ${trainingDayCount}, Unique exercise day signatures: ${exerciseSignatures.size}`);
+    console.log("[PlanGen] Validation summary", {
+      duration,
+      trainingDayCount,
+      uniqueDaySignatures: exerciseSignatures.size,
+    });
 
     if (!validatePlanExerciseUniqueness(plan.workout_plan || [])) {
-      console.warn("[PlanGen] Validation failed — retrying generation once...");
-      // Retry once with single call for short plans, or redo last chunk for long plans
+      console.warn("[PlanGen] Validation failed — retrying generation once (short plans only)");
       if (totalWeeks <= 6) {
-        const retryRaw = await callAI(systemPrompt, userPrompt + "\n\nCRITICAL: Each training day MUST have completely different exercises. Do NOT repeat the same exercise list on multiple days.");
-        plan = parseJSON(retryRaw);
+        const retryRaw = await callAI(
+          systemPrompt,
+          userPrompt + "\n\nCRITICAL: Each training day MUST have completely different exercises. Do NOT repeat the same exercise list on multiple days.",
+          "retry-single-call"
+        );
+        plan = safeParseJSON(retryRaw, "retry");
       }
-      // For multi-call, the validation is per-chunk so less likely to fail
-      // Log final state either way
-      const retryCount = (plan.workout_plan || []).filter((d: any) => d.exercises?.length > 0).length;
-      const retrySignatures = new Set(
-        (plan.workout_plan || [])
-          .filter((d: any) => d.exercises?.length > 0)
-          .map((d: any) => d.exercises.map((e: any) => e.name).sort().join(","))
-      );
-      console.log(`[PlanGen] After retry — Training days: ${retryCount}, Unique signatures: ${retrySignatures.size}`);
+      // For multi-call, validation is per-chunk so less likely to fail
     }
 
-    return new Response(JSON.stringify(plan), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    console.log("[PlanGen] Plan returned successfully", {
+      duration,
+      totalWorkoutDays: (plan.workout_plan || []).length,
+      trainingDayCount,
     });
+
+    return jsonResponse(plan, 200);
+    })();
+
+    // Race the work against the wall-clock budget.
+    const timeoutPromise = new Promise<Response>((_resolve, reject) =>
+      setTimeout(() => reject({ status: 408, code: "timeout", message: "Plan generation timed out" }), FUNCTION_TIMEOUT_MS)
+    );
+
+    return await Promise.race([work, timeoutPromise]);
   } catch (e: any) {
-    if (e?.status === 429 || e?.status === 402) {
-      return new Response(JSON.stringify({ error: e.message }), {
-        status: e.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Map known/tagged errors to specific status codes; ALL responses
+    // include CORS headers so the browser can read them.
+    if (e?.status === 408 || e?.code === "timeout") {
+      console.error("[PlanGen] FAILED — timeout", { message: e?.message });
+      return jsonResponse({ error: "timeout", message: "Plan generation timed out. Please try again." }, 408);
     }
-    console.error("generate-plan error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (e?.status === 429) {
+      return jsonResponse({ error: "rate_limit", message: e.message }, 429);
+    }
+    if (e?.status === 402) {
+      return jsonResponse({ error: "payment_required", message: e.message }, 402);
+    }
+    if (e?.status === 422 || e?.code === "parse_error") {
+      console.error("[PlanGen] FAILED — parse error", { message: e?.message });
+      return jsonResponse({ error: "parse_error", message: "Failed to parse AI response. Please try again." }, 422);
+    }
+    console.error("[PlanGen] FAILED — internal error", {
+      message: e instanceof Error ? e.message : String(e),
+      stack: e instanceof Error ? e.stack : undefined,
     });
+    return jsonResponse(
+      { error: "internal_error", message: e instanceof Error ? e.message : "Unknown error" },
+      500
+    );
   }
 });

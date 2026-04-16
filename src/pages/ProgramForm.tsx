@@ -172,7 +172,36 @@ export default function ProgramForm() {
           targetTotalSets: targetSets,
         },
       });
-      if (res.error) throw res.error;
+      // Map edge function status codes to localized, user-friendly messages.
+      // The edge function returns CORS-headed JSON for every error path
+      // (408 timeout, 422 parse, 429 rate limit, 402 credits, 500 internal),
+      // so res.error.context.status is reliably populated.
+      if (res.error) {
+        const status: number | undefined = (res.error as any)?.context?.status;
+        let description: string = (t as any).planErrInternal;
+        if (status === 408) description = (t as any).planErrTimeout;
+        else if (status === 422) description = (t as any).planErrParse;
+        else if (status === 429) description = (t as any).planErrRate;
+        else if (status === 402) description = (t as any).planErrCredits;
+        else if (status === 500) description = (t as any).planErrInternal;
+        else if (!status) description = (t as any).planErrNetwork;
+
+        toast({
+          title: "Error",
+          description,
+          variant: "destructive",
+          action: (
+            <button
+              type="button"
+              onClick={() => handleSubmit(e)}
+              className="ml-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+            >
+              {(t as any).retry}
+            </button>
+          ) as any,
+        });
+        return;
+      }
 
       // Generate a client ID for idempotent saves — do NOT auto-save
       const clientGeneratedId = crypto.randomUUID();
@@ -180,7 +209,8 @@ export default function ProgramForm() {
       playGeneratePlanSuccess();
       navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle, startDate: startDateStr }, programType: type, clientGeneratedId } });
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      // Network-level failure (no response at all)
+      toast({ title: "Error", description: (t as any).planErrNetwork, variant: "destructive" });
     } finally {
       clearInterval(stepInterval);
       setLoading(false);
