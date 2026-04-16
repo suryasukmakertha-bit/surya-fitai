@@ -552,20 +552,20 @@ Generate the complete plan now.`;
     let plan: any;
 
     if (totalWeeks > 6) {
-      // === PARALLEL MULTI-CALL STRATEGY for 3-month (12-week) plans ===
-      // 4 chunks of 3 weeks each, executed CONCURRENTLY via Promise.all
-      // to bring total wall-clock time from ~96s down to ~40-50s
-      // (the slowest chunk's duration, not the sum).
+      // === PARALLEL 2-CHUNK STRATEGY for 3-month (12-week) plans ===
+      // 2 chunks of 6 weeks each, executed CONCURRENTLY via Promise.all.
       //
-      // Chunk A: full plan metadata + Weeks 1-3 (largest payload)
-      // Chunk B: Weeks 4-6 (workout_plan only)
-      // Chunk C: Weeks 7-9 (workout_plan only, includes deload at W7)
-      // Chunk D: Weeks 10-12 (workout_plan only, peak phase)
+      // KNOWN BUG HISTORY:
+      //   - 4-chunk parallel strategy (4 simultaneous AI calls) triggered
+      //     Lovable AI Gateway rate limits (HTTP 429 "Batas penggunaan AI
+      //     tercapai") for the entire workspace, blocking ALL plan generation
+      //     including 1-month plans for several minutes after a single
+      //     3-month attempt. Reverted to 2 parallel chunks (~55-65s wall clock)
+      //     which respects the gateway's per-minute concurrency budget.
       //
-      // Cross-chunk uniqueness is enforced by phase-specific instructions
-      // baked into each prompt (different focus per phase) since chunks
-      // run in parallel and cannot pass exercise context to each other.
-      console.log("[PlanGen] Parallel multi-call strategy", { totalWeeks, chunks: 4 });
+      // Chunk A: full plan metadata + Weeks 1-6 (foundation + accumulation)
+      // Chunk B: Weeks 7-12 (workout_plan only, intensification + peak)
+      console.log("[PlanGen] Parallel 2-chunk strategy", { totalWeeks, chunks: 2 });
 
       const buildWeekRangePrompt = (
         startWeek: number,
@@ -595,56 +595,38 @@ Generate the workout_plan for Week ${startWeek} through Week ${endWeek} now.`;
       };
 
       const chunkAPrompt = buildWeekRangePrompt(
-        1, 3, "Phase 1 - Foundation",
-        "Use moderate volume and focus on form. Establish baseline RPE 6-7 for all working sets.",
+        1, 6, "Phase 1 - Foundation & Accumulation",
+        "Weeks 1-3: moderate volume, baseline RPE 6-7, focus on form. Weeks 4-6: progressive overload (+5% load or reps), introduce exercise variations (e.g. incline vs flat bench, Romanian vs conventional deadlift).",
         true,
       );
       const chunkBPrompt = buildWeekRangePrompt(
-        4, 6, "Phase 2 - Accumulation",
-        "Apply progressive overload: increase weight or reps by ~5% vs Phase 1. Vary exercise variations (e.g. swap flat bench for incline, swap conventional deadlift for Romanian) to avoid repeating the exact same exercises as weeks 1-3.",
-        false,
-      );
-      const chunkCPrompt = buildWeekRangePrompt(
-        7, 9, "Phase 3 - Intensification (Week 7 = Deload)",
-        "Week 7 is a DELOAD week: reduce volume by 30-40% and use lighter loads (RPE 5-6). Weeks 8-9 push intensity higher than Phase 2 with new exercise variations. Use different equipment angles or unilateral variations vs weeks 1-6.",
-        false,
-      );
-      const chunkDPrompt = buildWeekRangePrompt(
-        10, 12, "Phase 4 - Peak & Consolidation",
-        "Peak phase: highest intensity (RPE 8-9) with slightly reduced volume. Use compound-focused movements and introduce 1-2 advanced variations per training day that did NOT appear in weeks 1-9 (e.g. tempo work, pause reps, drop sets noted in the notes field).",
+        7, 12, "Phase 2 - Intensification & Peak (Week 7 = Deload)",
+        "Week 7 is a DELOAD week: reduce volume by 30-40% with lighter loads (RPE 5-6). Weeks 8-9: intensification with new exercise variations vs weeks 1-6 (different angles, unilateral work). Weeks 10-12: peak phase RPE 8-9 with 1-2 advanced variations per day (tempo, pause reps, drop sets in notes).",
         false,
       );
 
-      // Fire all 4 calls in PARALLEL — total wall-clock = max(chunk durations)
+      // Fire 2 calls in PARALLEL — total wall-clock = max(chunk durations) ~55-65s
       const parallelStart = Date.now();
-      const [rawA, rawB, rawC, rawD] = await Promise.all([
-        callAI(systemPrompt, chunkAPrompt, "chunkA-weeks-1-3"),
-        callAI(systemPrompt, chunkBPrompt, "chunkB-weeks-4-6"),
-        callAI(systemPrompt, chunkCPrompt, "chunkC-weeks-7-9"),
-        callAI(systemPrompt, chunkDPrompt, "chunkD-weeks-10-12"),
+      const [rawA, rawB] = await Promise.all([
+        callAI(systemPrompt, chunkAPrompt, "chunkA-weeks-1-6"),
+        callAI(systemPrompt, chunkBPrompt, "chunkB-weeks-7-12"),
       ]);
-      console.log("[PlanGen] All 4 parallel chunks complete", {
+      console.log("[PlanGen] Both parallel chunks complete", {
         totalParallelMs: Date.now() - parallelStart,
       });
 
       const chunkA = safeParseJSON(rawA, "chunkA");
       const chunkB = safeParseJSON(rawB, "chunkB");
-      const chunkC = safeParseJSON(rawC, "chunkC");
-      const chunkD = safeParseJSON(rawD, "chunkD");
 
       plan = { ...chunkA };
       const extractDays = (c: any): any[] => Array.isArray(c) ? c : (c?.workout_plan || []);
       const allWorkoutDays = [
         ...extractDays(chunkA),
         ...extractDays(chunkB),
-        ...extractDays(chunkC),
-        ...extractDays(chunkD),
       ];
       console.log("[PlanGen] Merged chunks", {
         chunkA: extractDays(chunkA).length,
         chunkB: extractDays(chunkB).length,
-        chunkC: extractDays(chunkC).length,
-        chunkD: extractDays(chunkD).length,
         total: allWorkoutDays.length,
       });
 
