@@ -249,14 +249,14 @@ OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
 }
 
 TRAINING SCIENCE RULES:
+- Generate a complete 4-week progressive workout program. Week 1 is foundation, Week 2 increases volume, Week 3 increases intensity, Week 4 is peak week.
 - Target total working sets per session: ${targetSets} sets (calculated from ${targetLiftingMinutes} min lifting time at 2.3 min/set avg)
 - Session duration target: ${sessionMin} minutes (5 min warm-up + ${targetLiftingMinutes} min lifting + 5 min cool-down)
-- Apply progressive overload: systematically increase weight, reps, or volume across weeks
-- Week 1: Adaptation phase (moderate intensity 60-70% capacity)
-- Week 2: Volume increase (add 1-2 reps or 1 extra set)
-- Week 3: Load increase (add 2.5-5kg on compound lifts, 1-2.5kg on isolation)
-- Week 4: Deload/variation week (reduce volume by 30-40%, introduce exercise variations)
-- For 3-month plans, repeat this 4-week mesocycle 3 times with progressive baseline increases, deload on week 7
+- Apply progressive overload: systematically increase weight, reps, or volume across the 4 weeks
+- Week 1 (Foundation): Adaptation phase, moderate intensity 60-70% capacity, focus on perfect form and movement patterns
+- Week 2 (Volume): Volume increase — add 1-2 reps per set, or add 1 extra set on key compound lifts
+- Week 3 (Intensity): Load increase — add 2.5-5kg on compound lifts, 1-2.5kg on isolation; reps stay moderate
+- Week 4 (Peak): Peak intensity week with top working sets at RPE 8-9, then taper the final 2 sessions slightly to consolidate gains
 - Include recommended weight load (kg) for EVERY exercise
 - Include form cues and safety notes for each exercise
 - Use proper training splits based on ${workoutDays} training days per week
@@ -556,91 +556,14 @@ Generate the complete plan now.`;
 
     let plan: any;
 
-    if (totalWeeks > 6) {
-      // === PARALLEL 2-CHUNK STRATEGY for 3-month (12-week) plans ===
-      // 2 chunks of 6 weeks each, executed CONCURRENTLY via Promise.all.
-      //
-      // KNOWN BUG HISTORY:
-      //   - 4-chunk parallel strategy (4 simultaneous AI calls) triggered
-      //     Lovable AI Gateway rate limits (HTTP 429 "Batas penggunaan AI
-      //     tercapai") for the entire workspace, blocking ALL plan generation
-      //     including 1-month plans for several minutes after a single
-      //     3-month attempt. Reverted to 2 parallel chunks (~55-65s wall clock)
-      //     which respects the gateway's per-minute concurrency budget.
-      //
-      // Chunk A: full plan metadata + Weeks 1-6 (foundation + accumulation)
-      // Chunk B: Weeks 7-12 (workout_plan only, intensification + peak)
-      console.log("[PlanGen] Parallel 2-chunk strategy", { totalWeeks, chunks: 2 });
-
-      const buildWeekRangePrompt = (
-        startWeek: number,
-        endWeek: number,
-        phaseLabel: string,
-        phaseInstructions: string,
-        includeFullMetadata: boolean,
-      ) => {
-        if (includeFullMetadata) {
-          return `${userPrompt}
-
-IMPORTANT: Generate ONLY Week ${startWeek} through Week ${endWeek} of the ${totalWeeks}-week workout plan (${phaseLabel}).
-Include ALL other plan fields (programOverview, weeklySplit, warmUp, coolDown, meal_plan, calorie_target, protein, carbs, fat, water_liters, weekly_schedule, safety_notes, warnings, motivational_message, grocery_list, estimated_calories_burned, weight_projection, progressionRules, deloadWeek, recoveryTips).
-The workout_plan array must contain ONLY days for Week ${startWeek} through Week ${endWeek}.
-${phaseInstructions}
-Each training day MUST have unique exercises matching its focus title. Do NOT repeat the same exercise list on consecutive days.
-Generate the complete plan now.`;
-        }
-        return `${userPrompt}
-
-IMPORTANT: Generate ONLY Week ${startWeek} through Week ${endWeek} of the ${totalWeeks}-week workout plan (${phaseLabel}).
-Output ONLY valid JSON with a single key "workout_plan" containing an array of day objects for these weeks ONLY.
-Do NOT include programOverview, meal_plan, or any other fields — ONLY "workout_plan".
-${phaseInstructions}
-Each training day MUST have unique exercises matching its focus title. Do NOT repeat the same exercise list on consecutive days.
-Generate the workout_plan for Week ${startWeek} through Week ${endWeek} now.`;
-      };
-
-      const chunkAPrompt = buildWeekRangePrompt(
-        1, 6, "Phase 1 - Foundation & Accumulation",
-        "Weeks 1-3: moderate volume, baseline RPE 6-7, focus on form. Weeks 4-6: progressive overload (+5% load or reps), introduce exercise variations (e.g. incline vs flat bench, Romanian vs conventional deadlift).",
-        true,
-      );
-      const chunkBPrompt = buildWeekRangePrompt(
-        7, 12, "Phase 2 - Intensification & Peak (Week 7 = Deload)",
-        "Week 7 is a DELOAD week: reduce volume by 30-40% with lighter loads (RPE 5-6). Weeks 8-9: intensification with new exercise variations vs weeks 1-6 (different angles, unilateral work). Weeks 10-12: peak phase RPE 8-9 with 1-2 advanced variations per day (tempo, pause reps, drop sets in notes).",
-        false,
-      );
-
-      // Fire 2 calls in PARALLEL — total wall-clock = max(chunk durations) ~55-65s
-      const parallelStart = Date.now();
-      const [rawA, rawB] = await Promise.all([
-        callAI(systemPrompt, chunkAPrompt, "chunkA-weeks-1-6"),
-        callAI(systemPrompt, chunkBPrompt, "chunkB-weeks-7-12"),
-      ]);
-      console.log("[PlanGen] Both parallel chunks complete", {
-        totalParallelMs: Date.now() - parallelStart,
-      });
-
-      const chunkA = safeParseJSON(rawA, "chunkA");
-      const chunkB = safeParseJSON(rawB, "chunkB");
-
-      plan = { ...chunkA };
-      const extractDays = (c: any): any[] => Array.isArray(c) ? c : (c?.workout_plan || []);
-      const allWorkoutDays = [
-        ...extractDays(chunkA),
-        ...extractDays(chunkB),
-      ];
-      console.log("[PlanGen] Merged chunks", {
-        chunkA: extractDays(chunkA).length,
-        chunkB: extractDays(chunkB).length,
-        total: allWorkoutDays.length,
-      });
-
-      plan.workout_plan = allWorkoutDays;
-    } else {
-      // === SINGLE-CALL for plans ≤ 6 weeks ===
-      const raw = await callAI(systemPrompt, userPrompt, "single-call");
-      plan = safeParseJSON(raw, "single-call");
-    }
+    // === SINGLE-CALL STRATEGY ===
+    // Plans are now always exactly 4 weeks (1 month). The previous 12-week
+    // parallel-chunk strategy is removed because all plans now fit comfortably
+    // in a single AI call (well under the 140s wall-clock budget). Users
+    // continue to month 2/3/etc through the in-app completion modal, which
+    // creates a fresh plan with plan_month_number incremented.
+    const raw = await callAI(systemPrompt, userPrompt, "single-call-4-weeks");
+    plan = safeParseJSON(raw, "single-call-4-weeks");
 
     // Validate exercise uniqueness
     const trainingDayCount = (plan.workout_plan || []).filter((d: any) => d.exercises?.length > 0).length;
