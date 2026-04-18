@@ -378,6 +378,12 @@ const translations = {
     coachHistorySub: "Your progress journey tracked by Coach Surya.",
     whatsappCtaCoach: "Get 1-on-1 Coaching from Coach Surya",
     monthlyPlanHelper: "Program starts at 1 month. After completion, you can extend to the next month or start fresh.",
+    monthBadge: "Month",
+    activePlanWarning: "You have an active plan in progress. Complete it first or choose a different plan slot.",
+    extendingPlan: "Generating your next month plan...",
+    extendError: "Failed to extend plan. Please try again.",
+    activeBadgeLabel: "In Progress",
+    completedBadgeLabel: "Completed",
   },
   id: {
     // Common
@@ -754,6 +760,12 @@ const translations = {
     coachHistorySub: "Perjalanan progressmu yang dipantau Coach Surya.",
     whatsappCtaCoach: "Konsultasi Langsung dengan Coach Surya",
     monthlyPlanHelper: "Program dimulai 1 bulan. Setelah selesai, kamu bisa lanjut ke bulan berikutnya atau mulai program baru.",
+    monthBadge: "Bulan",
+    activePlanWarning: "Kamu masih punya program aktif yang belum selesai. Selesaikan dulu atau pilih slot plan yang berbeda.",
+    extendingPlan: "Membuat program bulan berikutnya...",
+    extendError: "Gagal memperpanjang program. Silakan coba lagi.",
+    activeBadgeLabel: "Sedang Berjalan",
+    completedBadgeLabel: "Selesai",
   },
   zh: {
     // Common
@@ -1130,6 +1142,12 @@ const translations = {
     coachHistorySub: "由Surya教练记录的您的进度之旅。",
     whatsappCtaCoach: "获得Coach Surya的一对一指导",
     monthlyPlanHelper: "计划从1个月开始。完成后，您可以延续到下个月或重新开始。",
+    monthBadge: "第",
+    activePlanWarning: "您还有一个未完成的活跃计划。请先完成或选择其他计划槽位。",
+    extendingPlan: "正在生成下个月的计划...",
+    extendError: "延续计划失败。请重试。",
+    activeBadgeLabel: "进行中",
+    completedBadgeLabel: "已完成",
   },
 };
 
