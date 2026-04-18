@@ -392,7 +392,26 @@ OCCUPATION & LIFESTYLE:
 Tone: confident, empathetic, professional. Never promise unrealistic results. Every level must feel perfectly tailored and high-quality.
 Generate ALL text content in ${lang}. JSON keys must remain in English.`;
 
-    const userPrompt = `Complete User Profile:
+    const prevMonth = extensionContext?.previousMonthNumber;
+    const nextMonth = prevMonth ? prevMonth + 1 : null;
+    const extensionPreamble = nextMonth
+      ? `EXTENSION CONTEXT — PROGRESSIVE OVERLOAD MONTH ${nextMonth}:
+The user has successfully completed Month ${prevMonth} of their fitness program.
+Generate Month ${nextMonth} applying these progressive overload principles:
+- Increase reps by 1-2 per set compared to last month (e.g., if previous month used 8 reps, use 9-10 reps).
+- Increase suggested weight by 5-10% for compound strength exercises (squat, deadlift, bench, row, overhead press).
+- Introduce 1-2 NEW exercise variations on each training day to prevent adaptation (e.g., goblet squat → front squat, flat bench → incline bench, conventional deadlift → Romanian deadlift).
+- Maintain the SAME training split, weekly schedule, and equipment constraints as Month ${prevMonth}.
+- Week 1 of this new month = slightly easier (deload feel, ~80% intensity).
+- Weeks 2-3 = progressive increase in volume/intensity.
+- Week 4 = NEW peak week (higher than Month ${prevMonth} peak).
+- Keep the same nutrition macros unless the user's body weight changed significantly.
+Address the client warmly and acknowledge their completion of Month ${prevMonth} in the motivational_message.
+
+`
+      : "";
+
+    const userPrompt = `${extensionPreamble}Complete User Profile:
 - Name: ${name}
 - Age: ${a}
 - Gender: ${gender}
