@@ -120,7 +120,8 @@ serve(async (req) => {
       programType, language, allergies, occupation, restDays, trainingDaysPerWeek,
       startDate, startDay, foodStyle, dietType,
       sessionDuration, equipment, dailySteps, sleepHours, sleepQuality,
-      stressLevel, nightShift, mealFrequency, intermittentFasting
+      stressLevel, nightShift, mealFrequency, intermittentFasting,
+      extensionContext, // optional: { previousMonthNumber: number } — when set, generate a progressive-overload month
     } = body;
 
     // Plan duration is now hardcoded to exactly 4 weeks (1 month).
