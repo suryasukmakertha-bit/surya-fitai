@@ -380,6 +380,13 @@ export default function Results() {
   const [progressDate, setProgressDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [addingCheckIn, setAddingCheckIn] = useState(false);
 
+  // Plan completion detection
+  const [planMonthNumber, setPlanMonthNumber] = useState<number>(1);
+  const [planCompletedAt, setPlanCompletedAt] = useState<string | null>(null);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionStats, setCompletionStats] = useState<{ totalWorkouts: number; totalActiveDays: number }>({ totalWorkouts: 0, totalActiveDays: 0 });
+  const [continueLoading, setContinueLoading] = useState(false);
+
   useEffect(() => {
     setCheckIns([]);
     if (planId && user) {
