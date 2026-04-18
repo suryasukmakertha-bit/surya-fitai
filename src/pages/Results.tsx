@@ -383,6 +383,7 @@ export default function Results() {
   // Plan completion detection
   const [planMonthNumber, setPlanMonthNumber] = useState<number>(1);
   const [planCompletedAt, setPlanCompletedAt] = useState<string | null>(null);
+  const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionStats, setCompletionStats] = useState<{ totalWorkouts: number; totalActiveDays: number }>({ totalWorkouts: 0, totalActiveDays: 0 });
   const [continueLoading, setContinueLoading] = useState(false);
@@ -444,17 +445,18 @@ export default function Results() {
     return plan.workout_plan.reduce((sum, day) => sum + (day.exercises?.length || 0), 0);
   }, [plan?.workout_plan]);
 
-  // Fetch saved-plan metadata (month number, completion timestamp) when viewing a saved plan
+  // Fetch saved-plan metadata (month number, completion + started timestamps)
   const fetchPlanMeta = async () => {
     if (!planId || !user) return;
     const { data } = await supabase
       .from("saved_plans")
-      .select("plan_month_number, plan_completed_at")
+      .select("plan_month_number, plan_completed_at, plan_started_at")
       .eq("id", planId)
       .maybeSingle();
     if (data) {
       setPlanMonthNumber((data as any).plan_month_number || 1);
       setPlanCompletedAt((data as any).plan_completed_at || null);
+      setPlanStartedAt((data as any).plan_started_at || null);
     }
   };
 
