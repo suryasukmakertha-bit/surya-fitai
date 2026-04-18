@@ -72,6 +72,8 @@ export default function ProgramForm() {
     weight: "",
     height: "",
     goal: (t as any)[`${type}Goal`] || program?.goal || "",
+    // Duration is now hardcoded to 1 month — selector removed from UI.
+    // Plans are 4 weeks; users continue to month 2/3/etc via the completion modal.
     duration: "1 Month",
     experience: "Beginner",
     limitations: "",
@@ -301,17 +303,9 @@ export default function ProgramForm() {
           <div className="card-gradient rounded-lg p-6 border border-border/50 space-y-5">
             <h3 className="font-display font-bold text-foreground text-sm uppercase tracking-wider text-primary">{t.trainingConfigSection}</h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>{t.trainingDuration}</Label>
-                <Select value={form.duration} onValueChange={(v) => set("duration", v)}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1 Month">{t.month1}</SelectItem>
-                    <SelectItem value="3 Months">{t.months3}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Duration selector removed: all plans are now fixed at 4 weeks (1 month).
+                Users can extend to the next month via the completion celebration modal. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t.experienceLevel}</Label>
                 <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
@@ -580,6 +574,9 @@ export default function ProgramForm() {
           </Button>
           <p className="text-muted-foreground/60 text-xs text-center mt-2">
             {(t as any).coachGenerateHelper}
+          </p>
+          <p className="text-muted-foreground text-xs text-center mt-3 leading-relaxed px-4">
+            {(t as any).monthlyPlanHelper}
           </p>
         </form>
       </div>

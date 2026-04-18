@@ -377,6 +377,7 @@ const translations = {
     coachCheckInSub: "Your check-in data helps Coach Surya calibrate your plan over time.",
     coachHistorySub: "Your progress journey tracked by Coach Surya.",
     whatsappCtaCoach: "Get 1-on-1 Coaching from Coach Surya",
+    monthlyPlanHelper: "Program starts at 1 month. After completion, you can extend to the next month or start fresh.",
   },
   id: {
     // Common
@@ -752,6 +753,7 @@ const translations = {
     coachCheckInSub: "Data check-in kamu membantu Coach Surya mengkalibrasi programmu seiring waktu.",
     coachHistorySub: "Perjalanan progressmu yang dipantau Coach Surya.",
     whatsappCtaCoach: "Konsultasi Langsung dengan Coach Surya",
+    monthlyPlanHelper: "Program dimulai 1 bulan. Setelah selesai, kamu bisa lanjut ke bulan berikutnya atau mulai program baru.",
   },
   zh: {
     // Common
@@ -1127,6 +1129,7 @@ const translations = {
     coachCheckInSub: "您的打卡数据有助于Surya教练随时间调整您的计划。",
     coachHistorySub: "由Surya教练记录的您的进度之旅。",
     whatsappCtaCoach: "获得Coach Surya的一对一指导",
+    monthlyPlanHelper: "计划从1个月开始。完成后，您可以延续到下个月或重新开始。",
   },
 };
 

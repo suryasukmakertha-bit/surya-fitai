@@ -251,8 +251,11 @@ export type Database = {
           client_generated_id: string | null
           created_at: string
           id: string
+          plan_completed_at: string | null
           plan_data: Json
+          plan_month_number: number
           plan_name: string | null
+          plan_started_at: string
           program_type: string
           user_id: string
           user_info: Json
@@ -261,8 +264,11 @@ export type Database = {
           client_generated_id?: string | null
           created_at?: string
           id?: string
+          plan_completed_at?: string | null
           plan_data?: Json
+          plan_month_number?: number
           plan_name?: string | null
+          plan_started_at?: string
           program_type: string
           user_id: string
           user_info?: Json
@@ -271,8 +277,11 @@ export type Database = {
           client_generated_id?: string | null
           created_at?: string
           id?: string
+          plan_completed_at?: string | null
           plan_data?: Json
+          plan_month_number?: number
           plan_name?: string | null
+          plan_started_at?: string
           program_type?: string
           user_id?: string
           user_info?: Json
