@@ -18,6 +18,8 @@ interface SavedPlan {
   plan_data: any;
   created_at: string;
   plan_name: string | null;
+  plan_month_number?: number;
+  plan_completed_at?: string | null;
 }
 
 export default function SavedPlans() {
@@ -180,10 +182,16 @@ export default function SavedPlans() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-display font-bold text-foreground capitalize truncate">
                           {p.plan_name || `${p.program_type} ${t.program}`}
                         </h3>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30 shrink-0">
+                          {(t as any).monthBadge} {p.plan_month_number || 1}
+                        </span>
+                        <span className="text-sm shrink-0" aria-label={p.plan_completed_at ? (t as any).completedBadgeLabel : (t as any).activeBadgeLabel}>
+                          {p.plan_completed_at ? "✅" : "🔥"}
+                        </span>
                         <button onClick={() => startRename(p)} className="text-muted-foreground hover:text-primary transition-colors p-1">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>

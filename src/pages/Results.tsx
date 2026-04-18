@@ -383,6 +383,7 @@ export default function Results() {
   // Plan completion detection
   const [planMonthNumber, setPlanMonthNumber] = useState<number>(1);
   const [planCompletedAt, setPlanCompletedAt] = useState<string | null>(null);
+  const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionStats, setCompletionStats] = useState<{ totalWorkouts: number; totalActiveDays: number }>({ totalWorkouts: 0, totalActiveDays: 0 });
   const [continueLoading, setContinueLoading] = useState(false);
@@ -444,17 +445,18 @@ export default function Results() {
     return plan.workout_plan.reduce((sum, day) => sum + (day.exercises?.length || 0), 0);
   }, [plan?.workout_plan]);
 
-  // Fetch saved-plan metadata (month number, completion timestamp) when viewing a saved plan
+  // Fetch saved-plan metadata (month number, completion + started timestamps)
   const fetchPlanMeta = async () => {
     if (!planId || !user) return;
     const { data } = await supabase
       .from("saved_plans")
-      .select("plan_month_number, plan_completed_at")
+      .select("plan_month_number, plan_completed_at, plan_started_at")
       .eq("id", planId)
       .maybeSingle();
     if (data) {
       setPlanMonthNumber((data as any).plan_month_number || 1);
       setPlanCompletedAt((data as any).plan_completed_at || null);
+      setPlanStartedAt((data as any).plan_started_at || null);
     }
   };
 
@@ -462,21 +464,29 @@ export default function Results() {
     if (planId && user) fetchPlanMeta();
   }, [planId, user]);
 
-  // Watch for plan completion: when count of completed exercises === totalPlanExercises,
-  // mark plan_completed_at = now() and surface the celebration modal.
+  // Watch for plan completion. Trigger threshold = 80% of all exercises across the
+  // 4-week plan. We only count completions made AFTER plan_started_at so that
+  // when a plan is extended (overwritten with a new month), the previous month's
+  // history is preserved in the DB but does NOT count toward the new month.
   // Subscribes to workout_completions changes for this plan.
   useEffect(() => {
     if (!planId || !user || totalPlanExercises === 0) return;
 
     let cancelled = false;
+    const COMPLETION_THRESHOLD = 0.8;
 
     const checkCompletion = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("workout_completions")
-        .select("workout_date, completed")
+        .select("workout_date, completed, completed_at")
         .eq("user_id", user.id)
         .eq("plan_id", planId)
         .eq("completed", true);
+      if (planStartedAt) {
+        // Only count this month's progress
+        query = query.gte("completed_at", planStartedAt);
+      }
+      const { data, error } = await query;
       if (error || cancelled) return;
 
       const completedCount = data?.length || 0;
@@ -487,8 +497,8 @@ export default function Results() {
         totalActiveDays: uniqueDates.size,
       });
 
-      // All exercises across the 4-week plan are checked → mark completion
-      if (completedCount >= totalPlanExercises) {
+      // ≥80% of exercises across the 4-week plan are checked → mark completion
+      if (completedCount >= Math.ceil(totalPlanExercises * COMPLETION_THRESHOLD)) {
         if (!planCompletedAt) {
           const nowIso = new Date().toISOString();
           const { error: updErr } = await supabase
@@ -528,7 +538,7 @@ export default function Results() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planId, user, totalPlanExercises, planCompletedAt]);
+  }, [planId, user, totalPlanExercises, planCompletedAt, planStartedAt]);
 
   const handleContinueToNextMonth = async () => {
     if (!user || !planId) return;
@@ -536,39 +546,74 @@ export default function Results() {
     try {
       const nextMonth = planMonthNumber + 1;
       const nowIso = new Date().toISOString();
-      const newPlanName = `${userInfo?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)} (Month ${nextMonth})`;
 
-      const { data, error } = await supabase
+      // 1. Call the AI edge function with extension context (progressive overload).
+      // We pass the saved userInfo + programType + extensionContext = previous month number
+      // so the prompt builds Month N+1 with proper progressive overload directives.
+      const ui: any = userInfo || {};
+      const trainingDaysPerWeekVal = parseInt(ui.trainingDaysPerWeek) || 4;
+      const restDaysVal = 7 - trainingDaysPerWeekVal;
+
+      const res = await supabase.functions.invoke("generate-plan", {
+        body: {
+          ...ui,
+          programType: programType || "custom",
+          language: lang,
+          trainingDaysPerWeek: trainingDaysPerWeekVal,
+          restDays: String(restDaysVal),
+          extensionContext: { previousMonthNumber: planMonthNumber },
+        },
+      });
+
+      if (res.error) {
+        const status: number | undefined = (res.error as any)?.context?.status;
+        let description: string = (t as any).extendError || (t as any).planErrInternal;
+        if (status === 408) description = (t as any).planErrTimeout;
+        else if (status === 429) description = (t as any).planErrRate;
+        else if (status === 402) description = (t as any).planErrCredits || description;
+        toast({ title: "Error", description, variant: "destructive" });
+        return;
+      }
+
+      const newPlan = res.data;
+
+      // 2. OVERWRITE the existing saved_plans row (same id, same slot).
+      // This keeps user_info unchanged but swaps plan_data and bumps the month counter.
+      const newPlanName = `${ui?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)} (Month ${nextMonth})`;
+
+      const { error: updErr } = await supabase
         .from("saved_plans")
-        .insert({
-          user_id: user.id,
-          program_type: programType || "custom",
-          user_info: userInfo as any,
-          plan_data: plan as any,
+        .update({
+          plan_data: newPlan as any,
           plan_name: newPlanName,
-          client_generated_id: crypto.randomUUID(),
           plan_month_number: nextMonth,
           plan_started_at: nowIso,
           plan_completed_at: null,
         } as any)
-        .select("id")
-        .single();
+        .eq("id", planId)
+        .eq("user_id", user.id);
 
-      if (error) throw error;
-      toast({ title: t.planSaved });
+      if (updErr) throw updErr;
+
+      // 3. Reset local state. workout_completions rows are intentionally
+      // preserved in the DB for history; the completion-watcher filters
+      // them by completed_at >= plan_started_at, so the new month starts
+      // visually fresh while the underlying history stays intact.
       setShowCompletionModal(false);
-      if (data) {
-        navigate("/results", {
-          state: { plan, userInfo, programType, planId: data.id },
-          replace: true,
-        });
-        setPlanId(data.id);
-        setPlanMonthNumber(nextMonth);
-        setPlanCompletedAt(null);
-      }
+      setPlanMonthNumber(nextMonth);
+      setPlanStartedAt(nowIso);
+      setPlanCompletedAt(null);
+      setCompletionStats({ totalWorkouts: 0, totalActiveDays: 0 });
+      toast({ title: t.planSaved });
+
+      // 4. Navigate to /results with the fresh plan data (same planId).
+      navigate("/results", {
+        state: { plan: newPlan, userInfo: ui, programType, planId },
+        replace: true,
+      });
     } catch (err) {
       console.error("Continue next month error:", err);
-      toast({ title: t.errorSaving, variant: "destructive" });
+      toast({ title: (t as any).extendError || t.errorSaving, variant: "destructive" });
     } finally {
       setContinueLoading(false);
     }
@@ -1075,7 +1120,7 @@ export default function Results() {
 
             {/* Workout Days */}
             {planId && user ? (
-              <WorkoutChecklist workoutPlan={weekWorkoutDays} planId={planId} selectedWeek={selectedWeek} />
+              <WorkoutChecklist workoutPlan={weekWorkoutDays} planId={planId} selectedWeek={selectedWeek} planStartedAt={planStartedAt} />
             ) : (
               weekWorkoutDays.map((day, i) => {
                 const isRestDay = day.exercises.length === 0;

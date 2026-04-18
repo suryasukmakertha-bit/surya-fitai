@@ -6,12 +6,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTour } from "@/contexts/OnboardingTourContext";
 import { Loader2, ShieldCheck } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Programs() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { t } = useLanguage();
   const { startTour, tourCompleted } = useTour();
+  const { toast } = useToast();
 
   // Check for pending onboarding tour after sign-in
   useEffect(() => {
@@ -24,6 +27,27 @@ export default function Programs() {
       setTimeout(() => startTour("intro"), 600);
     }
   }, [user, loading, startTour]);
+
+  // Warn if user has an active uncompleted plan when entering Programs
+  useEffect(() => {
+    if (loading || !user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("saved_plans")
+        .select("id, plan_completed_at")
+        .eq("user_id", user.id)
+        .is("plan_completed_at", null)
+        .limit(1);
+      if (!cancelled && data && data.length > 0) {
+        toast({
+          title: (t as any).activePlanWarning,
+          duration: 5000,
+        });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, loading, toast, t]);
 
   if (loading) {
     return (
