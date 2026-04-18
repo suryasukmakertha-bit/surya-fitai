@@ -464,21 +464,29 @@ export default function Results() {
     if (planId && user) fetchPlanMeta();
   }, [planId, user]);
 
-  // Watch for plan completion: when count of completed exercises === totalPlanExercises,
-  // mark plan_completed_at = now() and surface the celebration modal.
+  // Watch for plan completion. Trigger threshold = 80% of all exercises across the
+  // 4-week plan. We only count completions made AFTER plan_started_at so that
+  // when a plan is extended (overwritten with a new month), the previous month's
+  // history is preserved in the DB but does NOT count toward the new month.
   // Subscribes to workout_completions changes for this plan.
   useEffect(() => {
     if (!planId || !user || totalPlanExercises === 0) return;
 
     let cancelled = false;
+    const COMPLETION_THRESHOLD = 0.8;
 
     const checkCompletion = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("workout_completions")
-        .select("workout_date, completed")
+        .select("workout_date, completed, completed_at")
         .eq("user_id", user.id)
         .eq("plan_id", planId)
         .eq("completed", true);
+      if (planStartedAt) {
+        // Only count this month's progress
+        query = query.gte("completed_at", planStartedAt);
+      }
+      const { data, error } = await query;
       if (error || cancelled) return;
 
       const completedCount = data?.length || 0;
@@ -489,8 +497,8 @@ export default function Results() {
         totalActiveDays: uniqueDates.size,
       });
 
-      // All exercises across the 4-week plan are checked → mark completion
-      if (completedCount >= totalPlanExercises) {
+      // ≥80% of exercises across the 4-week plan are checked → mark completion
+      if (completedCount >= Math.ceil(totalPlanExercises * COMPLETION_THRESHOLD)) {
         if (!planCompletedAt) {
           const nowIso = new Date().toISOString();
           const { error: updErr } = await supabase
@@ -530,7 +538,7 @@ export default function Results() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planId, user, totalPlanExercises, planCompletedAt]);
+  }, [planId, user, totalPlanExercises, planCompletedAt, planStartedAt]);
 
   const handleContinueToNextMonth = async () => {
     if (!user || !planId) return;
