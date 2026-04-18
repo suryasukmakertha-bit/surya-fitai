@@ -34,13 +34,16 @@ interface WorkoutChecklistProps {
   workoutPlan: DayPlan[];
   planId?: string;
   selectedWeek?: number;
+  /** When set, only completions with completed_at >= planStartedAt count as "done"
+   *  in the UI. Older history rows remain in the DB but are filtered out. */
+  planStartedAt?: string | null;
 }
 
 interface CompletionState {
   [key: string]: boolean;
 }
 
-export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: WorkoutChecklistProps) {
+export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt }: WorkoutChecklistProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -72,11 +75,16 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
 
   const fetchWorkoutState = useCallback(async () => {
     if (!user || !planId) return;
-    const { data, error } = await supabase
+    let query = supabase
       .from("workout_completions")
-      .select("exercise_id, day_label, workout_date, completed")
+      .select("exercise_id, day_label, workout_date, completed, completed_at")
       .eq("user_id", user.id)
       .eq("plan_id", planId);
+    if (planStartedAt) {
+      // Only show this month's completions in the checklist.
+      query = query.gte("completed_at", planStartedAt);
+    }
+    const { data, error } = await query;
 
     if (error) {
       console.error("Fetch workout state error:", error);
@@ -89,7 +97,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek }: 
     });
     setCompletionState(state);
     setLoading(false);
-  }, [user, planId]);
+  }, [user, planId, planStartedAt]);
 
   useEffect(() => {
     if (!user || !planId) return;
