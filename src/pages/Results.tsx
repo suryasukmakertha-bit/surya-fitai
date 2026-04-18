@@ -20,6 +20,7 @@ import { addDays, format as fnsFormat } from "date-fns";
 import { id as idLocale, zhCN } from "date-fns/locale";
 import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
+import PlanCompletionModal from "@/components/PlanCompletionModal";
 
 interface DayPlan {
   day: string;
