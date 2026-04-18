@@ -546,39 +546,74 @@ export default function Results() {
     try {
       const nextMonth = planMonthNumber + 1;
       const nowIso = new Date().toISOString();
-      const newPlanName = `${userInfo?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)} (Month ${nextMonth})`;
 
-      const { data, error } = await supabase
+      // 1. Call the AI edge function with extension context (progressive overload).
+      // We pass the saved userInfo + programType + extensionContext = previous month number
+      // so the prompt builds Month N+1 with proper progressive overload directives.
+      const ui: any = userInfo || {};
+      const trainingDaysPerWeekVal = parseInt(ui.trainingDaysPerWeek) || 4;
+      const restDaysVal = 7 - trainingDaysPerWeekVal;
+
+      const res = await supabase.functions.invoke("generate-plan", {
+        body: {
+          ...ui,
+          programType: programType || "custom",
+          language: lang,
+          trainingDaysPerWeek: trainingDaysPerWeekVal,
+          restDays: String(restDaysVal),
+          extensionContext: { previousMonthNumber: planMonthNumber },
+        },
+      });
+
+      if (res.error) {
+        const status: number | undefined = (res.error as any)?.context?.status;
+        let description: string = (t as any).extendError || (t as any).planErrInternal;
+        if (status === 408) description = (t as any).planErrTimeout;
+        else if (status === 429) description = (t as any).planErrRate;
+        else if (status === 402) description = (t as any).planErrCredits || description;
+        toast({ title: "Error", description, variant: "destructive" });
+        return;
+      }
+
+      const newPlan = res.data;
+
+      // 2. OVERWRITE the existing saved_plans row (same id, same slot).
+      // This keeps user_info unchanged but swaps plan_data and bumps the month counter.
+      const newPlanName = `${ui?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)} (Month ${nextMonth})`;
+
+      const { error: updErr } = await supabase
         .from("saved_plans")
-        .insert({
-          user_id: user.id,
-          program_type: programType || "custom",
-          user_info: userInfo as any,
-          plan_data: plan as any,
+        .update({
+          plan_data: newPlan as any,
           plan_name: newPlanName,
-          client_generated_id: crypto.randomUUID(),
           plan_month_number: nextMonth,
           plan_started_at: nowIso,
           plan_completed_at: null,
         } as any)
-        .select("id")
-        .single();
+        .eq("id", planId)
+        .eq("user_id", user.id);
 
-      if (error) throw error;
-      toast({ title: t.planSaved });
+      if (updErr) throw updErr;
+
+      // 3. Reset local state. workout_completions rows are intentionally
+      // preserved in the DB for history; the completion-watcher filters
+      // them by completed_at >= plan_started_at, so the new month starts
+      // visually fresh while the underlying history stays intact.
       setShowCompletionModal(false);
-      if (data) {
-        navigate("/results", {
-          state: { plan, userInfo, programType, planId: data.id },
-          replace: true,
-        });
-        setPlanId(data.id);
-        setPlanMonthNumber(nextMonth);
-        setPlanCompletedAt(null);
-      }
+      setPlanMonthNumber(nextMonth);
+      setPlanStartedAt(nowIso);
+      setPlanCompletedAt(null);
+      setCompletionStats({ totalWorkouts: 0, totalActiveDays: 0 });
+      toast({ title: t.planSaved });
+
+      // 4. Navigate to /results with the fresh plan data (same planId).
+      navigate("/results", {
+        state: { plan: newPlan, userInfo: ui, programType, planId },
+        replace: true,
+      });
     } catch (err) {
       console.error("Continue next month error:", err);
-      toast({ title: t.errorSaving, variant: "destructive" });
+      toast({ title: (t as any).extendError || t.errorSaving, variant: "destructive" });
     } finally {
       setContinueLoading(false);
     }
