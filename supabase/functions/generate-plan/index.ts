@@ -27,7 +27,8 @@ function validateInput(data: any): string[] {
   const height = parseFloat(data.height);
   if (isNaN(height) || height < 80 || height > 280) errors.push('Height must be between 80 and 280 cm');
   if (!['male', 'female', 'other'].includes(data.gender)) errors.push('Invalid gender value');
-  if (!['1 Month', '3 Months'].includes(data.duration)) errors.push('Invalid duration value');
+  // Duration is now always treated as "1 Month" (4 weeks) regardless of client value.
+  // The form no longer exposes a duration selector — see ProgramForm.tsx.
   if (!['Beginner', 'Intermediate', 'Advanced'].includes(data.experience)) errors.push('Invalid experience level');
   const trainingDays = parseInt(data.trainingDaysPerWeek);
   if (isNaN(trainingDays) || trainingDays < 2 || trainingDays > 7) errors.push('Training days per week must be between 2 and 7');
@@ -115,12 +116,17 @@ serve(async (req) => {
     }
 
     const {
-      name, age, gender, weight, height, goal, duration, experience, limitations,
+      name, age, gender, weight, height, goal, experience, limitations,
       programType, language, allergies, occupation, restDays, trainingDaysPerWeek,
       startDate, startDay, foodStyle, dietType,
       sessionDuration, equipment, dailySteps, sleepHours, sleepQuality,
       stressLevel, nightShift, mealFrequency, intermittentFasting
     } = body;
+
+    // Plan duration is now hardcoded to exactly 4 weeks (1 month).
+    // Users continue to month 2/3/etc via the in-app completion modal.
+    const duration = "1 Month";
+    const totalWeeks = 4;
 
     const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : language === "zh" ? "Mandarin Chinese (简体中文)" : "English";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -141,7 +147,6 @@ serve(async (req) => {
 
     const workoutDays = td;
     const restDaysNum = 7 - workoutDays;
-    const totalWeeks = duration === "3 Months" ? 12 : 4;
     const equipmentStr = Array.isArray(equipment) && equipment.length > 0 ? equipment.join(", ") : "Not specified";
 
     console.log("[PlanGen] START", {
