@@ -1403,6 +1403,16 @@ export default function Results() {
         </div>
       </div>
       <SubscriptionPopup isOpen={showPopup} onClose={closePopup} trigger={popupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} trialNotStarted={access.trialNotStarted} isTrialActive={access.isTrialActive} />
+      <PlanCompletionModal
+        open={showCompletionModal}
+        onOpenChange={setShowCompletionModal}
+        monthNumber={planMonthNumber}
+        totalWorkouts={completionStats.totalWorkouts}
+        totalActiveDays={completionStats.totalActiveDays}
+        onContinue={handleContinueToNextMonth}
+        onStartFresh={handleStartFreshProgram}
+        loading={continueLoading}
+      />
     </div>
   );
 }
