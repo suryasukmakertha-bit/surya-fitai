@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PlanCompletionModalProps {
@@ -91,8 +92,17 @@ export default function PlanCompletionModal({
               disabled={loading}
               className="flex-1 h-12 text-base font-semibold"
             >
-              <span className="mr-1">🔥</span>
-              <span className="truncate">{continueLabel}</span>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <span className="truncate">{(t as any).extendingPlan}</span>
+                </>
+              ) : (
+                <>
+                  <span className="mr-1">🔥</span>
+                  <span className="truncate">{continueLabel}</span>
+                </>
+              )}
             </Button>
             <Button
               onClick={onStartFresh}
