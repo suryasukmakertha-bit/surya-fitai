@@ -436,6 +436,149 @@ export default function Results() {
     await supabase.from("progress_checkins").delete().eq("id", id);
     setCheckIns((prev) => prev.filter((c) => c.id !== id));
   };
+
+  // Total exercises expected across the entire saved plan (all 4 weeks of training days).
+  // We sum across every training day (rest days have 0 exercises).
+  const totalPlanExercises = useMemo(() => {
+    if (!plan?.workout_plan) return 0;
+    return plan.workout_plan.reduce((sum, day) => sum + (day.exercises?.length || 0), 0);
+  }, [plan?.workout_plan]);
+
+  // Fetch saved-plan metadata (month number, completion timestamp) when viewing a saved plan
+  const fetchPlanMeta = async () => {
+    if (!planId || !user) return;
+    const { data } = await supabase
+      .from("saved_plans")
+      .select("plan_month_number, plan_completed_at")
+      .eq("id", planId)
+      .maybeSingle();
+    if (data) {
+      setPlanMonthNumber((data as any).plan_month_number || 1);
+      setPlanCompletedAt((data as any).plan_completed_at || null);
+    }
+  };
+
+  useEffect(() => {
+    if (planId && user) fetchPlanMeta();
+  }, [planId, user]);
+
+  // Watch for plan completion: when count of completed exercises === totalPlanExercises,
+  // mark plan_completed_at = now() and surface the celebration modal.
+  // Subscribes to workout_completions changes for this plan.
+  useEffect(() => {
+    if (!planId || !user || totalPlanExercises === 0) return;
+
+    let cancelled = false;
+
+    const checkCompletion = async () => {
+      const { data, error } = await supabase
+        .from("workout_completions")
+        .select("workout_date, completed")
+        .eq("user_id", user.id)
+        .eq("plan_id", planId)
+        .eq("completed", true);
+      if (error || cancelled) return;
+
+      const completedCount = data?.length || 0;
+      const uniqueDates = new Set((data || []).map((r) => r.workout_date));
+
+      setCompletionStats({
+        totalWorkouts: completedCount,
+        totalActiveDays: uniqueDates.size,
+      });
+
+      // All exercises across the 4-week plan are checked → mark completion
+      if (completedCount >= totalPlanExercises) {
+        if (!planCompletedAt) {
+          const nowIso = new Date().toISOString();
+          const { error: updErr } = await supabase
+            .from("saved_plans")
+            .update({ plan_completed_at: nowIso } as any)
+            .eq("id", planId)
+            .eq("user_id", user.id);
+          if (!updErr && !cancelled) {
+            setPlanCompletedAt(nowIso);
+            setShowCompletionModal(true);
+          }
+        } else {
+          // Already marked complete previously — show modal once per session
+          setShowCompletionModal(true);
+        }
+      }
+    };
+
+    checkCompletion();
+
+    const channel = supabase
+      .channel(`plan-completion-${planId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "workout_completions",
+          filter: `plan_id=eq.${planId}`,
+        },
+        () => checkCompletion(),
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId, user, totalPlanExercises, planCompletedAt]);
+
+  const handleContinueToNextMonth = async () => {
+    if (!user || !planId) return;
+    setContinueLoading(true);
+    try {
+      const nextMonth = planMonthNumber + 1;
+      const nowIso = new Date().toISOString();
+      const newPlanName = `${userInfo?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)} (Month ${nextMonth})`;
+
+      const { data, error } = await supabase
+        .from("saved_plans")
+        .insert({
+          user_id: user.id,
+          program_type: programType || "custom",
+          user_info: userInfo as any,
+          plan_data: plan as any,
+          plan_name: newPlanName,
+          client_generated_id: crypto.randomUUID(),
+          plan_month_number: nextMonth,
+          plan_started_at: nowIso,
+          plan_completed_at: null,
+        } as any)
+        .select("id")
+        .single();
+
+      if (error) throw error;
+      toast({ title: t.planSaved });
+      setShowCompletionModal(false);
+      if (data) {
+        navigate("/results", {
+          state: { plan, userInfo, programType, planId: data.id },
+          replace: true,
+        });
+        setPlanId(data.id);
+        setPlanMonthNumber(nextMonth);
+        setPlanCompletedAt(null);
+      }
+    } catch (err) {
+      console.error("Continue next month error:", err);
+      toast({ title: t.errorSaving, variant: "destructive" });
+    } finally {
+      setContinueLoading(false);
+    }
+  };
+
+  const handleStartFreshProgram = () => {
+    setShowCompletionModal(false);
+    navigate("/programs");
+  };
+
   // Week computation (must be before early return for hooks rules)
   const totalWeeks = plan?.durationWeeks || (plan?.workout_plan ? Math.max(1, Math.ceil(plan.workout_plan.length / 7)) : 4);
   const trainingDaysPerWeek = plan?.workout_plan ? Math.ceil(plan.workout_plan.length / totalWeeks) : 5;
