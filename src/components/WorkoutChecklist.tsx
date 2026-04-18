@@ -75,16 +75,11 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
 
   const fetchWorkoutState = useCallback(async () => {
     if (!user || !planId) return;
-    let query = supabase
+    const { data, error } = await supabase
       .from("workout_completions")
       .select("exercise_id, day_label, workout_date, completed, completed_at")
       .eq("user_id", user.id)
       .eq("plan_id", planId);
-    if (planStartedAt) {
-      // Only show this month's completions in the checklist.
-      query = query.gte("completed_at", planStartedAt);
-    }
-    const { data, error } = await query;
 
     if (error) {
       console.error("Fetch workout state error:", error);
