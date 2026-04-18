@@ -579,16 +579,13 @@ Generate the complete plan now.`;
     });
 
     if (!validatePlanExerciseUniqueness(plan.workout_plan || [])) {
-      console.warn("[PlanGen] Validation failed — retrying generation once (short plans only)");
-      if (totalWeeks <= 6) {
-        const retryRaw = await callAI(
-          systemPrompt,
-          userPrompt + "\n\nCRITICAL: Each training day MUST have completely different exercises. Do NOT repeat the same exercise list on multiple days.",
-          "retry-single-call"
-        );
-        plan = safeParseJSON(retryRaw, "retry");
-      }
-      // For multi-call, validation is per-chunk so less likely to fail
+      console.warn("[PlanGen] Validation failed — retrying generation once");
+      const retryRaw = await callAI(
+        systemPrompt,
+        userPrompt + "\n\nCRITICAL: Each training day MUST have completely different exercises. Do NOT repeat the same exercise list on multiple days.",
+        "retry-single-call"
+      );
+      plan = safeParseJSON(retryRaw, "retry");
     }
 
     console.log("[PlanGen] Plan returned successfully", {
