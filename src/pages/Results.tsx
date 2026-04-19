@@ -1372,6 +1372,7 @@ export default function Results() {
                     calorieTarget={plan.calorie_target || 2000}
                     progressPercent={progressPercent}
                     weeklyAdherence={Math.min(100, Math.round((sorted.length / 12) * 100))}
+                    monthNumber={planMonthNumber}
                   />
                 </>
               )}
