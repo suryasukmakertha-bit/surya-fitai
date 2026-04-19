@@ -438,11 +438,19 @@ export default function Results() {
     setCheckIns((prev) => prev.filter((c) => c.id !== id));
   };
 
-  // Total exercises expected across the entire saved plan (all 4 weeks of training days).
-  // We sum across every training day (rest days have 0 exercises).
+  // Total exercises expected across the entire 4-week saved plan.
+  // The stored `workout_plan` is a 7-day template that gets visually repeated
+  // for 4 weeks, so we multiply the per-week sum by 4. Rest days have 0
+  // exercises and are therefore naturally excluded from both numerator and
+  // denominator.
+  const PLAN_DURATION_WEEKS = 4;
   const totalPlanExercises = useMemo(() => {
     if (!plan?.workout_plan) return 0;
-    return plan.workout_plan.reduce((sum, day) => sum + (day.exercises?.length || 0), 0);
+    const perWeek = plan.workout_plan.reduce(
+      (sum, day) => sum + (day.exercises?.length || 0),
+      0,
+    );
+    return perWeek * PLAN_DURATION_WEEKS;
   }, [plan?.workout_plan]);
 
   // Fetch saved-plan metadata (month number, completion + started timestamps)
@@ -1006,7 +1014,7 @@ export default function Results() {
             <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
               <Clock className="w-6 h-6 text-primary shrink-0" />
               <p className="text-foreground font-semibold text-sm md:text-base">
-                ✅ {(t as any).sessionTimeBanner
+                {(t as any).sessionTimeBanner
                   ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
                   : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
               </p>
