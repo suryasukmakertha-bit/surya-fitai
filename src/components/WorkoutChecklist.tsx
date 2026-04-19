@@ -267,6 +267,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                   .filter((ex) => completionState[buildKey(day.day, ex.name)] === true)
                   .map((ex) => ex.name)}
                 totalExercises={day.exercises.length}
+                planMonthNumber={planMonthNumber}
               />
             </div>
           );
