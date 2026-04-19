@@ -46,6 +46,18 @@ export default function SavedPlans() {
       return;
     }
     fetchPlans();
+
+    // Refetch when tab/window regains focus so badges reflect latest DB state
+    const onFocus = () => fetchPlans();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchPlans();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [user, authLoading]);
 
   // Check access on page load — show popup only if trial expired & not subscribed
