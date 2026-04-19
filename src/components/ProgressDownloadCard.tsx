@@ -38,85 +38,23 @@ export default function ProgressDownloadCard({
     : "Making progress every day with Surya-FitAi\n#SuryaFitAi #FitnessJourney";
 
   const generateImage = async (): Promise<Blob> => {
-    const SCALE = 2;
-    const W = 420;
-    const PAD = 20;
-    const GREEN = "#00ff78";
-    const GREEN_DIM = "rgba(0,255,120,0.15)";
-    const GREEN_TEXT = "#00ff78";
-    const DARK = "#0e0f12";
-    const PANEL = "#16181d";
-    const PANEL_BORDER = "rgba(255,255,255,0.06)";
+    // === COLOR CONSTANTS ===
+    const DARK_CARD = "#111f11";
+    const GREEN_BRIGHT = "#00ff66";
+    const GREEN_DIM = "#1a3a1a";
+    const GREEN_BORDER = "#1a4a1a";
     const WHITE = "#ffffff";
-    const MUTED = "rgba(255,255,255,0.45)";
+    const GRAY = "#8a9a8a";
+    const CANVAS_BG = "#0d1f0d";
 
-    // i18n strings
-    const strings: Record<string, { brand: string; subBrand: string; weight: string; bmi: string; kcal: string; duration: string; durValue: string; durRight: string; completion: string; motivation: string; footer: string }> = {
-      id: {
-        brand: "SURYA-FITAI · LAPORAN PROGRES",
-        subBrand: `${programName} · ${duration}`,
-        weight: "BERAT",
-        bmi: "IMT",
-        kcal: "KCAL",
-        duration: "DURASI PROGRAM",
-        durValue: "1 Bulan",
-        durRight: "4 Minggu",
-        completion: "PENYELESAIAN WORKOUT",
-        motivation: motText,
-        footer: "surya-fitai.com · Coach Surya",
-      },
-      en: {
-        brand: "SURYA-FITAI · PROGRESS REPORT",
-        subBrand: `${programName} · ${duration}`,
-        weight: "WEIGHT",
-        bmi: "BMI",
-        kcal: "KCAL",
-        duration: "PROGRAM DURATION",
-        durValue: "1 Month",
-        durRight: "4 Weeks",
-        completion: "WORKOUT COMPLETION",
-        motivation: motText,
-        footer: "surya-fitai.com · Coach Surya",
-      },
-      zh: {
-        brand: "SURYA-FITAI · 进度报告",
-        subBrand: `${programName} · ${duration}`,
-        weight: "体重",
-        bmi: "BMI",
-        kcal: "千卡",
-        duration: "计划周期",
-        durValue: "1 个月",
-        durRight: "4 周",
-        completion: "训练完成度",
-        motivation: motText,
-        footer: "surya-fitai.com · Coach Surya",
-      },
-    };
-    const s = strings[lang] || strings.id;
-
-    const now = new Date();
-    const dateStr = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
-
-    // Layout
-    const HEADER_H = 110;
-    const STATS_H = 100;
-    const DURATION_H = 70;
-    const WORKOUT_H = 220;
-    const QUOTE_H = 70;
-    const FOOTER_H = 30;
-    const GAP = 14;
-
-    const HEADER_Y = PAD;
-    const STATS_Y = HEADER_Y + HEADER_H + GAP;
-    const DURATION_Y = STATS_Y + STATS_H + GAP;
-    const WORKOUT_Y = DURATION_Y + DURATION_H + GAP;
-    const QUOTE_Y = WORKOUT_Y + WORKOUT_H + GAP;
-    const FOOTER_Y = QUOTE_Y + QUOTE_H + 24;
-    const CARD_H = FOOTER_Y + FOOTER_H + PAD;
+    // === CANVAS SETUP ===
+    const SCALE = 2;
+    const W = 780;
+    const H = 1380;
 
     const canvas = document.createElement("canvas");
     canvas.width = W * SCALE;
-    canvas.height = CARD_H * SCALE;
+    canvas.height = H * SCALE;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("No canvas context");
     ctx.scale(SCALE, SCALE);
@@ -140,250 +78,268 @@ export default function ProgressDownloadCard({
         ctx.closePath();
       };
     }
-
-    const drawRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
+    const roundedPath = (x: number, y: number, w: number, h: number, r: number) => {
+      ctx.beginPath();
       anyCtx.roundRect!(x, y, w, h, r);
     };
 
-    // Transparent background
-    ctx.clearRect(0, 0, W, CARD_H);
+    // === LANGUAGE STRINGS ===
+    const strings: Record<
+      string,
+      {
+        brand: string;
+        weight: string;
+        bmi: string;
+        kcal: string;
+        duration: string;
+        durValue: string;
+        durRight: string;
+        completion: string;
+        footer: string;
+      }
+    > = {
+      id: {
+        brand: "SURYA-FITAI · LAPORAN PROGRES",
+        weight: "BERAT",
+        bmi: "IMT",
+        kcal: "KCAL",
+        duration: "DURASI PROGRAM",
+        durValue: "1 Bulan",
+        durRight: "4 Minggu",
+        completion: "PENYELESAIAN WORKOUT",
+        footer: "surya-fitai.com · Coach Surya",
+      },
+      en: {
+        brand: "SURYA-FITAI · PROGRESS REPORT",
+        weight: "WEIGHT",
+        bmi: "BMI",
+        kcal: "KCAL",
+        duration: "PROGRAM DURATION",
+        durValue: "1 Month",
+        durRight: "4 Weeks",
+        completion: "WORKOUT COMPLETION",
+        footer: "surya-fitai.com · Coach Surya",
+      },
+      zh: {
+        brand: "SURYA-FITAI · 进度报告",
+        weight: "体重",
+        bmi: "BMI",
+        kcal: "千卡",
+        duration: "计划时长",
+        durValue: "1 个月",
+        durRight: "4 周",
+        completion: "训练完成率",
+        footer: "surya-fitai.com · Coach Surya",
+      },
+    };
+    const s = strings[lang] || strings.id;
 
-    // Outer card
-    const OUTER_R = 24;
-    drawRoundRect(0, 0, W, CARD_H, OUTER_R);
-    ctx.fillStyle = DARK;
+    const pctClamped = Math.max(0, Math.min(pct, 100));
+    const completedDays = Math.round((pctClamped / 100) * 28);
+    const totalDays = 28;
+
+    const now = new Date();
+    const dateStr = `${String(now.getDate()).padStart(2, "0")}/${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}/${now.getFullYear()}`;
+
+    // ====== STEP 1: CANVAS BACKGROUND ======
+    ctx.fillStyle = CANVAS_BG;
+    ctx.fillRect(0, 0, W, H);
+
+    // ====== STEP 2: HEADER CARD (y:30, h:160) ======
+    ctx.save();
+    roundedPath(30, 30, 720, 160, 16);
+    ctx.fillStyle = DARK_CARD;
     ctx.fill();
 
-    // Subtle bottom-left green glow
-    ctx.save();
-    drawRoundRect(0, 0, W, CARD_H, OUTER_R);
-    ctx.clip();
-    const grd = ctx.createRadialGradient(0, CARD_H, 0, 0, CARD_H, 260);
-    grd.addColorStop(0, "rgba(0,255,120,0.10)");
-    grd.addColorStop(1, "rgba(0,255,120,0)");
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, W, CARD_H);
+    // Brand label
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.font = 'bold 22px Inter, "Space Grotesk", system-ui, sans-serif';
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "left";
+    ctx.fillText(s.brand, 50, 80);
+
+    // User name
+    ctx.fillStyle = WHITE;
+    ctx.font = 'bold 64px Inter, "Space Grotesk", system-ui, sans-serif';
+    ctx.fillText(userName.toUpperCase(), 50, 150);
+
+    // Subtitle
+    ctx.fillStyle = GRAY;
+    ctx.font = 'normal 22px Inter, sans-serif';
+    ctx.fillText(`${programName} · ${duration}`, 50, 185);
+
+    // Green dot
+    ctx.beginPath();
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.arc(720, 80, 14, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
 
-    // Clip to card
-    ctx.save();
-    drawRoundRect(0, 0, W, CARD_H, OUTER_R);
-    ctx.clip();
-
-    // ====== HEADER PANEL ======
-    drawRoundRect(PAD, HEADER_Y, W - PAD * 2, HEADER_H, 14);
-    ctx.fillStyle = PANEL;
-    ctx.fill();
-    ctx.strokeStyle = PANEL_BORDER;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Header label
-    ctx.font = '700 11px Inter, "Space Grotesk", system-ui, sans-serif';
-    ctx.fillStyle = GREEN_TEXT;
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
-    ctx.fillText(s.brand, PAD + 18, HEADER_Y + 18);
-
-    // Name big
-    ctx.font = '900 38px Inter, "Space Grotesk", system-ui, sans-serif';
-    ctx.fillStyle = WHITE;
-    ctx.fillText(userName.toUpperCase(), PAD + 18, HEADER_Y + 36);
-
-    // Sub line
-    ctx.font = '400 13px Inter, sans-serif';
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fillText(s.subBrand, PAD + 18, HEADER_Y + 80);
-
-    // Status dot top right
-    ctx.beginPath();
-    ctx.arc(W - PAD - 22, HEADER_Y + 26, 7, 0, Math.PI * 2);
-    ctx.fillStyle = GREEN;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(W - PAD - 22, HEADER_Y + 26, 11, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(0,255,120,0.3)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // ====== STATS ROW (3 cards) ======
-    const statGap = 10;
-    const statW = (W - PAD * 2 - statGap * 2) / 3;
+    // ====== STEP 3: STATS ROW (y:215, h:120) ======
     const statsData = [
       { label: s.weight, value: `${weight} kg` },
       { label: s.bmi, value: bmi },
       { label: s.kcal, value: `${calorieTarget}` },
     ];
-
+    const statXs = [30, 270, 510];
     statsData.forEach((stat, i) => {
-      const x = PAD + i * (statW + statGap);
-      const y = STATS_Y;
+      const x = statXs[i];
+      const y = 215;
+      const w = 225;
+      const h = 120;
 
-      // panel
-      drawRoundRect(x, y, statW, STATS_H, 12);
-      ctx.fillStyle = PANEL;
-      ctx.fill();
-      ctx.strokeStyle = PANEL_BORDER;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // green top bar (rounded)
-      const barW = statW - 32;
-      drawRoundRect(x + 16, y - 2, barW, 4, 2);
-      ctx.fillStyle = GREEN;
+      ctx.save();
+      // Card background — explicit fillStyle reset
+      roundedPath(x, y, w, h, 12);
+      ctx.fillStyle = DARK_CARD;
       ctx.fill();
 
-      // label
-      ctx.font = '600 10px Inter, sans-serif';
-      ctx.fillStyle = MUTED;
+      // Green top bar
+      ctx.fillStyle = GREEN_BRIGHT;
+      ctx.fillRect(x + 12, y, w - 24, 4);
+
+      // Label
+      ctx.fillStyle = GRAY;
+      ctx.font = 'normal 18px Inter, sans-serif';
       ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.fillText(stat.label, x + statW / 2, y + 18);
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(stat.label, x + w / 2, y + 50);
 
-      // value
-      ctx.font = '800 22px Inter, sans-serif';
+      // Value
       ctx.fillStyle = WHITE;
-      ctx.fillText(stat.value, x + statW / 2, y + 44);
+      ctx.font = 'bold 32px Inter, sans-serif';
+      ctx.fillText(stat.value, x + w / 2, y + 95);
+      ctx.restore();
     });
 
-    // ====== DURATION ROW ======
-    drawRoundRect(PAD, DURATION_Y, W - PAD * 2, DURATION_H, 12);
-    ctx.fillStyle = PANEL;
+    // ====== STEP 4: DURATION ROW (y:355, h:70) ======
+    ctx.save();
+    roundedPath(30, 355, 720, 70, 12);
+    ctx.fillStyle = DARK_CARD;
     ctx.fill();
-    ctx.strokeStyle = PANEL_BORDER;
-    ctx.lineWidth = 1;
-    ctx.stroke();
 
-    ctx.font = '600 10px Inter, sans-serif';
-    ctx.fillStyle = MUTED;
+    ctx.fillStyle = GRAY;
+    ctx.font = 'normal 18px Inter, sans-serif';
     ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-    ctx.fillText(s.duration, PAD + 18, DURATION_Y + 14);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(s.duration, 50, 382);
 
-    ctx.font = '700 18px Inter, sans-serif';
     ctx.fillStyle = WHITE;
-    ctx.fillText(s.durValue, PAD + 18, DURATION_Y + 32);
+    ctx.font = 'bold 28px Inter, sans-serif';
+    ctx.fillText(s.durValue, 50, 412);
 
-    ctx.font = '700 18px Inter, sans-serif';
-    ctx.fillStyle = GREEN_TEXT;
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.font = 'bold 28px Inter, sans-serif';
     ctx.textAlign = "right";
-    ctx.fillText(s.durRight, W - PAD - 18, DURATION_Y + 32);
+    ctx.fillText(s.durRight, 720, 412);
+    ctx.restore();
 
-    // ====== WORKOUT COMPLETION ======
-    drawRoundRect(PAD, WORKOUT_Y, W - PAD * 2, WORKOUT_H, 14);
-    ctx.fillStyle = PANEL;
+    // ====== STEP 5: WORKOUT COMPLETION CARD (y:445, h:280) ======
+    ctx.save();
+    roundedPath(30, 445, 720, 280, 16);
+    ctx.fillStyle = DARK_CARD;
     ctx.fill();
-    ctx.strokeStyle = "rgba(0,255,120,0.18)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = GREEN_BORDER;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // label
-    ctx.font = '700 11px Inter, sans-serif';
-    ctx.fillStyle = GREEN_TEXT;
+    // Label
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.font = 'bold 18px Inter, sans-serif';
     ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-    ctx.fillText(s.completion, PAD + 18, WORKOUT_Y + 16);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(s.completion, 50, 485);
 
-    // big % number
-    ctx.font = '900 64px Inter, sans-serif';
-    ctx.fillStyle = GREEN;
-    ctx.textBaseline = "top";
-    ctx.fillText(`${pct}%`, PAD + 18, WORKOUT_Y + 38);
+    // Big percentage
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.font = 'bold 96px Inter, sans-serif';
+    ctx.fillText(`${pctClamped}%`, 50, 590);
 
-    // slider track
-    const trackY = WORKOUT_Y + 130;
-    const trackX = PAD + 18;
-    const trackW = 180;
-    drawRoundRect(trackX, trackY, trackW, 4, 2);
-    ctx.fillStyle = "rgba(255,255,255,0.1)";
+    // Progress bar track
+    roundedPath(50, 620, 380, 8, 4);
+    ctx.fillStyle = GREEN_DIM;
     ctx.fill();
 
-    // slider fill
-    drawRoundRect(trackX, trackY, (trackW * pct) / 100, 4, 2);
-    ctx.fillStyle = GREEN;
-    ctx.fill();
+    // Progress bar fill
+    const fillW = (380 * pctClamped) / 100;
+    if (fillW > 0) {
+      roundedPath(50, 620, fillW, 8, 4);
+      ctx.fillStyle = GREEN_BRIGHT;
+      ctx.fill();
+    }
 
-    // slider knob
-    const knobX = trackX + (trackW * pct) / 100;
+    // Progress dot
     ctx.beginPath();
-    ctx.arc(knobX, trackY + 2, 7, 0, Math.PI * 2);
-    ctx.fillStyle = GREEN;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(knobX, trackY + 2, 5, 0, Math.PI * 2);
-    ctx.fillStyle = DARK;
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.arc(50 + fillW, 624, 10, 0, Math.PI * 2);
     ctx.fill();
 
-    // Circular progress on right
-    const ringCx = W - PAD - 70;
-    const ringCy = WORKOUT_Y + WORKOUT_H / 2 + 4;
-    const ringR = 56;
-    const ringStroke = 12;
-
-    // background ring
+    // Circular ring track
     ctx.beginPath();
-    ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
-    ctx.lineWidth = ringStroke;
+    ctx.strokeStyle = GREEN_DIM;
+    ctx.lineWidth = 16;
+    ctx.arc(600, 570, 80, 0, Math.PI * 2);
     ctx.stroke();
 
-    // progress arc
-    const startAngle = -Math.PI / 2;
-    const endAngle = startAngle + (Math.PI * 2 * pct) / 100;
+    // Circular ring progress
     ctx.beginPath();
-    ctx.arc(ringCx, ringCy, ringR, startAngle, endAngle);
-    ctx.strokeStyle = GREEN;
-    ctx.lineWidth = ringStroke;
+    ctx.strokeStyle = GREEN_BRIGHT;
+    ctx.lineWidth = 16;
     ctx.lineCap = "round";
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + (Math.PI * 2 * pctClamped) / 100;
+    ctx.arc(600, 570, 80, startAngle, endAngle);
     ctx.stroke();
+    ctx.lineCap = "butt";
 
-    // ring center text
-    ctx.font = '600 14px Inter, sans-serif';
-    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    // Ring center text
+    ctx.fillStyle = GRAY;
+    ctx.font = 'normal 22px Inter, sans-serif';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(`${pct}/100`, ringCx, ringCy);
+    ctx.fillText(`${completedDays}/${totalDays}`, 600, 575);
+    ctx.restore();
 
-    // ====== QUOTE ======
-    drawRoundRect(PAD, QUOTE_Y, W - PAD * 2, QUOTE_H, 12);
-    ctx.fillStyle = PANEL;
-    ctx.fill();
-    ctx.strokeStyle = PANEL_BORDER;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // green left accent bar
-    drawRoundRect(PAD + 6, QUOTE_Y + 12, 3, QUOTE_H - 24, 2);
-    ctx.fillStyle = GREEN;
+    // ====== STEP 6: QUOTE CARD (y:745, h:90) ======
+    ctx.save();
+    roundedPath(30, 745, 720, 90, 12);
+    ctx.fillStyle = DARK_CARD;
     ctx.fill();
 
-    // quote text (truncate to one line if needed)
-    ctx.font = 'italic 500 14px Inter, sans-serif';
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    // Green left accent bar
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.fillRect(30, 745, 5, 90);
+
+    // Quote text
+    ctx.fillStyle = "#e0e0e0";
+    ctx.font = 'italic 22px Inter, sans-serif';
     ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    let quote = `"${s.motivation}"`;
-    const maxQuoteW = W - PAD * 2 - 40;
+    ctx.textBaseline = "alphabetic";
+    let quote = `"${motText}"`;
+    const maxQuoteW = 640;
     if (ctx.measureText(quote).width > maxQuoteW) {
       while (quote.length > 4 && ctx.measureText(quote.slice(0, -1) + '..."').width > maxQuoteW) {
         quote = quote.slice(0, -1);
       }
       quote = quote.slice(0, -1) + '..."';
     }
-    ctx.fillText(quote, PAD + 22, QUOTE_Y + QUOTE_H / 2);
+    ctx.fillText(quote, 60, 800);
+    ctx.restore();
 
-    // ====== FOOTER ======
-    ctx.font = '400 11px Inter, sans-serif';
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    // ====== STEP 7: FOOTER (y:1350) ======
+    ctx.save();
+    ctx.fillStyle = GRAY;
+    ctx.font = 'normal 18px Inter, sans-serif';
     ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(s.footer, PAD + 6, FOOTER_Y + 8);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(s.footer, 30, 1350);
 
-    ctx.font = '700 11px Inter, sans-serif';
-    ctx.fillStyle = GREEN_TEXT;
+    ctx.fillStyle = GREEN_BRIGHT;
+    ctx.font = 'bold 18px Inter, sans-serif';
     ctx.textAlign = "right";
-    ctx.fillText(dateStr, W - PAD - 6, FOOTER_Y + 8);
-
+    ctx.fillText(dateStr, 750, 1350);
     ctx.restore();
 
     return new Promise<Blob>((resolve, reject) => {
