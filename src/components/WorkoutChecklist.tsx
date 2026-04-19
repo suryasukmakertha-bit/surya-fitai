@@ -44,7 +44,7 @@ interface CompletionState {
   [key: string]: boolean;
 }
 
-export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt }: WorkoutChecklistProps) {
+export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt, planMonthNumber }: WorkoutChecklistProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
