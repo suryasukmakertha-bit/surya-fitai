@@ -55,9 +55,18 @@ export default function PlanCompletionModal({
   const startFreshLabel =
     lang === "id" ? "Mulai Program Baru" : lang === "zh" ? "开始新计划" : "Start New Program";
 
+  const maybeLaterLabel =
+    lang === "id" ? "Nanti saja" : lang === "zh" ? "稍后再说" : "Maybe later";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-card border-primary/30 shadow-2xl shadow-primary/20 p-0 overflow-hidden">
+        <span
+          className="absolute right-3 top-10 z-10 pointer-events-none select-none"
+          style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}
+        >
+          {maybeLaterLabel}
+        </span>
         <div className="p-8 text-center space-y-6">
           {/* Celebration icon */}
           <div className="flex justify-center" aria-hidden="true">

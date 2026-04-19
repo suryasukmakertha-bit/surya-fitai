@@ -21,6 +21,7 @@ import { id as idLocale, zhCN } from "date-fns/locale";
 import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 import PlanCompletionModal from "@/components/PlanCompletionModal";
+import PlanExtendBanner from "@/components/PlanExtendBanner";
 
 interface DayPlan {
   day: string;
@@ -1086,6 +1087,14 @@ export default function Results() {
           </TabsList>
 
           <TabsContent value="workout" className="space-y-4">
+            {/* Persistent Extend Banner — shows when current month is ≥80% complete and not yet extended */}
+            {planCompletedAt && (
+              <PlanExtendBanner
+                monthNumber={planMonthNumber}
+                onExtend={() => setShowCompletionModal(true)}
+              />
+            )}
+
             {/* Week Selector */}
             {totalWeeks > 1 && (
               <div className="card-gradient rounded-lg p-4 border border-primary/30">
