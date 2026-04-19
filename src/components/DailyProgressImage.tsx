@@ -80,14 +80,14 @@ export default function DailyProgressImage({
   })();
 
   const handleDownload = useCallback(async () => {
-    // Build the card off-screen
+    // Build the card off-screen with explicit transparent wrapper
     const container = document.createElement("div");
-    container.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;";
+    container.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;background:transparent !important;";
     document.body.appendChild(container);
 
     const isOdd = completedList.length % 2 === 1;
 
-    // Pill items
+    // Pill items — full text, no truncation, allow wrapping
     const pillsHTML = completedList
       .map((ex, idx) => {
         const fullWidth = isOdd && idx === completedList.length - 1;
@@ -97,13 +97,13 @@ export default function DailyProgressImage({
         return `
           <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;${
             fullWidth ? "grid-column:1 / -1;" : ""
-          }min-width:0;">
+          }min-width:0;min-height:36px;box-sizing:border-box;">
             <div style="width:16px;height:16px;border-radius:50%;background:rgba(0,255,120,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1.5 4L3.2 5.7L6.5 2.3" stroke="${GREEN}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:500;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safeName}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:500;line-height:1.3;word-wrap:break-word;white-space:normal;flex:1;min-width:0;">${safeName}</div>
           </div>`;
       })
       .join("");
@@ -113,7 +113,7 @@ export default function DailyProgressImage({
         width:360px;
         background:#111111;
         border-radius:20px;
-        padding:30px;
+        padding:28px;
         position:relative;
         overflow:hidden;
         font-family:'Space Grotesk','Inter',system-ui,-apple-system,sans-serif;
@@ -122,13 +122,13 @@ export default function DailyProgressImage({
         <div style="position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle, rgba(0,255,120,0.1) 0%, transparent 70%);pointer-events:none;border-radius:50%;"></div>
 
         <div style="position:relative;z-index:1;">
-          <!-- Header -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+          <!-- Header: single flex row, space-between -->
+          <div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:20px;width:100%;">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
               <div style="width:8px;height:8px;border-radius:50%;background:${GREEN};flex-shrink:0;"></div>
-              <div style="font-size:12px;font-weight:700;color:${GREEN};letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">SuryaFitAi · Coach Surya</div>
+              <div style="font-size:11px;font-weight:700;color:${GREEN};letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">SuryaFitAi · Coach Surya</div>
             </div>
-            <div style="background:rgba(0,255,120,0.08);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;color:rgba(0,255,120,0.6);white-space:nowrap;flex-shrink:0;margin-left:8px;">${monthLabel}</div>
+            <div style="background:rgba(0,255,120,0.08);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:600;color:rgba(0,255,120,0.85);white-space:nowrap;flex-shrink:0;margin-left:8px;line-height:1.2;">${monthLabel}</div>
           </div>
 
           <!-- Big Title -->
@@ -142,7 +142,7 @@ export default function DailyProgressImage({
           <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:6px;margin-bottom:24px;line-height:1.4;">${subtitleText}</div>
 
           <!-- Grid of exercise pills -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:24px;">
             ${pillsHTML}
           </div>
 
