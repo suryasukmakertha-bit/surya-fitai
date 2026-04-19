@@ -1,7 +1,8 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import html2canvas from "html2canvas";
 
 interface Exercise {
   name: string;
@@ -15,227 +16,178 @@ interface DailyProgressImageProps {
   exercises: Exercise[];
   completedExercises: string[];
   totalExercises: number;
+  planMonthNumber?: number;
 }
+
+const GREEN = "#00ff78";
 
 export default function DailyProgressImage({
   dayLabel,
   exercises,
   completedExercises,
   totalExercises,
+  planMonthNumber = 1,
 }: DailyProgressImageProps) {
-  const { t, lang } = useLanguage();
-  const logoRef = useRef<HTMLImageElement | null>(null);
-
-  // Preload logo image
-  useEffect(() => {
-    const img = new Image();
-    img.src = "/images/surya-fitai-logo.png";
-    img.onload = () => {
-      logoRef.current = img;
-    };
-  }, []);
+  const { lang } = useLanguage();
 
   const completedList = exercises.filter((ex) => completedExercises.includes(ex.name));
-  const progress = totalExercises > 0 ? completedList.length / totalExercises : 0;
+  const completedCount = completedList.length;
 
-  const youVsYou =
+  // Title lines
+  const titleParts =
     lang === "id"
-      ? "KAMU VS KAMU!"
+      ? { l1: "KAMU", l2: "VS", l3: "KAMU." }
       : lang === "zh"
-      ? "你对战你！"
-      : "YOU VS YOU!";
+      ? { l1: "你", l2: "VS", l3: "你." }
+      : { l1: "YOU", l2: "VS", l3: "YOU." };
 
-  const thisIs =
-    lang === "id"
-      ? "INI ADALAH "
-      : lang === "zh"
-      ? "这是 "
-      : "THIS IS ";
+  const monthLabel =
+    lang === "id" ? `Bulan ${planMonthNumber}` : lang === "zh" ? `第${planMonthNumber}月` : `Month ${planMonthNumber}`;
 
   const downloadLabel =
-    lang === "id"
-      ? "Unduh Kemajuan Harian"
-      : lang === "zh"
-      ? "下载每日进度"
-      : "Download Daily Progress";
+    lang === "id" ? "Unduh Kemajuan Harian" : lang === "zh" ? "下载每日进度" : "Download Daily Progress";
 
-  const completedLabel = t.completed;
-
-  const extractReadableDate = (label: string): string => {
+  // Date formatting
+  const formatDate = (label: string): string => {
     const dateMatch = label.match(/(\d{4}-\d{2}-\d{2})/);
-    if (!dateMatch) return label;
-    const [y, m, d] = dateMatch[1].split("-").map(Number);
-    const date = new Date(y, m - 1, d);
+    const date = dateMatch
+      ? (() => {
+          const [y, m, d] = dateMatch[1].split("-").map(Number);
+          return new Date(y, m - 1, d);
+        })()
+      : new Date();
+
     const dayNames: Record<string, string[]> = {
       en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
       id: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
       zh: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
     };
+    const monthNames: Record<string, string[]> = {
+      en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      id: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+      zh: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    };
     const dayName = (dayNames[lang] || dayNames.en)[date.getDay()];
-    return `${dayName}, ${dateMatch[1]}`;
+    const monthName = (monthNames[lang] || monthNames.en)[date.getMonth()];
+    return `${dayName}, ${String(date.getDate()).padStart(2, "0")} ${monthName} ${date.getFullYear()}`;
   };
 
+  const subtitleText = (() => {
+    const ds = formatDate(dayLabel);
+    if (lang === "id") return `${completedCount} dari ${totalExercises} exercise selesai · ${ds}`;
+    if (lang === "zh") return `${completedCount}/${totalExercises} 个训练完成 · ${ds}`;
+    return `${completedCount} of ${totalExercises} exercises done · ${ds}`;
+  })();
+
   const handleDownload = useCallback(async () => {
-    const canvas = document.createElement("canvas");
-    const PAD = 40;
-    const W = 800;
-    const itemH = 64;
-    const logoAreaH = 60;
-    const taglineAreaH = 50;
-    const fractionAreaH = 36;
-    const listTopPad = 60;
-    const footerH = 80;
-    const headerH = PAD + logoAreaH + taglineAreaH + fractionAreaH;
-    const listH = completedList.length * itemH;
-    const H = headerH + listTopPad + listH + footerH + PAD;
-    canvas.width = W;
-    canvas.height = H;
-    const ctx = canvas.getContext("2d")!;
+    // Build the card off-screen
+    const container = document.createElement("div");
+    container.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;";
+    document.body.appendChild(container);
 
-    // Transparent background
-    ctx.clearRect(0, 0, W, H);
+    const isOdd = completedList.length % 2 === 1;
 
-    // ── SMALL LOGO + "FitAi" text at top center ──
-    const logoY = PAD + 10;
-    if (logoRef.current) {
-      const logo = logoRef.current;
-      const logoH = 44;
-      const aspect = logo.naturalWidth / logo.naturalHeight;
-      const logoW = logoH * aspect;
+    // Pill items
+    const pillsHTML = completedList
+      .map((ex, idx) => {
+        const fullWidth = isOdd && idx === completedList.length - 1;
+        const safeName = ex.name.replace(/[<>&"]/g, (c) =>
+          ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" } as Record<string, string>)[c]
+        );
+        return `
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;${
+            fullWidth ? "grid-column:1 / -1;" : ""
+          }min-width:0;">
+            <div style="width:16px;height:16px;border-radius:50%;background:rgba(0,255,120,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1.5 4L3.2 5.7L6.5 2.3" stroke="${GREEN}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:500;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safeName}</div>
+          </div>`;
+      })
+      .join("");
 
-      // Measure "FitAi" text width for centering the group
-      ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
-      const fitaiTextW = ctx.measureText("FitAi").width;
-      const gap = 8;
-      const totalW = logoW + gap + fitaiTextW;
-      const startX = (W - totalW) / 2;
+    const cardHTML = `
+      <div id="dpi-card" style="
+        width:360px;
+        background:#111111;
+        border-radius:20px;
+        padding:30px;
+        position:relative;
+        overflow:hidden;
+        font-family:'Space Grotesk','Inter',system-ui,-apple-system,sans-serif;
+        box-sizing:border-box;
+      ">
+        <div style="position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle, rgba(0,255,120,0.1) 0%, transparent 70%);pointer-events:none;border-radius:50%;"></div>
 
-      // Draw logo small
-      ctx.drawImage(logo, startX, logoY - logoH / 2 + 8, logoW, logoH);
+        <div style="position:relative;z-index:1;">
+          <!-- Header -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <div style="width:8px;height:8px;border-radius:50%;background:${GREEN};flex-shrink:0;"></div>
+              <div style="font-size:12px;font-weight:700;color:${GREEN};letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">SuryaFitAi · Coach Surya</div>
+            </div>
+            <div style="background:rgba(0,255,120,0.08);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;color:rgba(0,255,120,0.6);white-space:nowrap;flex-shrink:0;margin-left:8px;">${monthLabel}</div>
+          </div>
 
-      // Draw "FitAi" text
-      ctx.textAlign = "left";
-      ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
-      ctx.fillStyle = "#4ade80";
-      ctx.fillText("FitAi", startX + logoW + gap, logoY + 18);
-    } else {
-      ctx.textAlign = "center";
-      ctx.font = "bold 32px 'Space Grotesk', system-ui, sans-serif";
-      ctx.fillStyle = "#4ade80";
-      ctx.fillText("FitAi", W / 2, logoY + 18);
+          <!-- Big Title -->
+          <div style="font-size:32px;font-weight:900;color:#ffffff;letter-spacing:-1.5px;line-height:1;">
+            <div>${titleParts.l1}</div>
+            <div>${titleParts.l2}</div>
+            <div style="color:${GREEN};">${titleParts.l3}</div>
+          </div>
+
+          <!-- Subtitle -->
+          <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:6px;margin-bottom:24px;line-height:1.4;">${subtitleText}</div>
+
+          <!-- Grid of exercise pills -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;">
+            ${pillsHTML}
+          </div>
+
+          <!-- Footer -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;">
+            <div style="font-size:11px;color:rgba(255,255,255,0.25);">surya-fitai.com</div>
+            <div style="display:flex;align-items:baseline;gap:2px;">
+              <span style="font-size:22px;font-weight:800;color:${GREEN};line-height:1;">${completedCount}</span><span style="font-size:13px;color:rgba(255,255,255,0.3);line-height:1;">/${totalExercises}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = cardHTML;
+    const cardEl = container.querySelector("#dpi-card") as HTMLElement;
+
+    // Wait a tick for fonts/layout
+    await new Promise((r) => setTimeout(r, 50));
+
+    try {
+      const canvas = await html2canvas(cardEl, {
+        backgroundColor: null,
+        useCORS: true,
+        scale: 2,
+        logging: false,
+      });
+
+      const blob: Blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("blob failed"))), "image/png");
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeDate = formatDate(dayLabel).replace(/[, ]+/g, "-");
+      link.download = `surya-fitai-${safeDate}.png`;
+      link.href = url;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      console.error("Download failed:", e);
+    } finally {
+      document.body.removeChild(container);
     }
-
-    // ── TAGLINE: "THIS IS YOU VS YOU! 🏆" ──
-    const taglineY = PAD + logoAreaH + 36;
-    ctx.textAlign = "center";
-
-    // Measure parts
-    ctx.font = "bold 26px 'Space Grotesk', system-ui, sans-serif";
-    const thisIsWidth = ctx.measureText(thisIs).width;
-
-    ctx.font = "bold italic 26px 'Space Grotesk', system-ui, sans-serif";
-    const youVsYouWidth = ctx.measureText(youVsYou).width;
-
-    ctx.font = "26px serif";
-    const trophyWidth = ctx.measureText(" 🏆").width;
-
-    const totalTaglineW = thisIsWidth + youVsYouWidth + trophyWidth;
-    let tagX = (W - totalTaglineW) / 2;
-
-    // Draw "THIS IS "
-    ctx.textAlign = "left";
-    ctx.font = "bold 26px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#4ade80";
-    ctx.fillText(thisIs, tagX, taglineY);
-    tagX += thisIsWidth;
-
-    // Draw "YOU VS YOU!" italic
-    ctx.font = "bold italic 26px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#4ade80";
-    ctx.fillText(youVsYou, tagX, taglineY);
-    tagX += youVsYouWidth;
-
-    // Draw trophy
-    ctx.font = "26px serif";
-    ctx.fillText(" 🏆", tagX, taglineY);
-
-    // ── PROGRESS FRACTION ──
-    const fractionY = taglineY + 32;
-    ctx.textAlign = "center";
-    ctx.font = "16px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#9ca3af";
-    ctx.fillText(
-      `${completedList.length}/${totalExercises} ${completedLabel}`,
-      W / 2,
-      fractionY
-    );
-
-    // ── EXERCISE LIST ──
-    const listStartY = headerH + listTopPad;
-    const listLeft = 140; // left-aligned area
-    const barWidth = 6;
-    const barX = listLeft;
-    const checkRadius = 16;
-    const gapBarToCheck = 24;
-    const gapCheckToText = 16;
-
-    // Green vertical bar (full height, with glow)
-    const barTop = listStartY;
-    const barHeight = listH;
-    const barRadius = barWidth / 2;
-
-    ctx.save();
-    ctx.shadowColor = "#4ade80";
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = "#4ade80";
-    roundedRect(ctx, barX - barWidth / 2, barTop, barWidth, barHeight, barRadius);
-    ctx.fill();
-    ctx.restore();
-
-    // Draw each exercise item
-    const checkCenterX = barX + gapBarToCheck + checkRadius;
-    ctx.textAlign = "left";
-    completedList.forEach((ex, i) => {
-      const y = listStartY + i * itemH + itemH / 2;
-
-      // Green filled circle
-      ctx.beginPath();
-      ctx.arc(checkCenterX, y, checkRadius, 0, Math.PI * 2);
-      ctx.fillStyle = "#22c55e";
-      ctx.fill();
-      ctx.closePath();
-
-      // White checkmark
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2.5;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      ctx.moveTo(checkCenterX - 6, y - 1);
-      ctx.lineTo(checkCenterX - 2, y + 4);
-      ctx.lineTo(checkCenterX + 7, y - 5);
-      ctx.stroke();
-
-      // Exercise name in white bold
-      const textX = checkCenterX + checkRadius + gapCheckToText;
-      ctx.font = "bold 22px 'Space Grotesk', system-ui, sans-serif";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(ex.name, textX, y + 7);
-    });
-
-    // ── DATE (bottom center) ──
-    const dateText = extractReadableDate(dayLabel).toLowerCase();
-    ctx.textAlign = "center";
-    ctx.font = "15px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillStyle = "#9ca3af";
-    ctx.fillText(dateText, W / 2, H - PAD);
-
-    // Download
-    const link = document.createElement("a");
-    link.download = `surya-fitai-progress-${dateText.replace(/[, ]+/g, "-")}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  }, [completedList, totalExercises, dayLabel, lang, t, youVsYou, thisIs, completedLabel, progress]);
+  }, [completedList, totalExercises, dayLabel, lang, monthLabel, subtitleText, titleParts, completedCount]);
 
   if (completedList.length === 0) return null;
 
@@ -251,25 +203,4 @@ export default function DailyProgressImage({
       {downloadLabel}
     </Button>
   );
-}
-
-function roundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number
-) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
 }
