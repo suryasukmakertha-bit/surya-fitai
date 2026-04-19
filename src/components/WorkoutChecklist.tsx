@@ -37,6 +37,7 @@ interface WorkoutChecklistProps {
   /** When set, only completions with completed_at >= planStartedAt count as "done"
    *  in the UI. Older history rows remain in the DB but are filtered out. */
   planStartedAt?: string | null;
+  planMonthNumber?: number;
 }
 
 interface CompletionState {
