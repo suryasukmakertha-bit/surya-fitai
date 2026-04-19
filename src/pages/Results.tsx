@@ -1128,7 +1128,7 @@ export default function Results() {
 
             {/* Workout Days */}
             {planId && user ? (
-              <WorkoutChecklist workoutPlan={weekWorkoutDays} planId={planId} selectedWeek={selectedWeek} planStartedAt={planStartedAt} />
+              <WorkoutChecklist workoutPlan={weekWorkoutDays} planId={planId} selectedWeek={selectedWeek} planStartedAt={planStartedAt} planMonthNumber={planMonthNumber} />
             ) : (
               weekWorkoutDays.map((day, i) => {
                 const isRestDay = day.exercises.length === 0;
