@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Download, Share2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import html2canvas from "html2canvas";
-import logoSrc from "@/assets/logo.png";
 
 interface ProgressDownloadProps {
   userName: string;
@@ -24,9 +22,8 @@ export default function ProgressDownloadCard({
   bmi,
   calorieTarget,
   progressPercent,
-  weeklyAdherence = 92,
 }: ProgressDownloadProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [showShare, setShowShare] = useState(false);
   const [captionCopied, setCaptionCopied] = useState(false);
   const isComplete = progressPercent >= 100;
@@ -40,111 +37,354 @@ export default function ProgressDownloadCard({
     ? "I just completed my training program with Surya-FitAi.\nConsistency. Discipline. Results.\n#SuryaFitAi #ProgressComplete #FitnessJourney"
     : "Making progress every day with Surya-FitAi\n#SuryaFitAi #FitnessJourney";
 
-  const now = new Date();
-  const dateStr = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
-
-  const stats = [
-    { label: t.nameLabel, value: userName },
-    { label: t.programLabel, value: programName },
-    { label: t.durationLabel, value: duration },
-    { label: t.weightLabelShort, value: `${weight} kg` },
-    { label: t.bmiLabel, value: bmi },
-    { label: t.calorieTargetLabel, value: `${calorieTarget} kcal` },
-  ];
-
-  const BG_IMAGE = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1080&q=80";
-
   const generateImage = async (): Promise<Blob> => {
-    const GREEN = "#16a34a";
-    const GREY = "#8a8a9a";
-    const SURFACE = "rgba(18,18,22,0.85)";
+    const SCALE = 2;
+    const W = 420;
+    const PAD = 20;
+    const GREEN = "#00ff78";
+    const GREEN_DIM = "rgba(0,255,120,0.15)";
+    const GREEN_TEXT = "#00ff78";
+    const DARK = "#0e0f12";
+    const PANEL = "#16181d";
+    const PANEL_BORDER = "rgba(255,255,255,0.06)";
+    const WHITE = "#ffffff";
+    const MUTED = "rgba(255,255,255,0.45)";
 
-    const statsHTML = stats
-      .map(
-        (s) => `
-      <div style="background:${SURFACE};border-radius:8px;padding:14px 14px;flex:1 1 calc(50% - 6px);min-width:0;min-height:80px;overflow:visible;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;">
-        <div style="font-size:11px;color:${GREY};text-transform:uppercase;letter-spacing:0.5px;line-height:1.3;">${s.label}</div>
-        <div style="font-size:16px;font-weight:700;color:#f0f0f5;word-wrap:break-word;overflow:visible;line-height:1.3;">${s.value}</div>
-      </div>`
-      )
-      .join("");
+    // i18n strings
+    const strings: Record<string, { brand: string; subBrand: string; weight: string; bmi: string; kcal: string; duration: string; durValue: string; durRight: string; completion: string; motivation: string; footer: string }> = {
+      id: {
+        brand: "SURYA-FITAI · LAPORAN PROGRES",
+        subBrand: `${programName} · ${duration}`,
+        weight: "BERAT",
+        bmi: "IMT",
+        kcal: "KCAL",
+        duration: "DURASI PROGRAM",
+        durValue: "1 Bulan",
+        durRight: "4 Minggu",
+        completion: "PENYELESAIAN WORKOUT",
+        motivation: motText,
+        footer: "surya-fitai.com · Coach Surya",
+      },
+      en: {
+        brand: "SURYA-FITAI · PROGRESS REPORT",
+        subBrand: `${programName} · ${duration}`,
+        weight: "WEIGHT",
+        bmi: "BMI",
+        kcal: "KCAL",
+        duration: "PROGRAM DURATION",
+        durValue: "1 Month",
+        durRight: "4 Weeks",
+        completion: "WORKOUT COMPLETION",
+        motivation: motText,
+        footer: "surya-fitai.com · Coach Surya",
+      },
+      zh: {
+        brand: "SURYA-FITAI · 进度报告",
+        subBrand: `${programName} · ${duration}`,
+        weight: "体重",
+        bmi: "BMI",
+        kcal: "千卡",
+        duration: "计划周期",
+        durValue: "1 个月",
+        durRight: "4 周",
+        completion: "训练完成度",
+        motivation: motText,
+        footer: "surya-fitai.com · Coach Surya",
+      },
+    };
+    const s = strings[lang] || strings.id;
 
-    const html = `
-      <div style="text-align:center;margin-bottom:20px;">
-        <img src="${logoSrc}" style="height:40px;width:auto;object-fit:contain;margin:0 auto 8px;display:block;" crossorigin="anonymous" />
-        <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:0.5px;">Surya-FitAi</div>
-        <div style="font-size:13px;color:${GREY};margin-top:4px;">${t.progressReport}</div>
-        <div style="display:inline-flex;align-items:center;justify-content:center;background:${GREEN}22;border:1px solid ${GREEN}44;border-radius:20px;padding:6px 16px;margin-top:8px;">
-          <span style="font-size:11px;color:${GREEN};font-weight:600;line-height:1;">Prepared by Coach Surya</span>
-        </div>
-      </div>
-      <div style="height:1px;background:linear-gradient(90deg,transparent,${GREEN},transparent);margin-bottom:20px;"></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;overflow:visible;">${statsHTML}</div>
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="font-size:12px;color:${GREY};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Workout Completion</div>
-        <div style="font-size:36px;font-weight:800;color:#fff;margin-bottom:10px;">${pct}%</div>
-        <div style="background:rgba(26,26,32,0.7);border-radius:6px;height:12px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:${GREEN};border-radius:6px;"></div>
-        </div>
-      </div>
-      <div style="border:1px solid ${GREEN}44;border-radius:8px;padding:14px 16px;text-align:center;margin-top:16px;margin-bottom:16px;min-height:48px;display:flex;align-items:center;justify-content:center;">
-        <div style="font-size:13px;color:${GREEN};font-style:italic;line-height:1.4;">${motText}</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:11px;color:${GREY};">Generated by Surya-FitAi &bull; Coach Surya</div>
-        <div style="font-size:11px;color:${GREEN};margin-top:2px;">${dateStr}</div>
-      </div>`;
+    const now = new Date();
+    const dateStr = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
 
-    const container = document.createElement("div");
-    container.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;";
-    document.body.appendChild(container);
+    // Layout
+    const HEADER_H = 110;
+    const STATS_H = 100;
+    const DURATION_H = 70;
+    const WORKOUT_H = 220;
+    const QUOTE_H = 70;
+    const FOOTER_H = 30;
+    const GAP = 14;
 
-    const el = document.createElement("div");
-    el.style.cssText = `width:540px;padding:32px;border-radius:16px;font-family:'Inter','Segoe UI',system-ui,sans-serif;color:#fff;overflow:visible;position:relative;background-image:url('${BG_IMAGE}');background-size:cover;background-position:center;`;
-    container.appendChild(el);
+    const HEADER_Y = PAD;
+    const STATS_Y = HEADER_Y + HEADER_H + GAP;
+    const DURATION_Y = STATS_Y + STATS_H + GAP;
+    const WORKOUT_Y = DURATION_Y + DURATION_H + GAP;
+    const QUOTE_Y = WORKOUT_Y + WORKOUT_H + GAP;
+    const FOOTER_Y = QUOTE_Y + QUOTE_H + 24;
+    const CARD_H = FOOTER_Y + FOOTER_H + PAD;
 
-    // Dark overlay
-    const overlay = document.createElement("div");
-    overlay.style.cssText = "position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.80);border-radius:16px;";
-    el.appendChild(overlay);
+    const canvas = document.createElement("canvas");
+    canvas.width = W * SCALE;
+    canvas.height = CARD_H * SCALE;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No canvas context");
+    ctx.scale(SCALE, SCALE);
 
-    // Content on top of overlay
-    const content = document.createElement("div");
-    content.style.cssText = "position:relative;z-index:1;overflow:visible;";
-    content.innerHTML = html;
-    el.appendChild(content);
+    // roundRect polyfill
+    const anyCtx = ctx as CanvasRenderingContext2D & {
+      roundRect?: (x: number, y: number, w: number, h: number, r: number) => void;
+    };
+    if (!anyCtx.roundRect) {
+      anyCtx.roundRect = function (x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      };
+    }
 
-    // Wait for all images (logo + background)
-    const bgImg = new Image();
-    bgImg.crossOrigin = "anonymous";
-    bgImg.src = BG_IMAGE;
+    const drawRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
+      anyCtx.roundRect!(x, y, w, h, r);
+    };
 
-    const imgs = content.querySelectorAll("img");
-    await Promise.all([
-      new Promise<void>((res) => {
-        if (bgImg.complete && bgImg.naturalHeight > 0) return res();
-        bgImg.onload = () => res();
-        bgImg.onerror = () => res();
-      }),
-      ...Array.from(imgs).map(
-        (img) =>
-          new Promise<void>((res) => {
-            if (img.complete && img.naturalHeight > 0) return res();
-            img.onload = () => res();
-            img.onerror = () => res();
-          })
-      ),
-    ]);
+    // Transparent background
+    ctx.clearRect(0, 0, W, CARD_H);
 
-    const scale = (window.devicePixelRatio || 1) * 2;
-    const canvas = await html2canvas(el, {
-      scale,
-      backgroundColor: null,
-      useCORS: true,
-      logging: false,
+    // Outer card
+    const OUTER_R = 24;
+    drawRoundRect(0, 0, W, CARD_H, OUTER_R);
+    ctx.fillStyle = DARK;
+    ctx.fill();
+
+    // Subtle bottom-left green glow
+    ctx.save();
+    drawRoundRect(0, 0, W, CARD_H, OUTER_R);
+    ctx.clip();
+    const grd = ctx.createRadialGradient(0, CARD_H, 0, 0, CARD_H, 260);
+    grd.addColorStop(0, "rgba(0,255,120,0.10)");
+    grd.addColorStop(1, "rgba(0,255,120,0)");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, CARD_H);
+    ctx.restore();
+
+    // Clip to card
+    ctx.save();
+    drawRoundRect(0, 0, W, CARD_H, OUTER_R);
+    ctx.clip();
+
+    // ====== HEADER PANEL ======
+    drawRoundRect(PAD, HEADER_Y, W - PAD * 2, HEADER_H, 14);
+    ctx.fillStyle = PANEL;
+    ctx.fill();
+    ctx.strokeStyle = PANEL_BORDER;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Header label
+    ctx.font = '700 11px Inter, "Space Grotesk", system-ui, sans-serif';
+    ctx.fillStyle = GREEN_TEXT;
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.fillText(s.brand, PAD + 18, HEADER_Y + 18);
+
+    // Name big
+    ctx.font = '900 38px Inter, "Space Grotesk", system-ui, sans-serif';
+    ctx.fillStyle = WHITE;
+    ctx.fillText(userName.toUpperCase(), PAD + 18, HEADER_Y + 36);
+
+    // Sub line
+    ctx.font = '400 13px Inter, sans-serif';
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.fillText(s.subBrand, PAD + 18, HEADER_Y + 80);
+
+    // Status dot top right
+    ctx.beginPath();
+    ctx.arc(W - PAD - 22, HEADER_Y + 26, 7, 0, Math.PI * 2);
+    ctx.fillStyle = GREEN;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(W - PAD - 22, HEADER_Y + 26, 11, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(0,255,120,0.3)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // ====== STATS ROW (3 cards) ======
+    const statGap = 10;
+    const statW = (W - PAD * 2 - statGap * 2) / 3;
+    const statsData = [
+      { label: s.weight, value: `${weight} kg` },
+      { label: s.bmi, value: bmi },
+      { label: s.kcal, value: `${calorieTarget}` },
+    ];
+
+    statsData.forEach((stat, i) => {
+      const x = PAD + i * (statW + statGap);
+      const y = STATS_Y;
+
+      // panel
+      drawRoundRect(x, y, statW, STATS_H, 12);
+      ctx.fillStyle = PANEL;
+      ctx.fill();
+      ctx.strokeStyle = PANEL_BORDER;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // green top bar (rounded)
+      const barW = statW - 32;
+      drawRoundRect(x + 16, y - 2, barW, 4, 2);
+      ctx.fillStyle = GREEN;
+      ctx.fill();
+
+      // label
+      ctx.font = '600 10px Inter, sans-serif';
+      ctx.fillStyle = MUTED;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(stat.label, x + statW / 2, y + 18);
+
+      // value
+      ctx.font = '800 22px Inter, sans-serif';
+      ctx.fillStyle = WHITE;
+      ctx.fillText(stat.value, x + statW / 2, y + 44);
     });
 
-    document.body.removeChild(container);
+    // ====== DURATION ROW ======
+    drawRoundRect(PAD, DURATION_Y, W - PAD * 2, DURATION_H, 12);
+    ctx.fillStyle = PANEL;
+    ctx.fill();
+    ctx.strokeStyle = PANEL_BORDER;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = '600 10px Inter, sans-serif';
+    ctx.fillStyle = MUTED;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(s.duration, PAD + 18, DURATION_Y + 14);
+
+    ctx.font = '700 18px Inter, sans-serif';
+    ctx.fillStyle = WHITE;
+    ctx.fillText(s.durValue, PAD + 18, DURATION_Y + 32);
+
+    ctx.font = '700 18px Inter, sans-serif';
+    ctx.fillStyle = GREEN_TEXT;
+    ctx.textAlign = "right";
+    ctx.fillText(s.durRight, W - PAD - 18, DURATION_Y + 32);
+
+    // ====== WORKOUT COMPLETION ======
+    drawRoundRect(PAD, WORKOUT_Y, W - PAD * 2, WORKOUT_H, 14);
+    ctx.fillStyle = PANEL;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(0,255,120,0.18)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // label
+    ctx.font = '700 11px Inter, sans-serif';
+    ctx.fillStyle = GREEN_TEXT;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(s.completion, PAD + 18, WORKOUT_Y + 16);
+
+    // big % number
+    ctx.font = '900 64px Inter, sans-serif';
+    ctx.fillStyle = GREEN;
+    ctx.textBaseline = "top";
+    ctx.fillText(`${pct}%`, PAD + 18, WORKOUT_Y + 38);
+
+    // slider track
+    const trackY = WORKOUT_Y + 130;
+    const trackX = PAD + 18;
+    const trackW = 180;
+    drawRoundRect(trackX, trackY, trackW, 4, 2);
+    ctx.fillStyle = "rgba(255,255,255,0.1)";
+    ctx.fill();
+
+    // slider fill
+    drawRoundRect(trackX, trackY, (trackW * pct) / 100, 4, 2);
+    ctx.fillStyle = GREEN;
+    ctx.fill();
+
+    // slider knob
+    const knobX = trackX + (trackW * pct) / 100;
+    ctx.beginPath();
+    ctx.arc(knobX, trackY + 2, 7, 0, Math.PI * 2);
+    ctx.fillStyle = GREEN;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(knobX, trackY + 2, 5, 0, Math.PI * 2);
+    ctx.fillStyle = DARK;
+    ctx.fill();
+
+    // Circular progress on right
+    const ringCx = W - PAD - 70;
+    const ringCy = WORKOUT_Y + WORKOUT_H / 2 + 4;
+    const ringR = 56;
+    const ringStroke = 12;
+
+    // background ring
+    ctx.beginPath();
+    ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = ringStroke;
+    ctx.stroke();
+
+    // progress arc
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + (Math.PI * 2 * pct) / 100;
+    ctx.beginPath();
+    ctx.arc(ringCx, ringCy, ringR, startAngle, endAngle);
+    ctx.strokeStyle = GREEN;
+    ctx.lineWidth = ringStroke;
+    ctx.lineCap = "round";
+    ctx.stroke();
+
+    // ring center text
+    ctx.font = '600 14px Inter, sans-serif';
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${pct}/100`, ringCx, ringCy);
+
+    // ====== QUOTE ======
+    drawRoundRect(PAD, QUOTE_Y, W - PAD * 2, QUOTE_H, 12);
+    ctx.fillStyle = PANEL;
+    ctx.fill();
+    ctx.strokeStyle = PANEL_BORDER;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // green left accent bar
+    drawRoundRect(PAD + 6, QUOTE_Y + 12, 3, QUOTE_H - 24, 2);
+    ctx.fillStyle = GREEN;
+    ctx.fill();
+
+    // quote text (truncate to one line if needed)
+    ctx.font = 'italic 500 14px Inter, sans-serif';
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    let quote = `"${s.motivation}"`;
+    const maxQuoteW = W - PAD * 2 - 40;
+    if (ctx.measureText(quote).width > maxQuoteW) {
+      while (quote.length > 4 && ctx.measureText(quote.slice(0, -1) + '..."').width > maxQuoteW) {
+        quote = quote.slice(0, -1);
+      }
+      quote = quote.slice(0, -1) + '..."';
+    }
+    ctx.fillText(quote, PAD + 22, QUOTE_Y + QUOTE_H / 2);
+
+    // ====== FOOTER ======
+    ctx.font = '400 11px Inter, sans-serif';
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(s.footer, PAD + 6, FOOTER_Y + 8);
+
+    ctx.font = '700 11px Inter, sans-serif';
+    ctx.fillStyle = GREEN_TEXT;
+    ctx.textAlign = "right";
+    ctx.fillText(dateStr, W - PAD - 6, FOOTER_Y + 8);
+
+    ctx.restore();
 
     return new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
