@@ -37,13 +37,14 @@ interface WorkoutChecklistProps {
   /** When set, only completions with completed_at >= planStartedAt count as "done"
    *  in the UI. Older history rows remain in the DB but are filtered out. */
   planStartedAt?: string | null;
+  planMonthNumber?: number;
 }
 
 interface CompletionState {
   [key: string]: boolean;
 }
 
-export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt }: WorkoutChecklistProps) {
+export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt, planMonthNumber }: WorkoutChecklistProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -266,6 +267,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                   .filter((ex) => completionState[buildKey(day.day, ex.name)] === true)
                   .map((ex) => ex.name)}
                 totalExercises={day.exercises.length}
+                planMonthNumber={planMonthNumber}
               />
             </div>
           );
