@@ -87,7 +87,7 @@ export default function DailyProgressImage({
 
     const isOdd = completedList.length % 2 === 1;
 
-    // Pill items — full text, no truncation, allow wrapping
+    // Pill items — exact spec
     const pillsHTML = completedList
       .map((ex, idx) => {
         const fullWidth = isOdd && idx === completedList.length - 1;
@@ -95,15 +95,15 @@ export default function DailyProgressImage({
           ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" } as Record<string, string>)[c]
         );
         return `
-          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;${
+          <div style="display:flex;flex-direction:row;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;min-height:44px;box-sizing:border-box;${
             fullWidth ? "grid-column:1 / -1;" : ""
-          }min-width:0;min-height:36px;box-sizing:border-box;">
-            <div style="width:16px;height:16px;border-radius:50%;background:rgba(0,255,120,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+          }min-width:0;">
+            <div style="width:20px;height:20px;min-width:20px;min-height:20px;border-radius:50%;background:rgba(0,255,120,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:center;">
+              <svg width="10" height="10" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1.5 4L3.2 5.7L6.5 2.3" stroke="${GREEN}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:500;line-height:1.3;word-wrap:break-word;white-space:normal;flex:1;min-width:0;">${safeName}</div>
+            <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.85);line-height:1.3;word-break:break-word;white-space:normal;overflow:visible;text-overflow:unset;flex:1;align-self:center;">${safeName}</div>
           </div>`;
       })
       .join("");
@@ -123,12 +123,12 @@ export default function DailyProgressImage({
 
         <div style="position:relative;z-index:1;">
           <!-- Header: single flex row, space-between -->
-          <div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:20px;width:100%;">
-            <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
-              <div style="width:8px;height:8px;border-radius:50%;background:${GREEN};flex-shrink:0;"></div>
-              <div style="font-size:11px;font-weight:700;color:${GREEN};letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">SuryaFitAi · Coach Surya</div>
+          <div style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;width:100%;margin-bottom:22px;">
+            <div style="display:flex;flex-direction:row;align-items:center;gap:8px;">
+              <div style="width:8px;height:8px;min-width:8px;min-height:8px;border-radius:50%;background:${GREEN};display:inline-block;"></div>
+              <div style="font-size:11px;font-weight:700;color:${GREEN};letter-spacing:2px;text-transform:uppercase;line-height:1;white-space:nowrap;">SuryaFitAi · Coach Surya</div>
             </div>
-            <div style="background:rgba(0,255,120,0.08);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:600;color:rgba(0,255,120,0.85);white-space:nowrap;flex-shrink:0;margin-left:8px;line-height:1.2;">${monthLabel}</div>
+            <div style="display:flex;align-items:center;justify-content:center;padding:4px 12px;height:26px;background:rgba(0,255,120,0.08);border:1px solid rgba(0,255,120,0.3);border-radius:6px;font-size:11px;font-weight:600;color:rgba(0,255,120,0.8);white-space:nowrap;line-height:1;box-sizing:border-box;">${monthLabel}</div>
           </div>
 
           <!-- Big Title -->
@@ -163,29 +163,31 @@ export default function DailyProgressImage({
     // Wait a tick for fonts/layout
     await new Promise((r) => setTimeout(r, 50));
 
+    // Step E — ensure parent (container) is transparent before capture
+    const prevBg = container.style.background;
+    container.style.background = "transparent";
+
     try {
       const canvas = await html2canvas(cardEl, {
+        background: null,
         backgroundColor: null,
         useCORS: true,
         scale: 2,
         logging: false,
-      });
+        removeContainer: true,
+      } as any);
 
-      const blob: Blob = await new Promise((resolve, reject) => {
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("blob failed"))), "image/png");
-      });
-
-      const url = URL.createObjectURL(blob);
+      const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       const safeDate = formatDate(dayLabel).replace(/[, ]+/g, "-");
       link.download = `surya-fitai-${safeDate}.png`;
-      link.href = url;
+      link.href = dataUrl;
       link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
       console.error("Download failed:", e);
     } finally {
-      document.body.removeChild(container);
+      container.style.background = prevBg;
+      if (container.parentNode) document.body.removeChild(container);
     }
   }, [completedList, totalExercises, dayLabel, lang, monthLabel, subtitleText, titleParts, completedCount]);
 
