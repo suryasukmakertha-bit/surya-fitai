@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Loader2, Eye, Pencil, Check, X } from "lucide-react";
+import { Trash2, Loader2, Eye, Pencil, Check, X, Flame, CheckCircle2, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,9 @@ export default function SavedPlans() {
               <div className="rounded-2xl bg-secondary h-28" />
             </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-              <span className="text-5xl">🔒</span>
+              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
+                <Lock className="w-8 h-8 text-primary" strokeWidth={1.5} />
+              </div>
               <p className="font-semibold text-foreground text-lg text-center px-4">
                 {lockedTitle}
               </p>
@@ -186,11 +188,17 @@ export default function SavedPlans() {
                         <h3 className="font-display font-bold text-foreground capitalize truncate">
                           {p.plan_name || `${p.program_type} ${t.program}`}
                         </h3>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30 shrink-0">
-                          {(t as any).monthBadge} {p.plan_month_number || 1}
-                        </span>
-                        <span className="text-sm shrink-0" aria-label={p.plan_completed_at ? (t as any).completedBadgeLabel : (t as any).activeBadgeLabel}>
-                          {p.plan_completed_at ? "✅" : "🔥"}
+                        {/* Bulan X badge — pill with icon on the left */}
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30 shrink-0"
+                          aria-label={p.plan_completed_at ? (t as any).completedBadgeLabel : (t as any).activeBadgeLabel}
+                        >
+                          {p.plan_completed_at ? (
+                            <CheckCircle2 className="w-3 h-3" strokeWidth={1.5} style={{ color: "#22c55e" }} />
+                          ) : (
+                            <Flame className="w-3 h-3" strokeWidth={1.5} style={{ color: "#22c55e" }} />
+                          )}
+                          <span>{(t as any).monthBadge} {p.plan_month_number || 1}</span>
                         </span>
                         <button onClick={() => startRename(p)} className="text-muted-foreground hover:text-primary transition-colors p-1">
                           <Pencil className="w-3.5 h-3.5" />

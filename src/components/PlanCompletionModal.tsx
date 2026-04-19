@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trophy, Flame, RefreshCw, Dumbbell } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PlanCompletionModalProps {
@@ -28,10 +28,10 @@ export default function PlanCompletionModal({
 
   const title =
     lang === "id"
-      ? `Bulan ${monthNumber} Selesai! Kamu Luar Biasa! 💪`
+      ? `Bulan ${monthNumber} Selesai! Kamu Luar Biasa!`
       : lang === "zh"
-        ? `第${monthNumber}个月完成！你太棒了！💪`
-        : `Month ${monthNumber} Complete! You're Amazing! 💪`;
+        ? `第${monthNumber}个月完成！你太棒了！`
+        : `Month ${monthNumber} Complete! You're Amazing!`;
 
   const subtitle =
     lang === "id"
@@ -59,14 +59,17 @@ export default function PlanCompletionModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-card border-primary/30 shadow-2xl shadow-primary/20 p-0 overflow-hidden">
         <div className="p-8 text-center space-y-6">
-          {/* Celebration emoji */}
-          <div className="text-7xl animate-bounce" aria-hidden="true">
-            🎉
+          {/* Celebration icon */}
+          <div className="flex justify-center" aria-hidden="true">
+            <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center animate-bounce">
+              <Trophy className="w-10 h-10" style={{ color: "#22c55e" }} strokeWidth={1.5} />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <DialogTitle className="text-2xl font-display font-bold text-foreground leading-tight">
-              {title}
+            <DialogTitle className="text-2xl font-display font-bold text-foreground leading-tight inline-flex items-center justify-center gap-2 flex-wrap">
+              <span>{title}</span>
+              <Dumbbell className="w-6 h-6 text-primary inline-block" strokeWidth={1.5} />
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
               {subtitle}
@@ -99,7 +102,7 @@ export default function PlanCompletionModal({
                 </>
               ) : (
                 <>
-                  <span className="mr-1">🔥</span>
+                  <Flame className="w-4 h-4 mr-1.5" strokeWidth={1.5} />
                   <span className="truncate">{continueLabel}</span>
                 </>
               )}
@@ -110,7 +113,7 @@ export default function PlanCompletionModal({
               variant="outline"
               className="flex-1 h-12 text-base font-semibold border-primary/40 hover:bg-primary/10"
             >
-              <span className="mr-1">🔄</span>
+              <RefreshCw className="w-4 h-4 mr-1.5" strokeWidth={1.5} />
               <span className="truncate">{startFreshLabel}</span>
             </Button>
           </div>
