@@ -162,9 +162,8 @@ export default function ProgressDownloadCard({
       now.getMonth() + 1
     ).padStart(2, "0")}/${now.getFullYear()}`;
 
-    // ====== STEP 1: CANVAS BACKGROUND ======
-    ctx.fillStyle = CANVAS_BG;
-    ctx.fillRect(0, 0, W, H);
+    // ====== STEP 1: TRANSPARENT BACKGROUND ======
+    ctx.clearRect(0, 0, W, H);
 
     // ====== STEP 2: HEADER CARD (y:24, h:170) ======
     drawCard(28, 24, 724, 170, 14, CARD_BORDER, 1.5);
