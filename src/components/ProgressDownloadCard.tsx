@@ -39,18 +39,19 @@ export default function ProgressDownloadCard({
 
   const generateImage = async (): Promise<Blob> => {
     // === COLOR CONSTANTS ===
-    const DARK_CARD = "#111f11";
+    const CARD_BG = "#0f1e0f";
+    const CARD_BORDER = "#1f3a1f";
+    const CANVAS_BG = "#091409";
     const GREEN_BRIGHT = "#00ff66";
     const GREEN_DIM = "#1a3a1a";
-    const GREEN_BORDER = "#1a4a1a";
+    const WORKOUT_BORDER = "#2a4a2a";
     const WHITE = "#ffffff";
-    const GRAY = "#8a9a8a";
-    const CANVAS_BG = "#0d1f0d";
+    const GRAY = "#6a8a6a";
 
     // === CANVAS SETUP ===
     const SCALE = 2;
     const W = 780;
-    const H = 1380;
+    const H = 1050;
 
     const canvas = document.createElement("canvas");
     canvas.width = W * SCALE;
@@ -81,6 +82,24 @@ export default function ProgressDownloadCard({
     const roundedPath = (x: number, y: number, w: number, h: number, r: number) => {
       ctx.beginPath();
       anyCtx.roundRect!(x, y, w, h, r);
+    };
+    const drawCard = (
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r: number,
+      borderColor: string = CARD_BORDER,
+      borderWidth: number = 1
+    ) => {
+      ctx.save();
+      roundedPath(x, y, w, h, r);
+      ctx.fillStyle = CARD_BG;
+      ctx.fill();
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = borderWidth;
+      ctx.stroke();
+      ctx.restore();
     };
 
     // === LANGUAGE STRINGS ===
@@ -147,125 +166,114 @@ export default function ProgressDownloadCard({
     ctx.fillStyle = CANVAS_BG;
     ctx.fillRect(0, 0, W, H);
 
-    // ====== STEP 2: HEADER CARD (y:30, h:160) ======
-    ctx.save();
-    roundedPath(30, 30, 720, 160, 16);
-    ctx.fillStyle = DARK_CARD;
-    ctx.fill();
+    // ====== STEP 2: HEADER CARD (y:24, h:170) ======
+    drawCard(28, 24, 724, 170, 14, CARD_BORDER, 1.5);
 
+    ctx.save();
     // Brand label
     ctx.fillStyle = GREEN_BRIGHT;
-    ctx.font = 'bold 22px Inter, "Space Grotesk", system-ui, sans-serif';
+    ctx.font = 'bold 18px Inter, "Space Grotesk", system-ui, sans-serif';
     ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left";
-    ctx.fillText(s.brand, 50, 80);
+    ctx.fillText(s.brand, 50, 65);
 
     // User name
     ctx.fillStyle = WHITE;
-    ctx.font = 'bold 64px Inter, "Space Grotesk", system-ui, sans-serif';
-    ctx.fillText(userName.toUpperCase(), 50, 150);
+    ctx.font = 'bold 60px Inter, "Space Grotesk", system-ui, sans-serif';
+    ctx.fillText(userName.toUpperCase(), 50, 135);
 
     // Subtitle
     ctx.fillStyle = GRAY;
-    ctx.font = 'normal 22px Inter, sans-serif';
-    ctx.fillText(`${programName} · ${duration}`, 50, 185);
+    ctx.font = 'normal 20px Inter, sans-serif';
+    ctx.fillText(`${programName} · ${duration}`, 50, 168);
 
     // Green dot
     ctx.beginPath();
     ctx.fillStyle = GREEN_BRIGHT;
-    ctx.arc(720, 80, 14, 0, Math.PI * 2);
+    ctx.arc(718, 70, 13, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // ====== STEP 3: STATS ROW (y:215, h:120) ======
+    // ====== STEP 3: STATS ROW (y:208, h:115) ======
     const statsData = [
       { label: s.weight, value: `${weight} kg` },
       { label: s.bmi, value: bmi },
       { label: s.kcal, value: `${calorieTarget}` },
     ];
-    const statXs = [30, 270, 510];
+    const statXs = [28, 265, 502];
+    const STAT_W = 225;
+    const STAT_H = 115;
+    const STAT_Y = 208;
     statsData.forEach((stat, i) => {
       const x = statXs[i];
-      const y = 215;
-      const w = 225;
-      const h = 120;
+
+      // Card background
+      drawCard(x, STAT_Y, STAT_W, STAT_H, 12);
 
       ctx.save();
-      // Card background — explicit fillStyle reset
-      roundedPath(x, y, w, h, 12);
-      ctx.fillStyle = DARK_CARD;
-      ctx.fill();
-
-      // Green top bar
+      // Green top bar (3px)
       ctx.fillStyle = GREEN_BRIGHT;
-      ctx.fillRect(x + 12, y, w - 24, 4);
+      ctx.fillRect(x + 12, STAT_Y, STAT_W - 24, 3);
 
       // Label
       ctx.fillStyle = GRAY;
-      ctx.font = 'normal 18px Inter, sans-serif';
+      ctx.font = 'normal 15px Inter, sans-serif';
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText(stat.label, x + w / 2, y + 50);
+      ctx.fillText(stat.label, x + STAT_W / 2, STAT_Y + 45);
 
       // Value
       ctx.fillStyle = WHITE;
-      ctx.font = 'bold 32px Inter, sans-serif';
-      ctx.fillText(stat.value, x + w / 2, y + 95);
+      ctx.font = 'bold 28px Inter, sans-serif';
+      ctx.fillText(stat.value, x + STAT_W / 2, STAT_Y + 90);
       ctx.restore();
     });
 
-    // ====== STEP 4: DURATION ROW (y:355, h:70) ======
-    ctx.save();
-    roundedPath(30, 355, 720, 70, 12);
-    ctx.fillStyle = DARK_CARD;
-    ctx.fill();
+    // ====== STEP 4: DURATION ROW (y:337, h:72) ======
+    drawCard(28, 337, 724, 72, 12);
 
+    ctx.save();
     ctx.fillStyle = GRAY;
-    ctx.font = 'normal 18px Inter, sans-serif';
+    ctx.font = 'normal 15px Inter, sans-serif';
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText(s.duration, 50, 382);
+    ctx.fillText(s.duration, 48, 361);
 
     ctx.fillStyle = WHITE;
-    ctx.font = 'bold 28px Inter, sans-serif';
-    ctx.fillText(s.durValue, 50, 412);
+    ctx.font = 'bold 26px Inter, sans-serif';
+    ctx.fillText(s.durValue, 48, 391);
 
     ctx.fillStyle = GREEN_BRIGHT;
-    ctx.font = 'bold 28px Inter, sans-serif';
+    ctx.font = 'bold 26px Inter, sans-serif';
     ctx.textAlign = "right";
-    ctx.fillText(s.durRight, 720, 412);
+    ctx.fillText(s.durRight, 732, 391);
     ctx.restore();
 
-    // ====== STEP 5: WORKOUT COMPLETION CARD (y:445, h:280) ======
-    ctx.save();
-    roundedPath(30, 445, 720, 280, 16);
-    ctx.fillStyle = DARK_CARD;
-    ctx.fill();
-    ctx.strokeStyle = GREEN_BORDER;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    // ====== STEP 5: WORKOUT COMPLETION CARD (y:423, h:285) ======
+    drawCard(28, 423, 724, 285, 16, WORKOUT_BORDER, 2);
 
+    ctx.save();
     // Label
     ctx.fillStyle = GREEN_BRIGHT;
     ctx.font = 'bold 18px Inter, sans-serif';
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText(s.completion, 50, 485);
+    ctx.fillText(s.completion, 50, 463);
 
     // Big percentage
     ctx.fillStyle = GREEN_BRIGHT;
     ctx.font = 'bold 96px Inter, sans-serif';
-    ctx.fillText(`${pctClamped}%`, 50, 590);
+    ctx.fillText(`${pctClamped}%`, 50, 568);
 
     // Progress bar track
-    roundedPath(50, 620, 380, 8, 4);
+    roundedPath(50, 598, 380, 8, 4);
     ctx.fillStyle = GREEN_DIM;
     ctx.fill();
 
     // Progress bar fill
     const fillW = (380 * pctClamped) / 100;
     if (fillW > 0) {
-      roundedPath(50, 620, fillW, 8, 4);
+      roundedPath(50, 598, fillW, 8, 4);
       ctx.fillStyle = GREEN_BRIGHT;
       ctx.fill();
     }
@@ -273,14 +281,16 @@ export default function ProgressDownloadCard({
     // Progress dot
     ctx.beginPath();
     ctx.fillStyle = GREEN_BRIGHT;
-    ctx.arc(50 + fillW, 624, 10, 0, Math.PI * 2);
+    ctx.arc(50 + fillW, 602, 10, 0, Math.PI * 2);
     ctx.fill();
 
     // Circular ring track
+    const ringCx = 600;
+    const ringCy = 555;
     ctx.beginPath();
     ctx.strokeStyle = GREEN_DIM;
     ctx.lineWidth = 16;
-    ctx.arc(600, 570, 80, 0, Math.PI * 2);
+    ctx.arc(ringCx, ringCy, 80, 0, Math.PI * 2);
     ctx.stroke();
 
     // Circular ring progress
@@ -290,7 +300,7 @@ export default function ProgressDownloadCard({
     ctx.lineCap = "round";
     const startAngle = -Math.PI / 2;
     const endAngle = startAngle + (Math.PI * 2 * pctClamped) / 100;
-    ctx.arc(600, 570, 80, startAngle, endAngle);
+    ctx.arc(ringCx, ringCy, 80, startAngle, endAngle);
     ctx.stroke();
     ctx.lineCap = "butt";
 
@@ -299,47 +309,45 @@ export default function ProgressDownloadCard({
     ctx.font = 'normal 22px Inter, sans-serif';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(`${completedDays}/${totalDays}`, 600, 575);
+    ctx.fillText(`${completedDays}/${totalDays}`, ringCx, ringCy);
     ctx.restore();
 
-    // ====== STEP 6: QUOTE CARD (y:745, h:90) ======
-    ctx.save();
-    roundedPath(30, 745, 720, 90, 12);
-    ctx.fillStyle = DARK_CARD;
-    ctx.fill();
+    // ====== STEP 6: QUOTE CARD (y:722, h:80) ======
+    drawCard(28, 722, 724, 80, 12);
 
+    ctx.save();
     // Green left accent bar
     ctx.fillStyle = GREEN_BRIGHT;
-    ctx.fillRect(30, 745, 5, 90);
+    ctx.fillRect(28, 722, 5, 80);
 
     // Quote text
-    ctx.fillStyle = "#e0e0e0";
-    ctx.font = 'italic 22px Inter, sans-serif';
+    ctx.fillStyle = "#d0d0d0";
+    ctx.font = 'italic 19px Inter, sans-serif';
     ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
+    ctx.textBaseline = "middle";
     let quote = `"${motText}"`;
-    const maxQuoteW = 640;
+    const maxQuoteW = 660;
     if (ctx.measureText(quote).width > maxQuoteW) {
       while (quote.length > 4 && ctx.measureText(quote.slice(0, -1) + '..."').width > maxQuoteW) {
         quote = quote.slice(0, -1);
       }
       quote = quote.slice(0, -1) + '..."';
     }
-    ctx.fillText(quote, 60, 800);
+    ctx.fillText(quote, 50, 762);
     ctx.restore();
 
-    // ====== STEP 7: FOOTER (y:1350) ======
+    // ====== STEP 7: FOOTER (y:1010) ======
     ctx.save();
     ctx.fillStyle = GRAY;
-    ctx.font = 'normal 18px Inter, sans-serif';
+    ctx.font = 'normal 16px Inter, sans-serif';
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText(s.footer, 30, 1350);
+    ctx.fillText(s.footer, 30, 1010);
 
     ctx.fillStyle = GREEN_BRIGHT;
-    ctx.font = 'bold 18px Inter, sans-serif';
+    ctx.font = 'bold 16px Inter, sans-serif';
     ctx.textAlign = "right";
-    ctx.fillText(dateStr, 750, 1350);
+    ctx.fillText(dateStr, 750, 1010);
     ctx.restore();
 
     return new Promise<Blob>((resolve, reject) => {
