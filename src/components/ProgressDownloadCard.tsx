@@ -38,20 +38,19 @@ export default function ProgressDownloadCard({
     : "Making progress every day with Surya-FitAi\n#SuryaFitAi #FitnessJourney";
 
   const generateImage = async (): Promise<Blob> => {
-    // === COLOR CONSTANTS ===
-    const CARD_BG = "#0f1e0f";
-    const CARD_BORDER = "#1f3a1f";
-    const CANVAS_BG = "#091409";
+    // === COLOR CONSTANTS (glass/translucent like reference) ===
+    const CARD_BG = "rgba(20, 40, 22, 0.55)";        // translucent dark green tint
+    const CARD_BORDER = "rgba(80, 140, 90, 0.25)";   // soft green outline
     const GREEN_BRIGHT = "#00ff66";
-    const GREEN_DIM = "#1a3a1a";
-    const WORKOUT_BORDER = "#2a4a2a";
+    const GREEN_DIM = "rgba(40, 90, 50, 0.6)";
+    const WORKOUT_BORDER = "rgba(0, 255, 102, 0.28)";
     const WHITE = "#ffffff";
-    const GRAY = "#6a8a6a";
+    const GRAY = "#7a9a7a";
 
     // === CANVAS SETUP ===
     const SCALE = 2;
     const W = 780;
-    const H = 1050;
+    const H = 1380;
 
     const canvas = document.createElement("canvas");
     canvas.width = W * SCALE;
