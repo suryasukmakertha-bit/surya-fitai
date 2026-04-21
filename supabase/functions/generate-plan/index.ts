@@ -417,6 +417,7 @@ serve(async (req) => {
         sessionDuration, equipment, dailySteps, sleepHours, sleepQuality,
         stressLevel, nightShift, mealFrequency, intermittentFasting,
         injuries: injuriesInput, foodAllergies: foodAllergiesInput,
+        additionalConditions, additionalAllergies, country_code,
         extensionContext,
       } = body;
 
@@ -461,6 +462,10 @@ serve(async (req) => {
         food_allergies: foodAllergiesArr,
         diet_type: mapDietType(dietType),
         food_style: foodStyle || "local",
+        user_food_style_explicit: !!(foodStyle && foodStyle !== ""),
+        country_code: (country_code || "ID").toString().toUpperCase(),
+        additional_conditions: typeof additionalConditions === "string" ? additionalConditions.slice(0, 200) : "",
+        additional_allergies:  typeof additionalAllergies  === "string" ? additionalAllergies.slice(0, 200)  : "",
         meal_frequency: parseInt(mealFrequency) || 5,
         intermittent_fasting: !!intermittentFasting,
         stress_level: parseInt(stressLevel) || 5,
