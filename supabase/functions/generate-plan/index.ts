@@ -313,7 +313,7 @@ function adaptEnginePlan(opts: {
     safety_notes: safetyTips[lang],
     warnings: enginePlan.injury_notes ? [enginePlan.injury_notes] : [],
     motivational_message: coach.motivation || "",
-    grocery_list: groceryList[lang],
+    grocery_list: groceryList,
     estimated_calories_burned: estimatedCaloriesBurned,
     weight_projection: weightProjection,
     progressionRules: progressionRulesByLang[lang],
