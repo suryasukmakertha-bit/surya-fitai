@@ -727,6 +727,24 @@ const translations = {
     dietVegetarian: "Vegetarian",
     dietVegan: "Vegan",
 
+    // Additional Info (Optional) Section
+    additionalInfoSection: "Informasi Tambahan (Opsional)",
+    additionalInfoHint: "Ketuk untuk membuka. Semua kolom opsional — lewati yang tidak relevan.",
+    injuriesLabel: "Cedera atau Area Nyeri",
+    injuryKnee: "Nyeri/Cedera Lutut",
+    injuryLowerBack: "Nyeri Punggung Bawah",
+    injuryShoulder: "Nyeri/Cedera Bahu",
+    injuryElbow: "Nyeri Siku",
+    injuryWrist: "Cedera Pergelangan",
+    injuryAnkle: "Cedera Pergelangan Kaki",
+    injuryNeck: "Nyeri Leher",
+    foodAllergiesLabel: "Alergi Makanan",
+    allergyGluten: "Gluten/Gandum",
+    allergyDairy: "Susu/Laktosa",
+    allergyNuts: "Kacang-kacangan",
+    allergyEgg: "Telur",
+    allergySeafood: "Ikan/Seafood",
+
     // Week Selector
     selectWeekLabel: "Pilih Minggu",
     weekLabel: "Minggu",
