@@ -168,7 +168,390 @@ function buildGroceryList(meals: any[], lang: "id" | "en" | "zh"): string[] {
     .map(([name, count]) => `${name} × ${count * 7}${xLabel}`);
 }
 
+// ── New meal-plan generator (inline, replaces engine's meal_plan) ──
+function generateMealPlan(userProfile: any) {
+  const {
+    targetCalories = 2000,
+    protein = 140,
+    carbs = 200,
+    fat = 65,
+    goal = "bulking",
+    language = "id",
+    food_allergies = [],
+    food_style = "local",
+    meal_frequency = 5,
+    intermittent_fasting = false,
+  } = userProfile;
+
+  const a = (food_allergies as string[]).map((x: string) => x.toLowerCase());
+  const noGluten  = a.some((x: string) => ["gluten","wheat","gandum"].includes(x));
+  const noDairy   = a.some((x: string) => ["dairy","susu","lactose","yogurt",
+    "greek yogurt","keju","cheese","butter","mentega","whey",
+    "krim","cream"].includes(x));
+  const noNuts    = a.some((x: string) => ["nuts","kacang"].includes(x));
+  const noEgg     = a.some((x: string) => ["egg","telur"].includes(x));
+  const noSeafood = a.some((x: string) => ["seafood","ikan","fish","udang",
+    "shrimp"].includes(x));
+
+  const ingredientPools: Record<string, any> = {
+    local: {
+      proteins_meat: (!noSeafood && !noEgg)
+        ? ["Ayam kampung panggang","Telur ayam rebus","Ikan lele goreng",
+           "Ikan kembung kukus","Tempe bakar","Tahu goreng",
+           "Daging sapi tumis","Ayam rebus"]
+        : ["Tempe bakar","Tahu goreng","Tempe kukus","Tahu bacem"],
+      carbs: noGluten
+        ? ["Nasi putih","Nasi merah","Ubi jalar kukus","Singkong rebus",
+           "Kentang rebus","Jagung rebus"]
+        : ["Nasi putih","Nasi merah","Ubi jalar kukus","Singkong rebus",
+           "Kentang rebus"],
+      vegetables: ["Tumis bayam","Tumis kangkung","Brokoli kukus",
+        "Tumis wortel","Kol rebus","Tumis pak choy","Lalapan segar",
+        "Tumis kacang panjang","Sayur bening bayam"],
+      fats: noNuts
+        ? ["Santan kelapa","Minyak kelapa"]
+        : ["Kacang tanah rebus","Santan kelapa","Minyak kelapa"],
+    },
+    budget: {
+      proteins_meat: (!noEgg)
+        ? ["Telur rebus","Tempe goreng","Tahu goreng","Tempe bakar",
+           "Telur dadar","Ikan asin (porsi kecil)","Tahu kukus"]
+        : ["Tempe goreng","Tahu goreng","Tempe bakar","Tahu kukus"],
+      carbs: ["Nasi putih","Ubi jalar kukus","Singkong rebus",
+        "Kentang rebus","Jagung rebus"],
+      vegetables: ["Tumis bayam","Tumis kangkung","Sayur bening",
+        "Tumis kol","Lalapan","Tumis tauge","Sup sayur"],
+      fats: noNuts
+        ? ["Minyak kelapa","Santan encer"]
+        : ["Kacang tanah rebus","Minyak kelapa"],
+    },
+    western: {
+      proteins_meat: (!noSeafood && !noEgg)
+        ? ["Grilled chicken breast","Salmon fillet","Boiled eggs",
+           "Lean beef","Tuna","Turkey breast","Cottage cheese"]
+        : ["Grilled chicken breast","Lean beef","Turkey breast"],
+      carbs: noGluten
+        ? ["Brown rice","Sweet potato","Quinoa","Oats","Potato"]
+        : ["Brown rice","Sweet potato","Whole wheat bread",
+           "Quinoa","Oats"],
+      vegetables: ["Steamed broccoli","Spinach salad","Kale",
+        "Asparagus","Green beans","Cucumber","Cherry tomatoes"],
+      fats: noNuts
+        ? ["Avocado","Olive oil 1 tbsp"]
+        : ["Avocado","Almonds 15g","Olive oil 1 tbsp",
+           "Walnuts 15g"],
+    },
+    asian: {
+      proteins_meat: (!noSeafood && !noEgg)
+        ? ["Steamed fish","Tofu stir-fry","Boiled eggs",
+           "Steamed chicken","Shrimp","Edamame","Miso tofu"]
+        : ["Tofu stir-fry","Steamed tofu","Edamame","Miso tofu"],
+      carbs: ["Steamed rice","Brown rice","Rice congee",
+        "Soba noodles","Sweet potato"],
+      vegetables: ["Bok choy","Steamed broccoli","Spinach",
+        "Bean sprouts","Napa cabbage","Mushrooms","Edamame"],
+      fats: noNuts
+        ? ["Sesame oil 1 tsp","Tofu"]
+        : ["Sesame oil 1 tsp","Peanut sauce (small)"],
+    },
+    high_protein: {
+      proteins_meat: (!noSeafood && !noEgg)
+        ? ["Chicken breast 200g","Whey protein shake","Egg whites 4",
+           "Tuna 150g","Lean beef 150g","Greek yogurt","Salmon 150g"]
+        : ["Chicken breast 200g","Lean beef 150g","Tempeh 150g"],
+      carbs: noGluten
+        ? ["Brown rice","Sweet potato","Oats","Quinoa"]
+        : ["Brown rice","Sweet potato","Whole wheat bread","Oats"],
+      vegetables: ["Broccoli","Spinach","Asparagus","Cucumber",
+        "Bell pepper","Kale"],
+      fats: noNuts
+        ? ["Avocado","Olive oil"]
+        : ["Almonds 20g","Avocado","Olive oil","Peanut butter 1 tbsp"],
+    },
+    premium: {
+      proteins_meat: (!noSeafood && !noEgg)
+        ? ["Salmon fillet","Grass-fed beef","Free range eggs",
+           "Organic chicken","Tuna steak","Shrimp","Sea bass"]
+        : ["Grass-fed beef","Organic chicken","Organic tofu"],
+      carbs: ["Quinoa","Sweet potato","Wild rice","Oats",
+        "Ancient grain bread"],
+      vegetables: ["Asparagus","Kale","Spinach","Broccolini",
+        "Artichoke","Arugula","Brussels sprouts"],
+      fats: noNuts
+        ? ["Avocado","Olive oil","Coconut oil"]
+        : ["Avocado","Almonds","Walnuts","Chia seeds","Olive oil"],
+    },
+  };
+
+  const styleMap: Record<string, string> = {
+    "makanan lokal hemat": "budget",
+    "budget":              "budget",
+    "lokal hemat":         "budget",
+    "gaya barat":          "western",
+    "western":             "western",
+    "barat":               "western",
+    "gaya asia":           "asian",
+    "asian":               "asian",
+    "asia":                "asian",
+    "gaya tinggi protein fitness": "high_protein",
+    "high_protein":        "high_protein",
+    "tinggi protein":      "high_protein",
+    "premium / fokus whole foods": "premium",
+    "premium":             "premium",
+    "whole foods":         "premium",
+  };
+  const styleKey = styleMap[(food_style || "local").toLowerCase()] || "local";
+  const pool = ingredientPools[styleKey] || ingredientPools.local;
+
+  let proteins: string[] = pool.proteins_meat;
+  if (noDairy) {
+    proteins = proteins.filter((p: string) => {
+      const pl = p.toLowerCase();
+      return !["yogurt","cheese","keju","whey","butter",
+        "mentega","cream","krim","susu","milk",
+        "cottage"].some((d) => pl.includes(d));
+    });
+  }
+  if (proteins.length === 0) {
+    proteins = ["Tempe bakar","Tahu goreng","Tempe kukus"];
+  }
+
+  const pick = (arr: string[]) => {
+    const safe = arr.filter(Boolean);
+    return safe[Math.floor(Math.random() * safe.length)] || "-";
+  };
+
+  const distributions: Record<number, number[]> = {
+    3: [0.30, 0.40, 0.30],
+    4: [0.25, 0.15, 0.35, 0.25],
+    5: [0.22, 0.12, 0.30, 0.10, 0.26],
+    6: [0.18, 0.10, 0.25, 0.12, 0.25, 0.10],
+  };
+  const freq = Math.min(Math.max(meal_frequency || 5, 3), 6);
+  const dist = distributions[freq] || distributions[5];
+
+  const mealNames: Record<string, string[]> = {
+    id: ["Sarapan","Snack Pagi","Makan Siang",
+         "Snack Sore","Makan Malam","Post-Workout"],
+    en: ["Breakfast","Morning Snack","Lunch",
+         "Afternoon Snack","Dinner","Post-Workout"],
+    zh: ["早餐","上午零食","午餐","下午零食","晚餐","训练后"],
+  };
+
+  const baseTimes = intermittent_fasting
+    ? ["12:00","14:00","16:30","19:00","21:00","22:00"]
+    : ["07:00","10:00","13:00","16:00","19:30","21:00"];
+
+  const names = mealNames[language] || mealNames.id;
+  const meals: any[] = [];
+
+  for (let i = 0; i < freq; i++) {
+    const cal = Math.round(targetCalories * dist[i]);
+    const pro = Math.round(protein * dist[i]);
+    const isSnack = freq >= 4 && (i === 1 || i === 3 || i === 5);
+    let food: string;
+    if (isSnack) {
+      const snackPool: Record<string, string[]> = {
+        local:       ["Pisang + kacang tanah","Ubi rebus","Tahu kukus + kecap","Singkong rebus","Tempe goreng kering"],
+        budget:      ["Pisang","Ubi rebus","Singkong rebus","Tempe goreng kering","Tahu goreng"],
+        western:     ["Apple + almonds","Greek yogurt + berries","Rice cake + peanut butter","Banana + protein shake"],
+        asian:       ["Edamame","Rice ball","Tofu pudding","Steamed bun","Miso soup"],
+        high_protein:["Protein shake","Boiled eggs","Greek yogurt","Tuna on rice cake","Cottage cheese"],
+        premium:     ["Acai bowl","Mixed nuts 20g","Protein smoothie","Avocado toast"],
+      };
+      let snacks = snackPool[styleKey] || snackPool.local;
+      if (noDairy) snacks = snacks.filter((s) =>
+        !["yogurt","cheese","milk","susu","whey","cream","krim"]
+          .some((d) => s.toLowerCase().includes(d)));
+      if (noNuts) snacks = snacks.filter((s) =>
+        !["almond","walnut","kacang","peanut","nuts"]
+          .some((n) => s.toLowerCase().includes(n)));
+      if (noEgg) snacks = snacks.filter((s) =>
+        !["egg","telur"].some((e) => s.toLowerCase().includes(e)));
+      if (snacks.length === 0) snacks = ["Buah segar","Pisang","Ubi rebus"];
+      food = pick(snacks);
+    } else {
+      const protein_item = pick(proteins);
+      const carb_item    = pick(pool.carbs);
+      const veg_item     = pick(pool.vegetables);
+      const fat_item     = pick(pool.fats);
+      food = goal === "cutting"
+        ? `${protein_item} + ${carb_item} (porsi kecil) + ${veg_item}`
+        : `${protein_item} + ${carb_item} + ${veg_item} + ${fat_item}`;
+    }
+    meals.push({
+      time:     baseTimes[i] || "08:00",
+      type:     names[i] || `Makan ${i+1}`,
+      name:     food,
+      calories: cal,
+      protein:  pro,
+    });
+  }
+
+  // Generate shopping list FROM meal plan
+  const ingredientSet: Record<string, number> = {};
+  meals.forEach((meal) => {
+    meal.name.split("+").forEach((item: string) => {
+      const cleaned = item.trim()
+        .replace(/\(porsi kecil\)/gi,"")
+        .replace(/\d+g|\d+ml|\d+tbsp|\d+tsp|\d+sdm/gi,"")
+        .trim();
+      if (cleaned.length > 2) {
+        ingredientSet[cleaned] = (ingredientSet[cleaned] || 0) + 1;
+      }
+    });
+  });
+  const shopping_list = Object.entries(ingredientSet).map(
+    ([item, count]) => ({
+      item,
+      quantity: count >= 5
+        ? `${Math.ceil(count * 7 / 5)} porsi/minggu`
+        : `${count * 7} porsi/minggu`,
+    })
+  );
+
+  const allergyNote = (food_allergies as string[]).length > 0
+    ? ({
+        id: `Menu disesuaikan: bebas ${(food_allergies as string[]).join(", ")}`,
+        en: `Menu adjusted: free from ${(food_allergies as string[]).join(", ")}`,
+        zh: `菜单已调整：不含 ${(food_allergies as string[]).join("、")}`,
+      } as Record<string, string>)[language] || null
+    : null;
+
+  const ifNote = intermittent_fasting
+    ? ({
+        id: "Jadwal IF 16/8: semua makan dalam window 12:00–20:00",
+        en: "IF 16/8 schedule: all meals within 12:00–20:00 window",
+        zh: "IF 16/8时间表：所有餐食在12:00-20:00内",
+      } as Record<string, string>)[language] || null
+    : null;
+
+  return {
+    daily_target: { calories: targetCalories, protein, carbs, fat },
+    meals,
+    shopping_list,
+    notes: [allergyNote, ifNote].filter(Boolean),
+  };
+}
+
 // ── Helper: injury-specific safety protocols ──
+function getSafetyNotes(injuries: string[], language: string): string[] {
+  const lang = language || "id";
+  const notes: Record<string, Record<string, string[]>> = {
+    knee_injury: {
+      id: ["Hindari squat di bawah 90 derajat",
+           "Tidak ada jumping atau high-impact exercise",
+           "Jika lutut bengkak setelah latihan, istirahat 48 jam",
+           "Gunakan knee sleeve/brace jika tersedia",
+           "Hentikan segera jika nyeri lebih dari 6/10"],
+      en: ["Avoid squats below 90 degrees",
+           "No jumping or high-impact exercises",
+           "If knee swells after training, rest 48 hours",
+           "Use knee sleeve/brace if available",
+           "Stop immediately if pain exceeds 6/10"],
+    },
+    lower_back_pain: {
+      id: ["Hindari deadlift konvensional dan good morning",
+           "Selalu aktifkan core sebelum setiap gerakan",
+           "Tidak ada sit-up atau crunch penuh",
+           "Gunakan lumbar support jika diperlukan",
+           "Tidur dengan bantal di antara lutut untuk recovery"],
+      en: ["Avoid conventional deadlifts and good mornings",
+           "Always engage core before every movement",
+           "No full sit-ups or crunches",
+           "Use lumbar support if needed",
+           "Sleep with pillow between knees for recovery"],
+    },
+    shoulder_injury: {
+      id: ["Tidak ada overhead pressing selama fase akut",
+           "Hindari bench press dengan grip terlalu lebar",
+           "Prioritaskan face pull dan external rotation",
+           "Jangan angkat beban di atas kepala",
+           "Pemanasan rotator cuff 5 menit sebelum latihan bahu"],
+      en: ["No overhead pressing during acute phase",
+           "Avoid bench press with too wide grip",
+           "Prioritize face pulls and external rotation",
+           "Do not lift weights above head",
+           "Warm up rotator cuff 5 min before shoulder work"],
+    },
+    elbow_pain: {
+      id: ["Hindari EZ bar dan straight bar curl",
+           "Gunakan neutral grip untuk semua pulling movement",
+           "Tidak ada skull crusher atau close grip bench",
+           "Kurangi volume bisep dan trisep 50% sementara",
+           "Icing siku 10 menit setelah latihan"],
+      en: ["Avoid EZ bar and straight bar curls",
+           "Use neutral grip for all pulling movements",
+           "No skull crushers or close grip bench",
+           "Reduce bicep and tricep volume 50% temporarily",
+           "Ice elbow 10 minutes after training"],
+    },
+    wrist_injury: {
+      id: ["Gunakan wrist wrap untuk semua pressing movement",
+           "Ganti push up biasa dengan push up fist",
+           "Tidak ada barbell curl — ganti dumbbell atau cable",
+           "Kurangi range of motion jika tidak nyaman",
+           "Stretch pergelangan tangan 2 menit setelah latihan"],
+      en: ["Use wrist wraps for all pressing movements",
+           "Replace standard push ups with fist push ups",
+           "No barbell curls — use dumbbell or cable",
+           "Reduce range of motion if uncomfortable",
+           "Stretch wrists 2 minutes after training"],
+    },
+    ankle_injury: {
+      id: ["Tidak ada jumping, box jump, atau plyometrics",
+           "Hindari single leg exercise sampai stabil",
+           "Gunakan ankle brace saat latihan kaki",
+           "Fokus pada upper body dan seated exercises",
+           "Calf raise hanya jika tidak terasa nyeri"],
+      en: ["No jumping, box jumps, or plyometrics",
+           "Avoid single leg exercises until stable",
+           "Use ankle brace during leg training",
+           "Focus on upper body and seated exercises",
+           "Calf raises only if pain-free"],
+    },
+    neck_pain: {
+      id: ["Tidak ada shrug atau upright row",
+           "Jaga posisi netral leher di semua gerakan",
+           "Tidak ada overhead press dengan beban berat",
+           "Hindari latihan yang butuh menahan napas kuat",
+           "Peregangan leher ringan 5 menit setelah latihan"],
+      en: ["No shrugs or upright rows",
+           "Maintain neutral neck position in all movements",
+           "No heavy overhead pressing",
+           "Avoid exercises requiring heavy breath holding",
+           "Light neck stretching 5 minutes after training"],
+    },
+  };
+  const general: Record<string, string[]> = {
+    id: ["Selalu lakukan pemanasan 5-8 menit sebelum latihan",
+         "Hentikan jika ada nyeri tajam pada sendi",
+         "Hidrasi cukup — minum 500ml air per jam latihan",
+         "Tidur 7-8 jam untuk recovery optimal",
+         "Jangan lewati sesi pendinginan setelah latihan"],
+    en: ["Always warm up 5-8 minutes before training",
+         "Stop if you feel sharp joint pain",
+         "Stay hydrated — drink 500ml water per hour",
+         "Sleep 7-8 hours for optimal recovery",
+         "Never skip cool-down after training"],
+  };
+  if (!injuries || injuries.length === 0) {
+    return general[lang] || general.id;
+  }
+  const combined: string[] = [];
+  injuries.forEach((inj) => {
+    const injNotes = notes[inj];
+    if (injNotes) {
+      const injLang = injNotes[lang] || injNotes.id;
+      injLang.forEach((note) => {
+        if (!combined.includes(note)) combined.push(note);
+      });
+    }
+  });
+  return combined.length > 0 ? combined : (general[lang] || general.id);
+}
+
+// ── (legacy) Helper kept for back-compat — no longer used in main flow ──
 function buildSafetyNotes(injuries: string[], lang: "id" | "en" | "zh"): string[] {
   const PROTOCOLS: Record<string, Record<"id" | "en" | "zh", string[]>> = {
     knee_injury: {
