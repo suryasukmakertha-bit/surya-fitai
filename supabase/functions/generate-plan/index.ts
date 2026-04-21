@@ -325,6 +325,7 @@ function adaptEnginePlan(opts: {
     workout_plan,
     coolDown,
     meal_plan,
+    meal_plan_notes: Array.isArray(mp.notes) ? mp.notes : [],
     calorie_target: macros.calories,
     protein: macros.protein,
     carbs: macros.carbs,
@@ -342,6 +343,13 @@ function adaptEnginePlan(opts: {
     recoveryTips: recoveryByLang[lang],
     coach_tips: Array.isArray(coach.key_tips) ? coach.key_tips : [],
     week_focus: coach.week_focus || "",
+    coach_message: {
+      opening: coach.opening || "",
+      key_tips: Array.isArray(coach.key_tips) ? coach.key_tips : [],
+      motivation: coach.motivation || "",
+      week_focus: coach.week_focus || "",
+    },
+    injury_notes: enginePlan.injury_notes || null,
     meta: enginePlan.meta || {},
   };
 }
@@ -408,6 +416,7 @@ serve(async (req) => {
         startDate, startDay, foodStyle, dietType,
         sessionDuration, equipment, dailySteps, sleepHours, sleepQuality,
         stressLevel, nightShift, mealFrequency, intermittentFasting,
+        injuries: injuriesInput, foodAllergies: foodAllergiesInput,
         extensionContext,
       } = body;
 
@@ -428,6 +437,15 @@ serve(async (req) => {
       const tdee = Math.round(calculateTDEE(bmr, actMult, dailySteps || "4000-8000"));
       const macros = calculateMacros(tdee, w, programType);
 
+      // Prefer explicit chip arrays from the new "Additional Info" section.
+      // Fallback to deriving from free-text limitations/allergies when not provided.
+      const injuriesArr = Array.isArray(injuriesInput) && injuriesInput.length > 0
+        ? injuriesInput.map((s: any) => String(s))
+        : mapInjuries(limitations);
+      const foodAllergiesArr = Array.isArray(foodAllergiesInput) && foodAllergiesInput.length > 0
+        ? foodAllergiesInput.map((s: any) => String(s))
+        : mapAllergies(allergies);
+
       const userProfile: any = {
         name,
         language: lang,
@@ -439,8 +457,8 @@ serve(async (req) => {
         daysPerWeek: td,
         sessionDuration: sessionMin,
         monthNumber: 1,
-        injuries: mapInjuries(limitations),
-        food_allergies: mapAllergies(allergies),
+        injuries: injuriesArr,
+        food_allergies: foodAllergiesArr,
         diet_type: mapDietType(dietType),
         food_style: foodStyle || "local",
         meal_frequency: parseInt(mealFrequency) || 5,
