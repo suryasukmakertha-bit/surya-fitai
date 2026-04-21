@@ -345,24 +345,6 @@ function adaptEnginePlan(opts: {
         ? "5分钟静态拉伸训练过的肌肉群，专注深呼吸。"
         : "5 min static stretching on trained muscle groups, focus on deep breathing.";
 
-  const safetyTips: Record<"id" | "en" | "zh", string[]> = {
-    id: [
-      "Hentikan latihan jika ada nyeri tajam pada sendi.",
-      "Selalu lakukan pemanasan sebelum latihan utama.",
-      "Hidrasi cukup — minum 500ml air per jam latihan.",
-    ],
-    en: [
-      "Stop training if you feel sharp joint pain.",
-      "Always warm up before main lifts.",
-      "Hydrate well — drink 500ml water per hour of training.",
-    ],
-    zh: [
-      "如感到关节剧痛请停止训练。",
-      "主要训练前务必热身。",
-      "充分补水——每小时训练饮用500毫升水。",
-    ],
-  };
-
   // Build the shopping list dynamically from the actual meal plan.
   // We split each meal name on common separators, count occurrences across
   // 7 days, and emit a "Ingredient × Nx" line per unique item.
