@@ -1127,6 +1127,24 @@ const translations = {
     dietVegetarian: "素食者",
     dietVegan: "纯素者",
 
+    // Additional Info (Optional) Section
+    additionalInfoSection: "附加信息（可选）",
+    additionalInfoHint: "点击展开。所有字段均为可选 — 不适用可跳过。",
+    injuriesLabel: "伤痛或不适部位",
+    injuryKnee: "膝关节疼痛",
+    injuryLowerBack: "腰痛",
+    injuryShoulder: "肩部疼痛",
+    injuryElbow: "肘部疼痛",
+    injuryWrist: "手腕受伤",
+    injuryAnkle: "脚踝受伤",
+    injuryNeck: "颈部疼痛",
+    foodAllergiesLabel: "食物过敏",
+    allergyGluten: "麸质",
+    allergyDairy: "乳制品",
+    allergyNuts: "坚果",
+    allergyEgg: "鸡蛋",
+    allergySeafood: "海鲜",
+
     // Week Selector
     selectWeekLabel: "选择周",
     weekLabel: "第",
