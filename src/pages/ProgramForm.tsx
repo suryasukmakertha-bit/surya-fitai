@@ -196,6 +196,9 @@ export default function ProgramForm() {
           intermittentFasting: form.intermittentFasting,
           injuries: form.injuries,
           foodAllergies: form.foodAllergies,
+          additionalConditions: form.additionalConditions,
+          additionalAllergies: form.additionalAllergies,
+          country_code: ((typeof navigator !== "undefined" && navigator.language?.split("-")[1]) || "ID").toUpperCase(),
           calculatedMetrics: metrics,
           targetLiftingMinutes,
           targetTotalSets: targetSets,
@@ -569,6 +572,18 @@ export default function ProgramForm() {
                     );
                   })}
                 </div>
+                {/* Other conditions free text */}
+                <div className="space-y-2 pt-1">
+                  <Label className="text-xs text-muted-foreground">{(t as any).otherConditionsLabel}</Label>
+                  <Textarea
+                    value={form.additionalConditions}
+                    onChange={(e) => set("additionalConditions", e.target.value.slice(0, 200))}
+                    placeholder={(t as any).otherConditionsPlaceholder}
+                    maxLength={200}
+                    className="bg-secondary border-border min-h-[64px]"
+                  />
+                  <p className="text-[10px] text-muted-foreground/60 text-right">{form.additionalConditions.length}/200</p>
+                </div>
               </div>
 
               {/* Food allergies chips */}
@@ -599,6 +614,18 @@ export default function ProgramForm() {
                       </button>
                     );
                   })}
+                </div>
+                {/* Other allergies free text */}
+                <div className="space-y-2 pt-1">
+                  <Label className="text-xs text-muted-foreground">{(t as any).otherAllergiesLabel}</Label>
+                  <Textarea
+                    value={form.additionalAllergies}
+                    onChange={(e) => set("additionalAllergies", e.target.value.slice(0, 200))}
+                    placeholder={(t as any).otherAllergiesPlaceholder}
+                    maxLength={200}
+                    className="bg-secondary border-border min-h-[64px]"
+                  />
+                  <p className="text-[10px] text-muted-foreground/60 text-right">{form.additionalAllergies.length}/200</p>
                 </div>
               </div>
             </CollapsibleContent>
