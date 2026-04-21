@@ -310,7 +310,7 @@ function adaptEnginePlan(opts: {
     fat: macros.fat,
     water_liters: 3,
     weekly_schedule,
-    safety_notes: safetyTips[lang],
+    safety_notes: buildSafetyNotes(opts.injuries || [], lang),
     warnings: enginePlan.injury_notes ? [enginePlan.injury_notes] : [],
     motivational_message: coach.motivation || "",
     grocery_list: groceryList,
