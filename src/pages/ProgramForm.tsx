@@ -79,8 +79,6 @@ export default function ProgramForm() {
     // Plans are 4 weeks; users continue to month 2/3/etc via the completion modal.
     duration: "1 Month",
     experience: "Beginner",
-    limitations: "",
-    allergies: "",
     occupation: "",
     occupationOther: "",
     trainingDaysPerWeek: "4",
@@ -99,6 +97,8 @@ export default function ProgramForm() {
     // Additional Info (Optional)
     injuries: [] as string[],
     foodAllergies: [] as string[],
+    additionalConditions: "",
+    additionalAllergies: "",
   });
 
   // Sync goal text when language changes
