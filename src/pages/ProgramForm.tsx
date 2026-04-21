@@ -191,6 +191,8 @@ export default function ProgramForm() {
           nightShift: form.nightShift,
           mealFrequency: form.mealFrequency,
           intermittentFasting: form.intermittentFasting,
+          injuries: form.injuries,
+          foodAllergies: form.foodAllergies,
           calculatedMetrics: metrics,
           targetLiftingMinutes,
           targetTotalSets: targetSets,
@@ -528,6 +530,86 @@ export default function ProgramForm() {
               <Textarea value={form.allergies} onChange={(e) => set("allergies", e.target.value)} placeholder={t.allergiesPlaceholder} className="bg-secondary border-border" />
             </div>
           </div>
+
+          {/* Additional Info (Optional) — Collapsible */}
+          <Collapsible className="card-gradient rounded-lg border border-border/50">
+            <CollapsibleTrigger className="w-full flex items-center justify-between p-6 group [&[data-state=open]>svg]:rotate-180">
+              <div className="text-left">
+                <h3 className="font-display font-bold text-foreground text-sm uppercase tracking-wider text-primary">
+                  {(t as any).additionalInfoSection}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {(t as any).additionalInfoHint}
+                </p>
+              </div>
+              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 flex-shrink-0" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-6 pb-6 space-y-5 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
+              {/* Injuries chips */}
+              <div className="space-y-3">
+                <Label>{(t as any).injuriesLabel}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "knee_injury", labelKey: "injuryKnee" },
+                    { value: "lower_back_pain", labelKey: "injuryLowerBack" },
+                    { value: "shoulder_injury", labelKey: "injuryShoulder" },
+                    { value: "elbow_pain", labelKey: "injuryElbow" },
+                    { value: "wrist_injury", labelKey: "injuryWrist" },
+                    { value: "ankle_injury", labelKey: "injuryAnkle" },
+                    { value: "neck_pain", labelKey: "injuryNeck" },
+                  ].map((inj) => {
+                    const active = form.injuries.includes(inj.value);
+                    return (
+                      <button
+                        key={inj.value}
+                        type="button"
+                        onClick={() => toggleInjury(inj.value)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                          active
+                            ? "border-primary bg-primary/15 text-primary"
+                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/40"
+                        )}
+                      >
+                        {(t as any)[inj.labelKey]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Food allergies chips */}
+              <div className="space-y-3">
+                <Label>{(t as any).foodAllergiesLabel}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "gluten", labelKey: "allergyGluten" },
+                    { value: "dairy", labelKey: "allergyDairy" },
+                    { value: "nuts", labelKey: "allergyNuts" },
+                    { value: "egg", labelKey: "allergyEgg" },
+                    { value: "seafood", labelKey: "allergySeafood" },
+                  ].map((al) => {
+                    const active = form.foodAllergies.includes(al.value);
+                    return (
+                      <button
+                        key={al.value}
+                        type="button"
+                        onClick={() => toggleFoodAllergy(al.value)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                          active
+                            ? "border-primary bg-primary/15 text-primary"
+                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/40"
+                        )}
+                      >
+                        {(t as any)[al.labelKey]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Live Metrics Card */}
           {metrics && (
