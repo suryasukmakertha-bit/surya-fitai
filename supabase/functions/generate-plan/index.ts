@@ -154,6 +154,7 @@ function adaptEnginePlan(opts: {
   macros: { calories: number; protein: number; carbs: number; fat: number };
   estimatedCaloriesBurned: number;
   weightProjection: string;
+  injuries?: string[];
 }) {
   const {
     enginePlan, language, startDate, trainingDaysPerWeek, sessionDuration, macros,
@@ -506,6 +507,7 @@ serve(async (req) => {
         macros,
         estimatedCaloriesBurned,
         weightProjection: wpText[lang],
+        injuries: injuriesArr,
       });
 
       console.log("[PlanGen] DONE", {
