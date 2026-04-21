@@ -273,32 +273,10 @@ function adaptEnginePlan(opts: {
     ],
   };
 
-  const groceryList: Record<"id" | "en" | "zh", string[]> = {
-    id: [
-      "Dada ayam 1 kg",
-      "Telur 30 butir",
-      "Beras merah 2 kg",
-      "Sayuran hijau (bayam, brokoli) 1 kg",
-      "Buah segar (pisang, apel) 2 kg",
-      "Minyak zaitun 250 ml",
-    ],
-    en: [
-      "Chicken breast 1 kg",
-      "Eggs 30 pcs",
-      "Brown rice 2 kg",
-      "Leafy greens (spinach, broccoli) 1 kg",
-      "Fresh fruit (banana, apple) 2 kg",
-      "Olive oil 250 ml",
-    ],
-    zh: [
-      "鸡胸肉 1公斤",
-      "鸡蛋 30个",
-      "糙米 2公斤",
-      "绿叶菜（菠菜、西兰花）1公斤",
-      "新鲜水果（香蕉、苹果）2公斤",
-      "橄榄油 250毫升",
-    ],
-  };
+  // Build the shopping list dynamically from the actual meal plan.
+  // We split each meal name on common separators, count occurrences across
+  // 7 days, and emit a "Ingredient × Nx" line per unique item.
+  const groceryList = buildGroceryList(mp.meals || [], lang);
 
   const progressionRulesByLang: Record<"id" | "en" | "zh", string> = {
     id: "Tingkatkan beban 2.5–5 kg pada compound lifts setiap minggu jika set terakhir terasa di RPE 7 atau lebih ringan. Untuk isolasi: tambah 1–2 reps sebelum naik beban.",
