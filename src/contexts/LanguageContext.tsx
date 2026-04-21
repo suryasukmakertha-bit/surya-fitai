@@ -344,6 +344,7 @@ const translations = {
     allergyNuts: "Nuts",
     allergyEgg: "Eggs",
     allergySeafood: "Fish/Seafood",
+    monthlyGenerateLimit: "Monthly generate limit reached. Resets next month.",
 
     // Week Selector
     selectWeekLabel: "Select Week",
@@ -744,6 +745,7 @@ const translations = {
     allergyNuts: "Kacang-kacangan",
     allergyEgg: "Telur",
     allergySeafood: "Ikan/Seafood",
+    monthlyGenerateLimit: "Batas generate bulan ini tercapai. Reset bulan depan.",
 
     // Week Selector
     selectWeekLabel: "Pilih Minggu",
@@ -1144,6 +1146,7 @@ const translations = {
     allergyNuts: "坚果",
     allergyEgg: "鸡蛋",
     allergySeafood: "海鲜",
+    monthlyGenerateLimit: "本月生成限制已达到。下月重置。",
 
     // Week Selector
     selectWeekLabel: "选择周",
