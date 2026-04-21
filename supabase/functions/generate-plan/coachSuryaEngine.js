@@ -565,6 +565,13 @@ function generateMealPlan(userProfile) {
   const noSeafood = a.includes("seafood")|| a.includes("ikan")  || a.includes("fish") || isVegan;
   const noMeat    = isVeg;
 
+  // Words that indicate dairy presence — used to filter snacks/foods when noDairy is set
+  const DAIRY_WORDS = ["yogurt","greek yogurt","keju","cheese","butter","mentega","whey","krim","cream","susu","milk","酸奶","牛奶","奶酪","黄油","奶油"];
+  const containsDairy = (s) => {
+    const t = String(s).toLowerCase();
+    return DAIRY_WORDS.some(w => t.includes(w));
+  };
+
   // Protein sources matrix
   const proteins = {
     id: {
