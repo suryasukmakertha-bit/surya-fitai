@@ -63,6 +63,7 @@ export default function ProgramForm() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const { access } = useSubscription();
 
   const titleKey = `${type}Title` as keyof typeof t;
   const programTitle = (t[titleKey] as string) || program?.title || "Program";
