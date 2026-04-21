@@ -552,6 +552,8 @@ function generateMealPlan(userProfile) {
     food_style     = "local",      // "local"|"western"|"asian"|"high_protein"|"budget"
     meal_frequency = 5,            // 3|4|5|6
     intermittent_fasting = false,
+    country_code   = "ID",
+    user_food_style_explicit = true,  // if user explicitly set a foodStyle, override country
   } = userProfile;
 
   const a = food_allergies.map(x => x.toLowerCase());
