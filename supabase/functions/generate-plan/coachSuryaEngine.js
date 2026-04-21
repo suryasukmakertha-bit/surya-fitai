@@ -846,6 +846,9 @@ async function getCoachSuryaMessage(userProfile, splitNames, anthropicApiCall) {
     protein, daysPerWeek,
     language        = "id",
     monthNumber     = 1,
+    additional_conditions = "",
+    additional_allergies  = "",
+    country_code    = "ID",
   } = userProfile;
 
   const langInstr = {
@@ -862,6 +865,13 @@ async function getCoachSuryaMessage(userProfile, splitNames, anthropicApiCall) {
     ? `Food allergies: ${food_allergies.join(", ")}. Meal plan has been adjusted accordingly.`
     : "No food allergies.";
 
+  const extraCondCtx = (additional_conditions || "").trim()
+    ? `Other conditions reported by client (free text): "${additional_conditions.trim()}". Acknowledge these specifically in your opening or tips if medically relevant.`
+    : "";
+  const extraAllergyCtx = (additional_allergies || "").trim()
+    ? `Other food restrictions reported (free text): "${additional_allergies.trim()}". Mention them in the nutrition tip.`
+    : "";
+
   const prompt = `You are Coach Surya — a certified personal trainer (CPT) and nutrition coach (CNC) with 10+ years experience handling clients from Indonesia and internationally. You specialize in injury management, body recomposition, sports nutrition, and personalized programming. Your coaching philosophy: "Tidak ada program yang one-size-fits-all. Setiap tubuh unik, setiap program harus unik."
 ${langInstr[language] || langInstr.id}
 
@@ -874,6 +884,7 @@ CLIENT PROFILE:
 - Diet type: ${diet_type}
 - ${injuryCtx}
 - ${allergyCtx}
+${extraCondCtx ? `- ${extraCondCtx}\n` : ""}${extraAllergyCtx ? `- ${extraAllergyCtx}\n` : ""}- Country: ${country_code}
 - BMR: ${bmr} kcal | TDEE: ${tdee} kcal | Target: ${targetCalories} kcal | Protein: ${protein}g/day
 
 As Coach Surya, write ONLY this exact JSON (no markdown, no extra text):
