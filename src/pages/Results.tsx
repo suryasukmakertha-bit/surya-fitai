@@ -1031,40 +1031,78 @@ export default function Results() {
           </>
         )}
 
-        {/* Program Overview */}
-        {plan.programOverview && (
-          <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
-                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-foreground text-xs font-bold">S</span>
-                </div>
-                <div>
-                  <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
-                  <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
-                </div>
+        {/* Coach Surya Message Card */}
+        {(plan.coach_message?.opening ||
+          plan.coach_message?.motivation ||
+          (plan.coach_message?.key_tips && plan.coach_message.key_tips.length > 0) ||
+          plan.programOverview ||
+          plan.motivational_message) && (
+          <div
+            className="rounded-2xl mb-4"
+            style={{
+              background: "rgba(0,255,120,0.06)",
+              border: "1px solid rgba(0,255,120,0.2)",
+              padding: "20px",
+            }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <span className="text-primary-foreground text-xs font-bold">S</span>
               </div>
-              <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+              <div>
+                <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
+                <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
+              </div>
             </div>
+
+            {(plan.coach_message?.opening || plan.programOverview) && (
+              <p className="text-foreground text-sm leading-relaxed mb-3" style={{ fontSize: "14px" }}>
+                {plan.coach_message?.opening || plan.programOverview}
+              </p>
+            )}
+
+            {plan.coach_message?.key_tips && plan.coach_message.key_tips.length > 0 && (
+              <ul className="space-y-2 mb-3">
+                {plan.coach_message.key_tips.map((tip, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <CheckCircle2 className="text-primary mt-0.5 flex-shrink-0" style={{ width: 16, height: 16 }} />
+                    <span className="text-foreground" style={{ fontSize: "13px", lineHeight: 1.5 }}>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {(plan.coach_message?.motivation || plan.motivational_message) && (
+              <p
+                className="italic"
+                style={{
+                  color: "rgba(255,255,255,0.6)",
+                  borderLeft: "3px solid hsl(var(--primary))",
+                  paddingLeft: "10px",
+                  fontSize: "13px",
+                  lineHeight: 1.5,
+                }}
+              >
+                {plan.coach_message?.motivation || plan.motivational_message}
+              </p>
+            )}
           </div>
         )}
 
-        {!plan.programOverview && plan.motivational_message && (
-          <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
-                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-foreground text-xs font-bold">S</span>
-                </div>
-                <div>
-                  <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
-                  <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
-                </div>
-              </div>
-              <p className="text-foreground text-sm italic">{plan.motivational_message}</p>
-            </div>
+        {/* Injury Warning Banner */}
+        {plan.injury_notes && plan.injury_notes.trim() && (
+          <div
+            className="mb-4 flex items-center"
+            style={{
+              background: "rgba(245,158,11,0.1)",
+              border: "1px solid rgba(245,158,11,0.3)",
+              borderRadius: "12px",
+              padding: "12px 16px",
+              gap: "10px",
+            }}
+          >
+            <AlertTriangle style={{ width: 16, height: 16, color: "#f59e0b" }} className="flex-shrink-0" />
+            <span className="text-foreground text-sm">{plan.injury_notes}</span>
           </div>
         )}
 
