@@ -913,6 +913,8 @@ export default function Results() {
         plan_data: plan as any,
         plan_name: planName,
         client_generated_id: clientGeneratedId,
+        injuries: Array.isArray((userInfo as any)?.injuries) ? (userInfo as any).injuries : [],
+        food_allergies: Array.isArray((userInfo as any)?.foodAllergies) ? (userInfo as any).foodAllergies : [],
       } as any).select("id").single();
       if (error) {
         if (error.code === '23505') {
@@ -1267,6 +1269,28 @@ export default function Results() {
                 </ul>
               </div>
             ))}
+
+            {/* Meal plan notes (pills) */}
+            {plan.meal_plan_notes && plan.meal_plan_notes.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {plan.meal_plan_notes.map((note, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1.5"
+                    style={{
+                      background: "rgba(0,255,120,0.08)",
+                      borderRadius: "20px",
+                      padding: "6px 12px",
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.7)",
+                    }}
+                  >
+                    <Info style={{ width: 14, height: 14 }} className="text-primary flex-shrink-0" />
+                    {note}
+                  </span>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="grocery">
