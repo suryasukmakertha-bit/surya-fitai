@@ -950,6 +950,10 @@ As Coach Surya, write ONLY this exact JSON (no markdown, no extra text):
 async function generateHybridPlan(userProfile, anthropicApiCall) {
   const days = Math.min(Math.max(userProfile.daysPerWeek || 4, 3), 5);
   const profile = { ...userProfile, daysPerWeek: days };
+  // Track whether the user explicitly chose a food_style (vs default fallback)
+  if (typeof profile.user_food_style_explicit === "undefined") {
+    profile.user_food_style_explicit = !!(profile.food_style && profile.food_style !== "");
+  }
 
   const planTemplate  = generatePlanTemplate(profile);
   const mealPlan      = generateMealPlan(profile);
@@ -976,6 +980,8 @@ async function generateHybridPlan(userProfile, anthropicApiCall) {
       injuries_considered:  profile.injuries || [],
       allergies_considered: profile.food_allergies || [],
       diet_type:            profile.diet_type || "omnivore",
+      country_code:         profile.country_code || "ID",
+      resolved_cuisine:     profile.food_style || "local",
     },
   };
 }
