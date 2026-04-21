@@ -142,6 +142,95 @@ function mapAllergies(allergies?: string): string[] {
     .filter(Boolean);
 }
 
+// ── Helper: build a weekly grocery list from actual generated meals ──
+function buildGroceryList(meals: any[], lang: "id" | "en" | "zh"): string[] {
+  if (!Array.isArray(meals) || meals.length === 0) return [];
+  const splitter = /[+,&、，;]| dan | and | with /gi;
+  const counts = new Map<string, number>();
+  for (const m of meals) {
+    const raw = String(m?.name || "").trim();
+    if (!raw) continue;
+    raw.split(splitter)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 1)
+      .forEach((ingredient) => {
+        const clean = ingredient
+          .replace(/^[•\-\*]+\s*/, "")
+          .replace(/\s+\(porsi kecil\)/gi, "")
+          .trim();
+        if (!clean) return;
+        counts.set(clean, (counts.get(clean) || 0) + 1);
+      });
+  }
+  const xLabel = lang === "zh" ? "次" : "x";
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => `${name} × ${count * 7}${xLabel}`);
+}
+
+// ── Helper: injury-specific safety protocols ──
+function buildSafetyNotes(injuries: string[], lang: "id" | "en" | "zh"): string[] {
+  const PROTOCOLS: Record<string, Record<"id" | "en" | "zh", string[]>> = {
+    knee_injury: {
+      id: ["Hindari squat di bawah parallel (90 derajat)","Tidak ada jumping atau high-impact exercise","Jika lutut bengkak setelah latihan, istirahat 48 jam","Gunakan knee sleeve/brace jika tersedia","Hentikan segera jika nyeri lebih dari 6/10"],
+      en: ["Avoid squats below parallel (90 degrees)","No jumping or high-impact exercises","If knee swells after training, rest 48 hours","Use knee sleeve/brace if available","Stop immediately if pain exceeds 6/10"],
+      zh: ["避免深蹲低于平行（90度）","禁止跳跃或高冲击运动","训练后膝盖肿胀请休息48小时","如有可用护膝请佩戴","疼痛超过6/10立即停止"],
+    },
+    lower_back_pain: {
+      id: ["Hindari deadlift konvensional dan good morning","Selalu aktifkan core sebelum setiap gerakan","Tidak ada sit-up atau crunch penuh","Gunakan lumbar support jika diperlukan","Tidur dengan bantal di antara lutut untuk recovery"],
+      en: ["Avoid conventional deadlifts and good mornings","Always engage core before every movement","No full sit-ups or crunches","Use lumbar support if needed","Sleep with pillow between knees for recovery"],
+      zh: ["避免常规硬拉和早安式","每个动作前先收紧核心","禁止完全仰卧起坐或卷腹","必要时使用腰部支撑","睡觉时膝盖间夹枕头以恢复"],
+    },
+    shoulder_injury: {
+      id: ["Tidak ada overhead pressing selama fase akut","Hindari bench press dengan grip terlalu lebar","Prioritaskan face pull dan external rotation","Jangan angkat beban di atas kepala","Pemanasan rotator cuff 5 menit sebelum latihan bahu"],
+      en: ["No overhead pressing during acute phase","Avoid bench press with too wide grip","Prioritize face pulls and external rotation","Do not lift weights above head","Warm up rotator cuff 5 min before shoulder work"],
+      zh: ["急性期禁止过头推举","避免握距过宽的卧推","优先做面拉和外旋","不要在头顶举重","肩部训练前热身肩袖5分钟"],
+    },
+    elbow_pain: {
+      id: ["Hindari EZ bar dan straight bar curl","Gunakan neutral grip untuk semua pulling movement","Tidak ada skull crusher atau close grip bench","Kurangi volume bisep dan trisep 50% sementara","Icing siku 10 menit setelah latihan"],
+      en: ["Avoid EZ bar and straight bar curls","Use neutral grip for all pulling movements","No skull crushers or close grip bench press","Reduce bicep and tricep volume 50% temporarily","Ice elbow 10 minutes after training"],
+      zh: ["避免EZ杠和直杠弯举","所有拉的动作使用中立握法","禁止颈后臂屈伸或窄距卧推","暂时减少肱二头肌和三头肌训练量50%","训练后冰敷肘部10分钟"],
+    },
+    wrist_injury: {
+      id: ["Gunakan wrist wrap untuk semua pressing movement","Hindari push up biasa — ganti push up fist","Tidak ada barbell curl — ganti dumbbell atau cable","Kurangi range of motion jika tidak nyaman","Stretch pergelangan tangan 2 menit setelah latihan"],
+      en: ["Use wrist wraps for all pressing movements","Avoid standard push ups — use fist push ups","No barbell curls — use dumbbell or cable","Reduce range of motion if uncomfortable","Stretch wrists 2 minutes after training"],
+      zh: ["所有推的动作使用护腕","避免常规俯卧撑——改用拳式俯卧撑","禁止杠铃弯举——改用哑铃或绳索","不适时减小动作幅度","训练后拉伸手腕2分钟"],
+    },
+    ankle_injury: {
+      id: ["Tidak ada jumping, box jump, atau lompatan apapun","Hindari single leg exercise sampai stabil","Gunakan ankle brace saat latihan kaki","Fokus pada upper body dan seated exercises","Calf raise hanya jika tidak terasa nyeri"],
+      en: ["No jumping, box jumps, or any plyometrics","Avoid single leg exercises until stable","Use ankle brace during leg training","Focus on upper body and seated exercises","Calf raises only if pain-free"],
+      zh: ["禁止跳跃、跳箱或任何弹跳动作","稳定前避免单腿训练","腿部训练时使用护踝","专注于上半身和坐姿动作","仅在无痛时做提踵"],
+    },
+    neck_pain: {
+      id: ["Tidak ada shrug atau upright row","Hindari latihan yang butuh menahan napas kuat","Jaga posisi netral leher di semua gerakan","Tidak ada overhead press dengan beban berat","Peregangan leher ringan 5 menit setelah latihan"],
+      en: ["No shrugs or upright rows","Avoid exercises requiring heavy breath holding","Maintain neutral neck position in all movements","No heavy overhead pressing","Light neck stretching 5 minutes after training"],
+      zh: ["禁止耸肩或直立划船","避免需要强力憋气的动作","所有动作保持颈部中立位","禁止大重量过头推举","训练后轻柔拉伸颈部5分钟"],
+    },
+  };
+  const GENERAL: Record<"id" | "en" | "zh", string[]> = {
+    id: ["Selalu lakukan pemanasan 5-8 menit sebelum latihan","Hentikan jika ada nyeri tajam pada sendi","Hidrasi cukup — minum 500ml air per jam latihan","Tidur 7-8 jam untuk recovery optimal"],
+    en: ["Always warm up 5-8 minutes before training","Stop if you feel sharp joint pain","Stay hydrated — drink 500ml water per hour","Sleep 7-8 hours for optimal recovery"],
+    zh: ["训练前务必热身5-8分钟","如有关节剧痛请立即停止","充分补水——每小时饮用500毫升水","保证7-8小时睡眠以获得最佳恢复"],
+  };
+  if (!Array.isArray(injuries) || injuries.length === 0) return GENERAL[lang];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const inj of injuries) {
+    const block = PROTOCOLS[inj]?.[lang];
+    if (!block) continue;
+    for (const note of block) {
+      if (!seen.has(note)) {
+        seen.add(note);
+        out.push(note);
+      }
+    }
+  }
+  for (const g of GENERAL[lang].slice(0, 2)) {
+    if (!seen.has(g)) out.push(g);
+  }
+  return out;
+}
+
 // ── ADAPTER: engine output → legacy schema consumed by Results.tsx ──
 function adaptEnginePlan(opts: {
   enginePlan: any;
@@ -154,6 +243,7 @@ function adaptEnginePlan(opts: {
   macros: { calories: number; protein: number; carbs: number; fat: number };
   estimatedCaloriesBurned: number;
   weightProjection: string;
+  injuries?: string[];
 }) {
   const {
     enginePlan, language, startDate, trainingDaysPerWeek, sessionDuration, macros,
@@ -255,50 +345,10 @@ function adaptEnginePlan(opts: {
         ? "5分钟静态拉伸训练过的肌肉群，专注深呼吸。"
         : "5 min static stretching on trained muscle groups, focus on deep breathing.";
 
-  const safetyTips: Record<"id" | "en" | "zh", string[]> = {
-    id: [
-      "Hentikan latihan jika ada nyeri tajam pada sendi.",
-      "Selalu lakukan pemanasan sebelum latihan utama.",
-      "Hidrasi cukup — minum 500ml air per jam latihan.",
-    ],
-    en: [
-      "Stop training if you feel sharp joint pain.",
-      "Always warm up before main lifts.",
-      "Hydrate well — drink 500ml water per hour of training.",
-    ],
-    zh: [
-      "如感到关节剧痛请停止训练。",
-      "主要训练前务必热身。",
-      "充分补水——每小时训练饮用500毫升水。",
-    ],
-  };
-
-  const groceryList: Record<"id" | "en" | "zh", string[]> = {
-    id: [
-      "Dada ayam 1 kg",
-      "Telur 30 butir",
-      "Beras merah 2 kg",
-      "Sayuran hijau (bayam, brokoli) 1 kg",
-      "Buah segar (pisang, apel) 2 kg",
-      "Minyak zaitun 250 ml",
-    ],
-    en: [
-      "Chicken breast 1 kg",
-      "Eggs 30 pcs",
-      "Brown rice 2 kg",
-      "Leafy greens (spinach, broccoli) 1 kg",
-      "Fresh fruit (banana, apple) 2 kg",
-      "Olive oil 250 ml",
-    ],
-    zh: [
-      "鸡胸肉 1公斤",
-      "鸡蛋 30个",
-      "糙米 2公斤",
-      "绿叶菜（菠菜、西兰花）1公斤",
-      "新鲜水果（香蕉、苹果）2公斤",
-      "橄榄油 250毫升",
-    ],
-  };
+  // Build the shopping list dynamically from the actual meal plan.
+  // We split each meal name on common separators, count occurrences across
+  // 7 days, and emit a "Ingredient × Nx" line per unique item.
+  const groceryList = buildGroceryList(mp.meals || [], lang);
 
   const progressionRulesByLang: Record<"id" | "en" | "zh", string> = {
     id: "Tingkatkan beban 2.5–5 kg pada compound lifts setiap minggu jika set terakhir terasa di RPE 7 atau lebih ringan. Untuk isolasi: tambah 1–2 reps sebelum naik beban.",
@@ -332,10 +382,10 @@ function adaptEnginePlan(opts: {
     fat: macros.fat,
     water_liters: 3,
     weekly_schedule,
-    safety_notes: safetyTips[lang],
+    safety_notes: buildSafetyNotes(opts.injuries || [], lang),
     warnings: enginePlan.injury_notes ? [enginePlan.injury_notes] : [],
     motivational_message: coach.motivation || "",
-    grocery_list: groceryList[lang],
+    grocery_list: groceryList,
     estimated_calories_burned: estimatedCaloriesBurned,
     weight_projection: weightProjection,
     progressionRules: progressionRulesByLang[lang],
@@ -417,6 +467,7 @@ serve(async (req) => {
         sessionDuration, equipment, dailySteps, sleepHours, sleepQuality,
         stressLevel, nightShift, mealFrequency, intermittentFasting,
         injuries: injuriesInput, foodAllergies: foodAllergiesInput,
+        additionalConditions, additionalAllergies, country_code,
         extensionContext,
       } = body;
 
@@ -461,6 +512,10 @@ serve(async (req) => {
         food_allergies: foodAllergiesArr,
         diet_type: mapDietType(dietType),
         food_style: foodStyle || "local",
+        user_food_style_explicit: !!(foodStyle && foodStyle !== ""),
+        country_code: (country_code || "ID").toString().toUpperCase(),
+        additional_conditions: typeof additionalConditions === "string" ? additionalConditions.slice(0, 200) : "",
+        additional_allergies:  typeof additionalAllergies  === "string" ? additionalAllergies.slice(0, 200)  : "",
         meal_frequency: parseInt(mealFrequency) || 5,
         intermittent_fasting: !!intermittentFasting,
         stress_level: parseInt(stressLevel) || 5,
@@ -523,6 +578,7 @@ serve(async (req) => {
         macros,
         estimatedCaloriesBurned,
         weightProjection: wpText[lang],
+        injuries: injuriesArr,
       });
 
       console.log("[PlanGen] DONE", {

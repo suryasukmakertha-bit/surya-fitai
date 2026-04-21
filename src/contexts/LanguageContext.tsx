@@ -344,6 +344,10 @@ const translations = {
     allergyNuts: "Nuts",
     allergyEgg: "Eggs",
     allergySeafood: "Fish/Seafood",
+    otherConditionsLabel: "Other conditions?",
+    otherConditionsPlaceholder: "E.g. hernia, osteoporosis, diabetes, joint pain...",
+    otherAllergiesLabel: "Other allergies?",
+    otherAllergiesPlaceholder: "E.g. shrimp, soy, peanuts, chocolate...",
     monthlyGenerateLimit: "Monthly generate limit reached. Resets next month.",
 
     // Week Selector
@@ -745,6 +749,10 @@ const translations = {
     allergyNuts: "Kacang-kacangan",
     allergyEgg: "Telur",
     allergySeafood: "Ikan/Seafood",
+    otherConditionsLabel: "Kondisi lain?",
+    otherConditionsPlaceholder: "Contoh: hernia, osteoporosis, diabetes, nyeri sendi...",
+    otherAllergiesLabel: "Alergi lain?",
+    otherAllergiesPlaceholder: "Contoh: udang, kedelai, kacang tanah, cokelat...",
     monthlyGenerateLimit: "Batas generate bulan ini tercapai. Reset bulan depan.",
 
     // Week Selector
@@ -1146,6 +1154,10 @@ const translations = {
     allergyNuts: "坚果",
     allergyEgg: "鸡蛋",
     allergySeafood: "海鲜",
+    otherConditionsLabel: "其他情况？",
+    otherConditionsPlaceholder: "例如：疝气、骨质疏松、糖尿病、关节疼痛...",
+    otherAllergiesLabel: "其他过敏？",
+    otherAllergiesPlaceholder: "例如：虾、大豆、花生、巧克力...",
     monthlyGenerateLimit: "本月生成限制已达到。下月重置。",
 
     // Week Selector
