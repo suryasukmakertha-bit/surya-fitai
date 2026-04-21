@@ -327,6 +327,24 @@ const translations = {
     dietVegetarian: "Vegetarian",
     dietVegan: "Vegan",
 
+    // Additional Info (Optional) Section
+    additionalInfoSection: "Additional Info (Optional)",
+    additionalInfoHint: "Tap to expand. All fields are optional — skip what doesn't apply.",
+    injuriesLabel: "Injuries or Pain Areas",
+    injuryKnee: "Knee Pain",
+    injuryLowerBack: "Lower Back Pain",
+    injuryShoulder: "Shoulder Pain",
+    injuryElbow: "Elbow Pain",
+    injuryWrist: "Wrist Injury",
+    injuryAnkle: "Ankle Injury",
+    injuryNeck: "Neck Pain",
+    foodAllergiesLabel: "Food Allergies",
+    allergyGluten: "Gluten/Wheat",
+    allergyDairy: "Dairy/Lactose",
+    allergyNuts: "Nuts",
+    allergyEgg: "Eggs",
+    allergySeafood: "Fish/Seafood",
+
     // Week Selector
     selectWeekLabel: "Select Week",
     weekLabel: "Week",
@@ -709,6 +727,24 @@ const translations = {
     dietVegetarian: "Vegetarian",
     dietVegan: "Vegan",
 
+    // Additional Info (Optional) Section
+    additionalInfoSection: "Informasi Tambahan (Opsional)",
+    additionalInfoHint: "Ketuk untuk membuka. Semua kolom opsional — lewati yang tidak relevan.",
+    injuriesLabel: "Cedera atau Area Nyeri",
+    injuryKnee: "Nyeri/Cedera Lutut",
+    injuryLowerBack: "Nyeri Punggung Bawah",
+    injuryShoulder: "Nyeri/Cedera Bahu",
+    injuryElbow: "Nyeri Siku",
+    injuryWrist: "Cedera Pergelangan",
+    injuryAnkle: "Cedera Pergelangan Kaki",
+    injuryNeck: "Nyeri Leher",
+    foodAllergiesLabel: "Alergi Makanan",
+    allergyGluten: "Gluten/Gandum",
+    allergyDairy: "Susu/Laktosa",
+    allergyNuts: "Kacang-kacangan",
+    allergyEgg: "Telur",
+    allergySeafood: "Ikan/Seafood",
+
     // Week Selector
     selectWeekLabel: "Pilih Minggu",
     weekLabel: "Minggu",
@@ -1090,6 +1126,24 @@ const translations = {
     dietOmnivore: "杂食者",
     dietVegetarian: "素食者",
     dietVegan: "纯素者",
+
+    // Additional Info (Optional) Section
+    additionalInfoSection: "附加信息（可选）",
+    additionalInfoHint: "点击展开。所有字段均为可选 — 不适用可跳过。",
+    injuriesLabel: "伤痛或不适部位",
+    injuryKnee: "膝关节疼痛",
+    injuryLowerBack: "腰痛",
+    injuryShoulder: "肩部疼痛",
+    injuryElbow: "肘部疼痛",
+    injuryWrist: "手腕受伤",
+    injuryAnkle: "脚踝受伤",
+    injuryNeck: "颈部疼痛",
+    foodAllergiesLabel: "食物过敏",
+    allergyGluten: "麸质",
+    allergyDairy: "乳制品",
+    allergyNuts: "坚果",
+    allergyEgg: "鸡蛋",
+    allergySeafood: "海鲜",
 
     // Week Selector
     selectWeekLabel: "选择周",
