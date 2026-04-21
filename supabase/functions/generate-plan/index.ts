@@ -1,9 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import {
-  generateHybridPlan,
-  extendHybridPlan,
-} from "./coachSuryaEngine.ts";
+// @ts-ignore — pure-JS engine module without type annotations
+import { generateHybridPlan, extendHybridPlan } from "./coachSuryaEngine.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
