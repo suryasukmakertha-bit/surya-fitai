@@ -250,7 +250,10 @@ export type Database = {
         Row: {
           client_generated_id: string | null
           created_at: string
+          food_allergies: string[]
+          generate_count: number
           id: string
+          injuries: string[]
           plan_completed_at: string | null
           plan_data: Json
           plan_month_number: number
@@ -263,7 +266,10 @@ export type Database = {
         Insert: {
           client_generated_id?: string | null
           created_at?: string
+          food_allergies?: string[]
+          generate_count?: number
           id?: string
+          injuries?: string[]
           plan_completed_at?: string | null
           plan_data?: Json
           plan_month_number?: number
@@ -276,7 +282,10 @@ export type Database = {
         Update: {
           client_generated_id?: string | null
           created_at?: string
+          food_allergies?: string[]
+          generate_count?: number
           id?: string
+          injuries?: string[]
           plan_completed_at?: string | null
           plan_data?: Json
           plan_month_number?: number
