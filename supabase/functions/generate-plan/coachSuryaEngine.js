@@ -686,7 +686,7 @@ function generateMealPlan(userProfile) {
       // Filter out allergic items
       const safe = snackList.filter(s => {
         if (noNuts && (s.includes("kacang") || s.includes("almond") || s.includes("peanut") || s.includes("nuts") || s.includes("杏仁") || s.includes("花生"))) return false;
-        if (noDairy && (s.includes("yogurt") || s.includes("susu") || s.includes("milk") || s.includes("酸奶") || s.includes("牛奶"))) return false;
+        if (noDairy && containsDairy(s)) return false;
         if (noEgg && (s.includes("telur") || s.includes("egg") || s.includes("鸡蛋"))) return false;
         return true;
       });
