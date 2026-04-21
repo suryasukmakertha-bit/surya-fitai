@@ -327,6 +327,24 @@ const translations = {
     dietVegetarian: "Vegetarian",
     dietVegan: "Vegan",
 
+    // Additional Info (Optional) Section
+    additionalInfoSection: "Additional Info (Optional)",
+    additionalInfoHint: "Tap to expand. All fields are optional — skip what doesn't apply.",
+    injuriesLabel: "Injuries or Pain Areas",
+    injuryKnee: "Knee Pain",
+    injuryLowerBack: "Lower Back Pain",
+    injuryShoulder: "Shoulder Pain",
+    injuryElbow: "Elbow Pain",
+    injuryWrist: "Wrist Injury",
+    injuryAnkle: "Ankle Injury",
+    injuryNeck: "Neck Pain",
+    foodAllergiesLabel: "Food Allergies",
+    allergyGluten: "Gluten/Wheat",
+    allergyDairy: "Dairy/Lactose",
+    allergyNuts: "Nuts",
+    allergyEgg: "Eggs",
+    allergySeafood: "Fish/Seafood",
+
     // Week Selector
     selectWeekLabel: "Select Week",
     weekLabel: "Week",
