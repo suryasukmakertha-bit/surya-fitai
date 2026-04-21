@@ -12,7 +12,8 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Loader2, CalendarIcon, HelpCircle, Activity, Flame, Beef, Wheat, Droplet } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Loader2, CalendarIcon, HelpCircle, Activity, Flame, Beef, Wheat, Droplet, ChevronDown } from "lucide-react";
 import { programs } from "@/components/ProgramCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -93,6 +94,9 @@ export default function ProgramForm() {
     nightShift: false,
     mealFrequency: "4",
     intermittentFasting: false,
+    // Additional Info (Optional)
+    injuries: [] as string[],
+    foodAllergies: [] as string[],
   });
 
   // Sync goal text when language changes
@@ -112,6 +116,24 @@ export default function ProgramForm() {
         ? p.equipment.filter((e) => e !== val)
         : [...p.equipment, val];
       return { ...p, equipment: eq };
+    });
+  };
+
+  const toggleInjury = (val: string) => {
+    setForm((p) => {
+      const next = p.injuries.includes(val)
+        ? p.injuries.filter((e) => e !== val)
+        : [...p.injuries, val];
+      return { ...p, injuries: next };
+    });
+  };
+
+  const toggleFoodAllergy = (val: string) => {
+    setForm((p) => {
+      const next = p.foodAllergies.includes(val)
+        ? p.foodAllergies.filter((e) => e !== val)
+        : [...p.foodAllergies, val];
+      return { ...p, foodAllergies: next };
     });
   };
 
