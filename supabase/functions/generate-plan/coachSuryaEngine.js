@@ -560,6 +560,17 @@ function generateMealPlan(userProfile) {
   const isVegan = diet_type === "vegan";
   const isVeg   = diet_type === "vegetarian" || isVegan;
 
+  // ── Country-based meal style resolution ──
+  // If user explicitly picked a food_style, that wins. Otherwise infer from country.
+  let resolved_food_style = food_style;
+  if (!user_food_style_explicit || !food_style || food_style === "local") {
+    const cc = String(country_code || "ID").toUpperCase();
+    if (cc === "ID" || cc === "MY") resolved_food_style = "local";        // Indonesia/Malaysia
+    else if (cc === "CN" || cc === "TW" || cc === "HK") resolved_food_style = "asian";
+    else if (["SG","AU","UK","GB","US","CA","NZ","IE","DE","FR","NL","ES","IT"].includes(cc)) resolved_food_style = "western";
+    else resolved_food_style = "local"; // default Indonesia for unknown
+  }
+
   const noGluten  = a.includes("gluten") || a.includes("wheat") || a.includes("gandum");
   const noDairy   = a.includes("dairy")  || a.includes("susu")  || a.includes("lactose");
   const noNuts    = a.includes("nuts")   || a.includes("kacang");
