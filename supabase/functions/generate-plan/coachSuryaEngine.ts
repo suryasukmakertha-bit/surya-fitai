@@ -704,11 +704,11 @@ function generateMealPlan(userProfile) {
   }
 
   const allergyNote = food_allergies.length > 0
-    ? { id:`⚠️ Menu disesuaikan: bebas ${food_allergies.join(", ")}`, en:`⚠️ Menu adjusted: free from ${food_allergies.join(", ")}`, zh:`⚠️ 菜单已调整：不含 ${food_allergies.join("、")}` }[lang]
+    ? { id:`Menu disesuaikan: bebas ${food_allergies.join(", ")}`, en:`Menu adjusted: free from ${food_allergies.join(", ")}`, zh:`菜单已调整：不含 ${food_allergies.join("、")}` }[lang]
     : null;
 
   const ifNote = intermittent_fasting
-    ? { id:"🕐 Jadwal IF 16/8: makan dalam window 12:00–20:00", en:"🕐 IF 16/8 schedule: eat within 12:00–20:00 window", zh:"🕐 IF 16/8时间表：在12:00-20:00窗口期内进食" }[lang]
+    ? { id:"Jadwal IF 16/8: makan dalam window 12:00–20:00", en:"IF 16/8 schedule: eat within 12:00–20:00 window", zh:"IF 16/8时间表：在12:00-20:00窗口期内进食" }[lang]
     : null;
 
   return {
@@ -960,7 +960,5 @@ async function extendHybridPlan(userProfile, previousMonthNumber, anthropicApiCa
   return generateHybridPlan(profile, anthropicApiCall);
 }
 
-// ── EXPORTS ───────────────────────────────────────────────────
-if (typeof module !== "undefined") {
-  module.exports = { generateHybridPlan, extendHybridPlan, generatePlanTemplate, generateMealPlan, EXERCISES };
-}
+// ── EXPORTS (Deno / ES Module) ────────────────────────────────
+export { generateHybridPlan, extendHybridPlan, generatePlanTemplate, generateMealPlan, getTrainingSplit, EXERCISES };
