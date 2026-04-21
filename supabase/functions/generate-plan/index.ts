@@ -927,6 +927,10 @@ serve(async (req) => {
         ? await extendHybridPlan(userProfile, extensionContext.previousMonthNumber, aiCall)
         : await generateHybridPlan(userProfile, aiCall);
 
+      // Override engine's meal plan with the inline location/style-aware generator.
+      // food_style flows through userProfile.food_style.
+      enginePlan.meal_plan = generateMealPlan(userProfile);
+
       // Heuristic projections for the legacy "weight_projection" / "estimated_calories_burned" fields.
       const estimatedCaloriesBurned = Math.round((sessionMin / 60) * 350 * td);
       const wpText: Record<"id" | "en" | "zh", string> = {
