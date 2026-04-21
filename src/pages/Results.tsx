@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal, CheckCircle2, AlertTriangle, Info } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +58,14 @@ interface PlanData {
   deloadWeek?: string;
   recoveryTips?: string;
   warnings?: string[];
+  coach_message?: {
+    opening?: string;
+    key_tips?: string[];
+    motivation?: string;
+    week_focus?: string;
+  };
+  injury_notes?: string | null;
+  meal_plan_notes?: string[];
   // Existing fields
   workout_plan: DayPlan[];
   meal_plan: MealPlan[];
