@@ -22,6 +22,7 @@ import AppHeader from "@/components/AppHeader";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { computeAll } from "@/lib/fitnessCalculations";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const EQUIPMENT_OPTIONS = [
   { value: "bodyweight", labelKey: "equipBodyweight" },
@@ -152,6 +153,35 @@ export default function ProgramForm() {
       toast({ title: t.fillRequired, variant: "destructive" });
       return;
     }
+
+    // Monthly generate-limit guard:
+    // Trial / no-subscription users  → 2 plans / month
+    // Pro (active) users             → 5 plans / month
+    // Special unlimited account      → bypass
+    if (!access.isUnlimited) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const now = new Date();
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+          const { count } = await supabase
+            .from("saved_plans")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .gte("created_at", startOfMonth);
+
+          const monthlyLimit = access.isSubscriptionActive ? 5 : 2;
+          if ((count ?? 0) >= monthlyLimit) {
+            toast({ title: (t as any).monthlyGenerateLimit, variant: "destructive" });
+            return;
+          }
+        }
+      } catch (limitErr) {
+        console.warn("[GenerateLimit] check failed", limitErr);
+        // Fail-open: do not block on transient lookup errors
+      }
+    }
+
     setLoading(true);
     setLoadingStep(0);
     const stepInterval = setInterval(() => {
