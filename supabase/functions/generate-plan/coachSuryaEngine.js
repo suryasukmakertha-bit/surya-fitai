@@ -586,22 +586,22 @@ function generateMealPlan(userProfile) {
   };
 
   // Protein sources matrix
-  const proteins = {
-    id: {
+  const proteins_by_cuisine = {
+    local: {
       animal:    (!noMeat && !noSeafood) ? ["Ayam panggang","Ikan salmon","Daging sapi panggang","Ikan tuna","Ikan lele","Ayam rebus","Daging sapi rebus"] : (!noMeat ? ["Ayam panggang","Daging sapi","Ayam rebus"] : []),
       seafood:   !noSeafood ? ["Ikan salmon panggang","Tuna kalengan","Ikan lele goreng","Udang rebus","Ikan kembung"] : [],
       egg:       !noEgg     ? ["Telur rebus","Telur dadar putih telur","Telur orak-arik","Putih telur rebus"] : [],
       plant:     ["Tahu panggang","Tempe bakar","Tahu kukus","Tempe goreng","Edamame","Kacang merah","Lentil"],
       dairy:     !noDairy   ? ["Greek yogurt","Susu protein","Keju cottage","Susu rendah lemak"] : [],
     },
-    en: {
+    western: {
       animal:    (!noMeat && !noSeafood) ? ["Grilled chicken","Salmon fillet","Lean beef","Tuna","Boiled chicken"] : (!noMeat ? ["Grilled chicken","Lean beef","Boiled chicken"] : []),
       seafood:   !noSeafood ? ["Grilled salmon","Canned tuna","Shrimp","White fish"] : [],
       egg:       !noEgg     ? ["Boiled eggs","Egg white omelette","Scrambled whites"] : [],
       plant:     ["Grilled tofu","Tempeh","Steamed tofu","Edamame","Lentils","Chickpeas","Black beans"],
       dairy:     !noDairy   ? ["Greek yogurt","Cottage cheese","Low-fat milk"] : [],
     },
-    zh: {
+    asian: {
       animal:    (!noMeat && !noSeafood) ? ["烤鸡","三文鱼","瘦牛肉","金枪鱼","水煮鸡"] : (!noMeat ? ["烤鸡","瘦牛肉","水煮鸡"] : []),
       seafood:   !noSeafood ? ["烤三文鱼","金枪鱼罐头","虾","白鱼"] : [],
       egg:       !noEgg     ? ["水煮蛋","蛋清炒蛋","水煮蛋清"] : [],
@@ -610,35 +610,36 @@ function generateMealPlan(userProfile) {
     },
   };
 
-  const carbs_sources = {
-    id: noGluten
+  const carbs_by_cuisine = {
+    local: noGluten
       ? ["Nasi putih","Nasi merah","Ubi jalar","Singkong kukus","Kentang rebus","Quinoa","Oat bebas gluten"]
       : ["Nasi putih","Nasi merah","Ubi jalar","Roti gandum","Oat","Kentang rebus","Singkong"],
-    en: noGluten
+    western: noGluten
       ? ["White rice","Brown rice","Sweet potato","Boiled potato","Quinoa","Gluten-free oats"]
       : ["White rice","Brown rice","Sweet potato","Whole wheat bread","Oats","Boiled potato"],
-    zh: noGluten
+    asian: noGluten
       ? ["白米饭","糙米饭","红薯","煮土豆","藜麦","无麸质燕麦"]
       : ["白米饭","糙米饭","红薯","全麦面包","燕麦","煮土豆"],
   };
 
-  const vegs = {
-    id: ["Brokoli kukus","Bayam tumis","Kangkung","Selada","Timun","Wortel","Kol","Pak choy","Asparagus"],
-    en: ["Steamed broccoli","Spinach","Kale","Lettuce","Cucumber","Carrots","Cabbage","Bok choy","Asparagus"],
-    zh: ["清蒸西兰花","菠菜","羽衣甘蓝","生菜","黄瓜","胡萝卜","卷心菜","白菜","芦笋"],
+  const vegs_by_cuisine = {
+    local: ["Bayam","Kangkung","Brokoli","Wortel","Kol","Pare","Terong","Pak choy","Kacang panjang"],
+    western: ["Steamed broccoli","Spinach","Kale","Lettuce","Cucumber","Carrots","Cabbage","Asparagus","Zucchini"],
+    asian:   ["白菜","菠菜","清蒸西兰花","胡萝卜","卷心菜","芥蓝","空心菜"],
   };
 
-  const fats_sources = {
-    id: [!noNuts ? "Kacang almond 15g" : null,"Alpukat 1/2 buah","Minyak zaitun 1 sdm","Biji chia 1 sdm"].filter(Boolean),
-    en: [!noNuts ? "15g almonds" : null,"1/2 avocado","1 tbsp olive oil","1 tbsp chia seeds"].filter(Boolean),
-    zh: [!noNuts ? "15克杏仁" : null,"半个牛油果","1汤匙橄榄油","1汤匙奇亚籽"].filter(Boolean),
+  const fats_by_cuisine = {
+    local:   [!noNuts ? "Kacang tanah 15g" : null,"Alpukat 1/2 buah","Minyak kelapa 1 sdm","Santan 2 sdm","Biji chia 1 sdm"].filter(Boolean),
+    western: [!noNuts ? "15g almonds" : null,"1/2 avocado","1 tbsp olive oil","1 tbsp chia seeds"].filter(Boolean),
+    asian:   [!noNuts ? "15克杏仁" : null,"半个牛油果","1汤匙橄榄油","1汤匙奇亚籽"].filter(Boolean),
   };
 
   const lang   = language;
-  const pSrc   = proteins[lang]       || proteins.id;
-  const cSrc   = carbs_sources[lang]  || carbs_sources.id;
-  const vSrc   = vegs[lang]           || vegs.id;
-  const fSrc   = fats_sources[lang]   || fats_sources.id;
+  const cuisineKey = ["local","western","asian"].includes(resolved_food_style) ? resolved_food_style : "local";
+  const pSrc   = proteins_by_cuisine[cuisineKey] || proteins_by_cuisine.local;
+  const cSrc   = carbs_by_cuisine[cuisineKey]    || carbs_by_cuisine.local;
+  const vSrc   = vegs_by_cuisine[cuisineKey]     || vegs_by_cuisine.local;
+  const fSrc   = fats_by_cuisine[cuisineKey]     || fats_by_cuisine.local;
 
   const allProteins = [...pSrc.animal, ...pSrc.seafood, ...pSrc.egg, ...pSrc.plant, ...pSrc.dairy].filter(Boolean);
   const pick        = (arr) => arr[Math.floor(Math.random() * arr.length)] || "-";
