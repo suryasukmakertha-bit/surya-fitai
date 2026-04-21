@@ -522,16 +522,6 @@ export default function ProgramForm() {
                 {t.ifLabel} <WhyTooltip text={t.whyIF} />
               </Label>
             </div>
-
-            <div className="space-y-2">
-              <Label>{t.limitations}</Label>
-              <Textarea value={form.limitations} onChange={(e) => set("limitations", e.target.value)} placeholder={t.limitationsPlaceholder} className="bg-secondary border-border" />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t.allergies}</Label>
-              <Textarea value={form.allergies} onChange={(e) => set("allergies", e.target.value)} placeholder={t.allergiesPlaceholder} className="bg-secondary border-border" />
-            </div>
           </div>
 
           {/* Additional Info (Optional) — Collapsible */}
