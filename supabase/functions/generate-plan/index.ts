@@ -124,6 +124,62 @@ serve(async (req) => {
       extensionContext, // optional: { previousMonthNumber: number } — when set, generate a progressive-overload month
     } = body;
 
+    // ============================================================
+    // GENERATE LIMIT GATE
+    // - Admin (surya.sukmakertha@gmail.com): unlimited, skip
+    // - Plan extensions (extensionContext set): not counted, skip
+    // - Trial: max 3 generates total during 14-day trial
+    // - Active: max 3 generates per monthly billing period
+    // - Expired / no row + already used 3 / cancelled: blocked (403)
+    // ============================================================
+    const userId = claimsData.claims.sub as string;
+    const userEmail = ((claimsData.claims as any).email as string | undefined)?.toLowerCase() ?? '';
+    const ADMIN_EMAIL = 'surya.sukmakertha@gmail.com';
+    const MAX_GEN = 3;
+    const isAdmin = userEmail === ADMIN_EMAIL;
+    const isExtension = !!extensionContext?.previousMonthNumber;
+
+    const sbAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    let incrementCounter: 'trial' | 'period' | null = null;
+
+    if (!isAdmin && !isExtension) {
+      const { data: sub } = await sbAdmin.from('subscriptions').select('*').eq('user_id', userId).maybeSingle();
+      const { data: profile } = await sbAdmin.from('profiles').select('period_generate_count, trial_generate_count, last_generate_reset').eq('user_id', userId).maybeSingle();
+      const now = new Date();
+
+      if (!sub) {
+        const used = profile?.trial_generate_count ?? 0;
+        if (used >= MAX_GEN) return jsonResponse({ error: 'trial_limit_reached', message: 'Trial generate limit (3) reached.' }, 403);
+        incrementCounter = 'trial';
+      } else if (sub.status === 'trial') {
+        if (now >= new Date(sub.trial_end)) return jsonResponse({ error: 'subscription_expired', message: 'Subscription required.' }, 403);
+        const used = profile?.trial_generate_count ?? 0;
+        if (used >= MAX_GEN) return jsonResponse({ error: 'trial_limit_reached', message: 'Trial generate limit (3) reached.' }, 403);
+        incrementCounter = 'trial';
+      } else if (sub.status === 'active' && sub.subscription_start && sub.subscription_end) {
+        if (now >= new Date(sub.subscription_end)) return jsonResponse({ error: 'subscription_expired', message: 'Subscription required.' }, 403);
+        const subStart = new Date(sub.subscription_start);
+        const pStart = new Date(subStart);
+        while (true) {
+          const next = new Date(pStart);
+          next.setMonth(next.getMonth() + 1);
+          if (next > now) break;
+          pStart.setMonth(pStart.getMonth() + 1);
+        }
+        const pStartDate = pStart.toISOString().slice(0, 10);
+        const lastReset = profile?.last_generate_reset ? new Date(profile.last_generate_reset) : null;
+        let used = profile?.period_generate_count ?? 0;
+        if (!lastReset || lastReset < new Date(pStartDate)) {
+          used = 0;
+          await sbAdmin.from('profiles').update({ period_generate_count: 0, last_generate_reset: pStartDate }).eq('user_id', userId);
+        }
+        if (used >= MAX_GEN) return jsonResponse({ error: 'period_limit_reached', message: 'Monthly generate limit (3) reached.' }, 403);
+        incrementCounter = 'period';
+      } else {
+        return jsonResponse({ error: 'subscription_expired', message: 'Subscription required.' }, 403);
+      }
+    }
+
     // Plan duration is now hardcoded to exactly 4 weeks (1 month).
     // Users continue to month 2/3/etc via the in-app completion modal.
     const duration = "1 Month";
