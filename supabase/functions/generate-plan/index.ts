@@ -670,6 +670,17 @@ Generate the complete plan now.`;
       trainingDayCount,
     });
 
+    // Increment generate counter on success (skipped for admin and extensions).
+    if (incrementCounter === 'trial') {
+      const { data: p } = await sbAdmin.from('profiles').select('trial_generate_count').eq('user_id', userId).maybeSingle();
+      const next = (p?.trial_generate_count ?? 0) + 1;
+      await sbAdmin.from('profiles').update({ trial_generate_count: next }).eq('user_id', userId);
+    } else if (incrementCounter === 'period') {
+      const { data: p } = await sbAdmin.from('profiles').select('period_generate_count').eq('user_id', userId).maybeSingle();
+      const next = (p?.period_generate_count ?? 0) + 1;
+      await sbAdmin.from('profiles').update({ period_generate_count: next }).eq('user_id', userId);
+    }
+
     return jsonResponse(plan, 200);
     })();
 
