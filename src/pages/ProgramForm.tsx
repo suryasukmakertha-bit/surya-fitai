@@ -21,6 +21,10 @@ import AppHeader from "@/components/AppHeader";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { computeAll } from "@/lib/fitnessCalculations";
+import { useGenerateLimit } from "@/hooks/useGenerateLimit";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
+import SubscribeRequiredModal from "@/components/subscription/SubscribeRequiredModal";
 
 const EQUIPMENT_OPTIONS = [
   { value: "bodyweight", labelKey: "equipBodyweight" },
@@ -61,6 +65,10 @@ export default function ProgramForm() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const { info: genLimit, refetch: refetchLimit } = useGenerateLimit();
+  const { userEmail } = useSubscription();
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
 
   const titleKey = `${type}Title` as keyof typeof t;
   const programTitle = (t[titleKey] as string) || program?.title || "Program";
@@ -130,6 +138,34 @@ export default function ProgramForm() {
       toast({ title: t.fillRequired, variant: "destructive" });
       return;
     }
+    // Client-side gate (server still enforces).
+    if (genLimit.status === "expired") {
+      setShowSubscribeModal(true);
+      return;
+    }
+    if (!genLimit.canGenerate && genLimit.status !== "loading" && genLimit.status !== "admin") {
+      const msgs = {
+        id: genLimit.status === "trial"
+          ? "Batas generate selama trial (3x) tercapai. Subscribe untuk generate plan bulanan bersama Coach Surya."
+          : "Batas generate bulan ini (3x) tercapai. Reset otomatis pada renewal berikutnya.",
+        en: genLimit.status === "trial"
+          ? "Trial generate limit (3x) reached. Subscribe to get monthly generates with Coach Surya."
+          : "Monthly generate limit (3x) reached. Resets automatically on next renewal.",
+        zh: genLimit.status === "trial"
+          ? "试用生成限制（3次）已达到。订阅以获得每月生成次数。"
+          : "本月生成限制（3次）已达到。将于续订日期自动重置。",
+      };
+      toast({
+        title: msgs[lang as keyof typeof msgs] ?? msgs.en,
+        variant: "destructive",
+        action: genLimit.status === "trial" ? (
+          <button type="button" onClick={() => setShowPaymentPopup(true)} className="ml-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
+            {lang === "id" ? "Berlangganan Sekarang" : lang === "zh" ? "立即订阅" : "Subscribe Now"}
+          </button>
+        ) as any : undefined,
+      });
+      return;
+    }
     setLoading(true);
     setLoadingStep(0);
     const stepInterval = setInterval(() => {
@@ -180,6 +216,40 @@ export default function ProgramForm() {
       // so res.error.context.status is reliably populated.
       if (res.error) {
         const status: number | undefined = (res.error as any)?.context?.status;
+        // 403 = subscription gate from server (expired or limit reached). Surface
+        // the right UI (modal vs toast) and short-circuit before the generic mapping.
+        if (status === 403) {
+          let body: any = null;
+          try { body = await (res.error as any)?.context?.json?.(); } catch {}
+          const code = body?.error;
+          if (code === 'subscription_expired') {
+            setShowSubscribeModal(true);
+          } else {
+            const trial = code === 'trial_limit_reached';
+            const msgs = {
+              id: trial
+                ? "Batas generate selama trial (3x) tercapai. Subscribe untuk generate plan bulanan bersama Coach Surya."
+                : "Batas generate bulan ini (3x) tercapai. Reset otomatis pada renewal berikutnya.",
+              en: trial
+                ? "Trial generate limit (3x) reached. Subscribe to get monthly generates with Coach Surya."
+                : "Monthly generate limit (3x) reached. Resets automatically on next renewal.",
+              zh: trial
+                ? "试用生成限制（3次）已达到。订阅以获得每月生成次数。"
+                : "本月生成限制（3次）已达到。将于续订日期自动重置。",
+            };
+            toast({
+              title: msgs[lang as keyof typeof msgs] ?? msgs.en,
+              variant: "destructive",
+              action: trial ? (
+                <button type="button" onClick={() => setShowPaymentPopup(true)} className="ml-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
+                  {lang === "id" ? "Berlangganan Sekarang" : lang === "zh" ? "立即订阅" : "Subscribe Now"}
+                </button>
+              ) as any : undefined,
+            });
+          }
+          await refetchLimit();
+          return;
+        }
         let description: string = (t as any).planErrInternal;
         if (status === 408) description = (t as any).planErrTimeout;
         else if (status === 422) description = (t as any).planErrParse;
@@ -209,6 +279,7 @@ export default function ProgramForm() {
       const clientGeneratedId = crypto.randomUUID();
 
       playGeneratePlanSuccess();
+      await refetchLimit();
       navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle, startDate: startDateStr }, programType: type, clientGeneratedId } });
     } catch (err: any) {
       // Network-level failure (no response at all)
@@ -572,6 +643,32 @@ export default function ProgramForm() {
               </>
             ) : t.generatePlan}
           </Button>
+          {/* Generate-limit counter (hidden for admin & loading & expired) */}
+          {genLimit.status !== "admin" && genLimit.status !== "loading" && genLimit.status !== "expired" && (
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              {(() => {
+                const remaining = genLimit.remaining;
+                const max = genLimit.max;
+                if (genLimit.status === "trial") {
+                  if (lang === "id") return `Sisa generate trial: ${remaining}/${max}`;
+                  if (lang === "zh") return `剩余试用生成次数：${remaining}/${max}`;
+                  return `Trial generates remaining: ${remaining}/${max}`;
+                }
+                // active
+                const renewal = genLimit.periodEnd
+                  ? genLimit.periodEnd.toLocaleDateString(lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-GB", { day: "2-digit", month: "short" })
+                  : "";
+                if (lang === "id") return `Sisa generate bulan ini: ${remaining}/${max} (reset ${renewal})`;
+                if (lang === "zh") return `本月剩余生成次数：${remaining}/${max}（${renewal} 重置）`;
+                return `Remaining this month: ${remaining}/${max} (resets ${renewal})`;
+              })()}
+            </p>
+          )}
+          {genLimit.status === "expired" && (
+            <button type="button" onClick={() => setShowSubscribeModal(true)} className="w-full text-center text-xs text-primary hover:text-primary/80 underline mt-2">
+              {lang === "id" ? "Berlangganan untuk generate plan" : lang === "zh" ? "订阅以生成计划" : "Subscribe to generate a plan"}
+            </button>
+          )}
           <p className="text-muted-foreground/60 text-xs text-center mt-2">
             {(t as any).coachGenerateHelper}
           </p>
@@ -580,6 +677,20 @@ export default function ProgramForm() {
           </p>
         </form>
       </div>
+      <SubscribeRequiredModal
+        isOpen={showSubscribeModal}
+        onClose={() => setShowSubscribeModal(false)}
+        onSubscribe={() => { setShowSubscribeModal(false); setShowPaymentPopup(true); }}
+      />
+      <SubscriptionPopup
+        isOpen={showPaymentPopup}
+        onClose={() => setShowPaymentPopup(false)}
+        trigger="save_plan"
+        userEmail={userEmail}
+        onPaymentDone={() => { setShowPaymentPopup(false); refetchLimit(); }}
+        trialNotStarted={false}
+        isTrialActive={genLimit.status === "trial"}
+      />
     </div>
   );
 }
