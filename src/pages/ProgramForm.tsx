@@ -68,6 +68,8 @@ export default function ProgramForm() {
   const titleKey = `${type}Title` as keyof typeof t;
   const programTitle = (t[titleKey] as string) || program?.title || "Program";
 
+  const isBeginnerProgram = (type || "").toLowerCase() === "beginner" || (type || "").toLowerCase() === "pemula";
+
   const [form, setForm] = useState({
     name: "",
     age: "",
