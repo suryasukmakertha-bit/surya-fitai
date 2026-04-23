@@ -1164,8 +1164,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
     const saved = localStorage.getItem("fitai-lang");
-    if (saved === "id" || saved === "zh") return saved;
-    return "en";
+    if (saved === "id" || saved === "en" || saved === "zh") return saved;
+    return "id";
   });
 
   const handleSetLang = (newLang: Lang) => {

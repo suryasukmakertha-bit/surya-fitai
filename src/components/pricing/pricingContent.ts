@@ -12,8 +12,8 @@ export const PRICING_TEXT = {
     ctaButton: 'Start Free Trial',
     ctaLoggedIn: 'Upgrade to Pro',
     features: [
-      '✅ Generate unlimited AI workout plans',
-      '✅ Personalized meal plans & grocery lists',
+      '✅ 3x AI program generates per month',
+      '✅ Personal workout & meal plan',
       '✅ Save up to 3 plans',
       '✅ Progress tracking',
       '✅ All future features included',
@@ -34,8 +34,8 @@ export const PRICING_TEXT = {
     ctaButton: 'Mulai Uji Coba Gratis',
     ctaLoggedIn: 'Upgrade ke Pro',
     features: [
-      '✅ Generate program AI tanpa batas',
-      '✅ Rencana makan & daftar belanja personal',
+      '✅ 3x generate program AI per bulan',
+      '✅ Program latihan & Rencana makan personal',
       '✅ Simpan hingga 3 program',
       '✅ Pelacakan progres latihan',
       '✅ Semua fitur baru termasuk',
@@ -56,8 +56,8 @@ export const PRICING_TEXT = {
     ctaButton: '开始免费试用',
     ctaLoggedIn: '升级到Pro',
     features: [
-      '✅ 无限生成AI训练计划',
-      '✅ 个性化饮食计划和购物清单',
+      '✅ 每月3次AI计划生成',
+      '✅ 个人训练和饮食计划',
       '✅ 保存最多3个计划',
       '✅ 训练进度追踪',
       '✅ 包含所有未来功能',

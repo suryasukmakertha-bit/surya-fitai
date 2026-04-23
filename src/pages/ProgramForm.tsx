@@ -297,7 +297,6 @@ export default function ProgramForm() {
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">{programTitle}</h1>
-          <p className="text-muted-foreground">{t.tellUs}</p>
         </div>
 
         <form data-tour="form-fields" onSubmit={handleSubmit} className="space-y-6">
