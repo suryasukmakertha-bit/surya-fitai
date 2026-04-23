@@ -359,23 +359,25 @@ export default function ProgramForm() {
             {/* Duration selector removed: all plans are now fixed at 4 weeks (1 month).
                 Users can extend to the next month via the completion celebration modal. */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t.experienceLevel}</Label>
-                <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Beginner">{t.beginner}</SelectItem>
-                    <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
-                    <SelectItem value="Advanced">{t.advanced}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {!isBeginnerProgram && (
+                <div className="space-y-2">
+                  <Label>{t.experienceLevel}</Label>
+                  <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
+                    <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Beginner">{t.beginner}</SelectItem>
+                      <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
+                      <SelectItem value="Advanced">{t.advanced}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>{t.trainingFrequency}</Label>
                 <Select value={form.trainingDaysPerWeek} onValueChange={(v) => set("trainingDaysPerWeek", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2, 3, 4, 5, 6, 7].map((n) => (
+                    {[2, 3, 4, 5].map((n) => (
                       <SelectItem key={n} value={String(n)}>{(t as any)[`freq${n}`]}</SelectItem>
                     ))}
                   </SelectContent>
