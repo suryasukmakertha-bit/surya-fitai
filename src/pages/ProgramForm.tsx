@@ -371,18 +371,20 @@ export default function ProgramForm() {
 
             {/* Duration selector removed: all plans are now fixed at 4 weeks (1 month).
                 Users can extend to the next month via the completion celebration modal. */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t.experienceLevel}</Label>
-                <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Beginner">{t.beginner}</SelectItem>
-                    <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
-                    <SelectItem value="Advanced">{t.advanced}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className={cn("grid gap-4", type === 'beginner' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2')}>
+              {type !== 'beginner' && (
+                <div className="space-y-2">
+                  <Label>{t.experienceLevel}</Label>
+                  <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
+                    <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Beginner">{t.beginner}</SelectItem>
+                      <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
+                      <SelectItem value="Advanced">{t.advanced}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>{t.trainingFrequency}</Label>
                 <Select value={form.trainingDaysPerWeek} onValueChange={(v) => set("trainingDaysPerWeek", v)}>
@@ -425,12 +427,16 @@ export default function ProgramForm() {
                     key={eq.value}
                     className={cn(
                       "flex items-center gap-2 bg-secondary/50 rounded-md px-3 py-2.5 text-sm cursor-pointer border transition-colors",
-                      form.equipment.includes(eq.value) ? "border-primary bg-primary/10" : "border-transparent"
+                      form.equipment === eq.value ? "border-primary bg-primary/10" : "border-transparent"
                     )}
                   >
-                    <Checkbox
-                      checked={form.equipment.includes(eq.value)}
-                      onCheckedChange={() => toggleEquipment(eq.value)}
+                    <input
+                      type="radio"
+                      name="equipment"
+                      value={eq.value}
+                      checked={form.equipment === eq.value}
+                      onChange={() => selectEquipment(eq.value)}
+                      className="h-4 w-4 accent-primary cursor-pointer"
                     />
                     <span className="text-foreground">{(t as any)[eq.labelKey]}</span>
                   </label>
