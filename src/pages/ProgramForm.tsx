@@ -138,6 +138,34 @@ export default function ProgramForm() {
       toast({ title: t.fillRequired, variant: "destructive" });
       return;
     }
+    // Client-side gate (server still enforces).
+    if (genLimit.status === "expired") {
+      setShowSubscribeModal(true);
+      return;
+    }
+    if (!genLimit.canGenerate && genLimit.status !== "loading" && genLimit.status !== "admin") {
+      const msgs = {
+        id: genLimit.status === "trial"
+          ? "Batas generate selama trial (3x) tercapai. Subscribe untuk generate plan bulanan bersama Coach Surya."
+          : "Batas generate bulan ini (3x) tercapai. Reset otomatis pada renewal berikutnya.",
+        en: genLimit.status === "trial"
+          ? "Trial generate limit (3x) reached. Subscribe to get monthly generates with Coach Surya."
+          : "Monthly generate limit (3x) reached. Resets automatically on next renewal.",
+        zh: genLimit.status === "trial"
+          ? "试用生成限制（3次）已达到。订阅以获得每月生成次数。"
+          : "本月生成限制（3次）已达到。将于续订日期自动重置。",
+      };
+      toast({
+        title: msgs[lang as keyof typeof msgs] ?? msgs.en,
+        variant: "destructive",
+        action: genLimit.status === "trial" ? (
+          <button type="button" onClick={() => setShowPaymentPopup(true)} className="ml-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
+            {lang === "id" ? "Berlangganan Sekarang" : lang === "zh" ? "立即订阅" : "Subscribe Now"}
+          </button>
+        ) as any : undefined,
+      });
+      return;
+    }
     setLoading(true);
     setLoadingStep(0);
     const stepInterval = setInterval(() => {
