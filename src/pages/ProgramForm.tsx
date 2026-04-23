@@ -32,7 +32,6 @@ const EQUIPMENT_OPTIONS = [
   { value: "full-gym", labelKey: "equipFullGym" },
   { value: "home-barbell", labelKey: "equipHomeBarbell" },
   { value: "resistance-bands", labelKey: "equipBands" },
-  { value: "none", labelKey: "equipNone" },
 ] as const;
 
 function WhyTooltip({ text }: { text: string }) {
@@ -93,7 +92,7 @@ export default function ProgramForm() {
     dietType: "",
     // New fields
     sessionDuration: 60,
-    equipment: [] as string[],
+    equipment: "" as string,
     dailySteps: "4000-8000",
     sleepHours: "",
     sleepQuality: 7,
@@ -114,13 +113,8 @@ export default function ProgramForm() {
 
   const set = (key: string, val: any) => setForm((p) => ({ ...p, [key]: val }));
 
-  const toggleEquipment = (val: string) => {
-    setForm((p) => {
-      const eq = p.equipment.includes(val)
-        ? p.equipment.filter((e) => e !== val)
-        : [...p.equipment, val];
-      return { ...p, equipment: eq };
-    });
+  const selectEquipment = (val: string) => {
+    setForm((p) => ({ ...p, equipment: val }));
   };
 
   // Real-time calculations
