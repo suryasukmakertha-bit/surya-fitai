@@ -112,6 +112,27 @@ export default function ProgramForm() {
     }
   }, [lang, type, t]);
 
+  // Force experience to Beginner for beginner program (field is hidden)
+  useEffect(() => {
+    if (isBeginnerProgram) {
+      setForm((p) => (p.experience === "Beginner" ? p : { ...p, experience: "Beginner" }));
+    }
+  }, [isBeginnerProgram]);
+
+  // Clamp legacy trainingDaysPerWeek values (6/7) to max 5
+  useEffect(() => {
+    setForm((p) => {
+      const n = parseInt(p.trainingDaysPerWeek);
+      if (n > 5) return { ...p, trainingDaysPerWeek: "5" };
+      return p;
+    });
+  }, []);
+
+  // Default foodStyle if user previously selected the removed "local" option
+  useEffect(() => {
+    setForm((p) => (p.foodStyle === "local" ? { ...p, foodStyle: "western" } : p));
+  }, []);
+
   const set = (key: string, val: any) => setForm((p) => ({ ...p, [key]: val }));
 
   const toggleEquipment = (val: string) => {
