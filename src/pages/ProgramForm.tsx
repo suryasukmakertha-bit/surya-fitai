@@ -65,6 +65,10 @@ export default function ProgramForm() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const { info: genLimit, refetch: refetchLimit } = useGenerateLimit();
+  const { userEmail } = useSubscription();
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
 
   const titleKey = `${type}Title` as keyof typeof t;
   const programTitle = (t[titleKey] as string) || program?.title || "Program";
