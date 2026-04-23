@@ -21,6 +21,10 @@ import AppHeader from "@/components/AppHeader";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { computeAll } from "@/lib/fitnessCalculations";
+import { useGenerateLimit } from "@/hooks/useGenerateLimit";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
+import SubscribeRequiredModal from "@/components/subscription/SubscribeRequiredModal";
 
 const EQUIPMENT_OPTIONS = [
   { value: "bodyweight", labelKey: "equipBodyweight" },
