@@ -568,7 +568,8 @@ export default function Results() {
       // We pass the saved userInfo + programType + extensionContext = previous month number
       // so the prompt builds Month N+1 with proper progressive overload directives.
       const ui: any = userInfo || {};
-      const trainingDaysPerWeekVal = parseInt(ui.trainingDaysPerWeek) || 4;
+      // Clamp legacy plans saved with 6 or 7 training days to the new max of 5
+      const trainingDaysPerWeekVal = Math.min(parseInt(ui.trainingDaysPerWeek) || 4, 5);
       const restDaysVal = 7 - trainingDaysPerWeekVal;
 
       const res = await supabase.functions.invoke("generate-plan", {
