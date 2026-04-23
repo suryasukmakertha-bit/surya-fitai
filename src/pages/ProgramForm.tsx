@@ -216,6 +216,40 @@ export default function ProgramForm() {
       // so res.error.context.status is reliably populated.
       if (res.error) {
         const status: number | undefined = (res.error as any)?.context?.status;
+        // 403 = subscription gate from server (expired or limit reached). Surface
+        // the right UI (modal vs toast) and short-circuit before the generic mapping.
+        if (status === 403) {
+          let body: any = null;
+          try { body = await (res.error as any)?.context?.json?.(); } catch {}
+          const code = body?.error;
+          if (code === 'subscription_expired') {
+            setShowSubscribeModal(true);
+          } else {
+            const trial = code === 'trial_limit_reached';
+            const msgs = {
+              id: trial
+                ? "Batas generate selama trial (3x) tercapai. Subscribe untuk generate plan bulanan bersama Coach Surya."
+                : "Batas generate bulan ini (3x) tercapai. Reset otomatis pada renewal berikutnya.",
+              en: trial
+                ? "Trial generate limit (3x) reached. Subscribe to get monthly generates with Coach Surya."
+                : "Monthly generate limit (3x) reached. Resets automatically on next renewal.",
+              zh: trial
+                ? "试用生成限制（3次）已达到。订阅以获得每月生成次数。"
+                : "本月生成限制（3次）已达到。将于续订日期自动重置。",
+            };
+            toast({
+              title: msgs[lang as keyof typeof msgs] ?? msgs.en,
+              variant: "destructive",
+              action: trial ? (
+                <button type="button" onClick={() => setShowPaymentPopup(true)} className="ml-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
+                  {lang === "id" ? "Berlangganan Sekarang" : lang === "zh" ? "立即订阅" : "Subscribe Now"}
+                </button>
+              ) as any : undefined,
+            });
+          }
+          await refetchLimit();
+          return;
+        }
         let description: string = (t as any).planErrInternal;
         if (status === 408) description = (t as any).planErrTimeout;
         else if (status === 422) description = (t as any).planErrParse;
