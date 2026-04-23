@@ -68,6 +68,8 @@ export default function ProgramForm() {
   const titleKey = `${type}Title` as keyof typeof t;
   const programTitle = (t[titleKey] as string) || program?.title || "Program";
 
+  const isBeginnerProgram = (type || "").toLowerCase() === "beginner" || (type || "").toLowerCase() === "pemula";
+
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -109,6 +111,27 @@ export default function ProgramForm() {
       setForm((p) => ({ ...p, goal: localizedGoal }));
     }
   }, [lang, type, t]);
+
+  // Force experience to Beginner for beginner program (field is hidden)
+  useEffect(() => {
+    if (isBeginnerProgram) {
+      setForm((p) => (p.experience === "Beginner" ? p : { ...p, experience: "Beginner" }));
+    }
+  }, [isBeginnerProgram]);
+
+  // Clamp legacy trainingDaysPerWeek values (6/7) to max 5
+  useEffect(() => {
+    setForm((p) => {
+      const n = parseInt(p.trainingDaysPerWeek);
+      if (n > 5) return { ...p, trainingDaysPerWeek: "5" };
+      return p;
+    });
+  }, []);
+
+  // Default foodStyle if user previously selected the removed "local" option
+  useEffect(() => {
+    setForm((p) => (p.foodStyle === "local" ? { ...p, foodStyle: "western" } : p));
+  }, []);
 
   const set = (key: string, val: any) => setForm((p) => ({ ...p, [key]: val }));
 
@@ -336,23 +359,25 @@ export default function ProgramForm() {
             {/* Duration selector removed: all plans are now fixed at 4 weeks (1 month).
                 Users can extend to the next month via the completion celebration modal. */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t.experienceLevel}</Label>
-                <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
-                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Beginner">{t.beginner}</SelectItem>
-                    <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
-                    <SelectItem value="Advanced">{t.advanced}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {!isBeginnerProgram && (
+                <div className="space-y-2">
+                  <Label>{t.experienceLevel}</Label>
+                  <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
+                    <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Beginner">{t.beginner}</SelectItem>
+                      <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
+                      <SelectItem value="Advanced">{t.advanced}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>{t.trainingFrequency}</Label>
                 <Select value={form.trainingDaysPerWeek} onValueChange={(v) => set("trainingDaysPerWeek", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2, 3, 4, 5, 6, 7].map((n) => (
+                    {[2, 3, 4, 5].map((n) => (
                       <SelectItem key={n} value={String(n)}>{(t as any)[`freq${n}`]}</SelectItem>
                     ))}
                   </SelectContent>
@@ -494,7 +519,6 @@ export default function ProgramForm() {
                 <Select value={form.foodStyle} onValueChange={(v) => set("foodStyle", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.foodStylePlaceholder} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="local">{t.foodStyleLocal}</SelectItem>
                     <SelectItem value="western">{t.foodStyleWestern}</SelectItem>
                     <SelectItem value="asian">{t.foodStyleAsian}</SelectItem>
                     <SelectItem value="high-protein">{t.foodStyleHighProtein}</SelectItem>
