@@ -279,6 +279,7 @@ export default function ProgramForm() {
       const clientGeneratedId = crypto.randomUUID();
 
       playGeneratePlanSuccess();
+      await refetchLimit();
       navigate("/results", { state: { plan: res.data, userInfo: { ...form, foodStyle: form.foodStyle, startDate: startDateStr }, programType: type, clientGeneratedId } });
     } catch (err: any) {
       // Network-level failure (no response at all)
