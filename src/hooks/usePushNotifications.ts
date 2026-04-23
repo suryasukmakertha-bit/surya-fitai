@@ -40,9 +40,9 @@ function getTodayStr(): string {
 }
 
 function getLang(): "en" | "id" | "zh" {
-  const l = localStorage.getItem("fitai-language") || "en";
-  if (l === "id" || l === "zh") return l;
-  return "en";
+  const l = localStorage.getItem("fitai-lang") || localStorage.getItem("fitai-language") || "id";
+  if (l === "en" || l === "zh") return l as "en" | "zh";
+  return "id";
 }
 
 async function showNotificationViaSW(title: string, body: string) {

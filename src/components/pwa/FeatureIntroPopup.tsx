@@ -337,7 +337,7 @@ function SlideProgress({ active, lang }: { active: boolean; lang: Lang }) {
 export default function FeatureIntroPopup({ onDone, onSkip, forceOpen = false }: FeatureIntroPopupProps) {
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState<Lang>(() => {
-    return (localStorage.getItem("fitai-language") as Lang) || "en";
+    return (localStorage.getItem("fitai-lang") as Lang) || (localStorage.getItem("fitai-language") as Lang) || "id";
   });
   const [current, setCurrent] = useState(0);
   const touchRef = useRef<{ startX: number; startY: number } | null>(null);
