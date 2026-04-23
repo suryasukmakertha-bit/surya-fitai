@@ -643,6 +643,32 @@ export default function ProgramForm() {
               </>
             ) : t.generatePlan}
           </Button>
+          {/* Generate-limit counter (hidden for admin & loading & expired) */}
+          {genLimit.status !== "admin" && genLimit.status !== "loading" && genLimit.status !== "expired" && (
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              {(() => {
+                const remaining = genLimit.remaining;
+                const max = genLimit.max;
+                if (genLimit.status === "trial") {
+                  if (lang === "id") return `Sisa generate trial: ${remaining}/${max}`;
+                  if (lang === "zh") return `剩余试用生成次数：${remaining}/${max}`;
+                  return `Trial generates remaining: ${remaining}/${max}`;
+                }
+                // active
+                const renewal = genLimit.periodEnd
+                  ? genLimit.periodEnd.toLocaleDateString(lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-GB", { day: "2-digit", month: "short" })
+                  : "";
+                if (lang === "id") return `Sisa generate bulan ini: ${remaining}/${max} (reset ${renewal})`;
+                if (lang === "zh") return `本月剩余生成次数：${remaining}/${max}（${renewal} 重置）`;
+                return `Remaining this month: ${remaining}/${max} (resets ${renewal})`;
+              })()}
+            </p>
+          )}
+          {genLimit.status === "expired" && (
+            <button type="button" onClick={() => setShowSubscribeModal(true)} className="w-full text-center text-xs text-primary hover:text-primary/80 underline mt-2">
+              {lang === "id" ? "Berlangganan untuk generate plan" : lang === "zh" ? "订阅以生成计划" : "Subscribe to generate a plan"}
+            </button>
+          )}
           <p className="text-muted-foreground/60 text-xs text-center mt-2">
             {(t as any).coachGenerateHelper}
           </p>
@@ -651,6 +677,20 @@ export default function ProgramForm() {
           </p>
         </form>
       </div>
+      <SubscribeRequiredModal
+        isOpen={showSubscribeModal}
+        onClose={() => setShowSubscribeModal(false)}
+        onSubscribe={() => { setShowSubscribeModal(false); setShowPaymentPopup(true); }}
+      />
+      <SubscriptionPopup
+        isOpen={showPaymentPopup}
+        onClose={() => setShowPaymentPopup(false)}
+        trigger="save_plan"
+        userEmail={userEmail}
+        onPaymentDone={() => { setShowPaymentPopup(false); refetchLimit(); }}
+        trialNotStarted={false}
+        isTrialActive={genLimit.status === "trial"}
+      />
     </div>
   );
 }
