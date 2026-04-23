@@ -519,7 +519,6 @@ export default function ProgramForm() {
                 <Select value={form.foodStyle} onValueChange={(v) => set("foodStyle", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.foodStylePlaceholder} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="local">{t.foodStyleLocal}</SelectItem>
                     <SelectItem value="western">{t.foodStyleWestern}</SelectItem>
                     <SelectItem value="asian">{t.foodStyleAsian}</SelectItem>
                     <SelectItem value="high-protein">{t.foodStyleHighProtein}</SelectItem>
