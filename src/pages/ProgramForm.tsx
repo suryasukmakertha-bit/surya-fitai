@@ -175,13 +175,15 @@ export default function ProgramForm() {
       const targetLiftingMinutes = form.sessionDuration - 10;
       const avgMinutesPerSet = 2.3;
       let targetSets = Math.floor(targetLiftingMinutes / avgMinutesPerSet);
-      if (form.experience === 'Beginner') targetSets = Math.max(targetSets, 10);
-      else if (form.experience === 'Intermediate') targetSets = Math.max(targetSets, 16);
-      else if (form.experience === 'Advanced') targetSets = Math.max(targetSets, 22);
+      const effectiveExperience = type === 'beginner' ? 'Beginner' : form.experience;
+      if (effectiveExperience === 'Beginner') targetSets = Math.max(targetSets, 10);
+      else if (effectiveExperience === 'Intermediate') targetSets = Math.max(targetSets, 16);
+      else if (effectiveExperience === 'Advanced') targetSets = Math.max(targetSets, 22);
 
       const res = await supabase.functions.invoke("generate-plan", {
         body: {
           ...form,
+          experience: effectiveExperience,
           occupation,
           programType: type,
           language: lang,
@@ -191,7 +193,7 @@ export default function ProgramForm() {
           trainingDaysPerWeek,
           foodStyle: form.foodStyle,
           sessionDuration: form.sessionDuration,
-          equipment: form.equipment,
+          equipment: form.equipment ? [form.equipment] : [],
           dailySteps: form.dailySteps,
           sleepHours: form.sleepHours,
           sleepQuality: form.sleepQuality,
