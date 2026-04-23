@@ -65,11 +65,26 @@ serve(async (req) => {
       // Activate subscription 30 days
       const subEnd = new Date()
       subEnd.setDate(subEnd.getDate() + 30)
+      const subStart = new Date()
       await supabase.from('subscriptions').update({
         status: 'active',
-        subscription_start: new Date().toISOString(),
+        subscription_start: subStart.toISOString(),
         subscription_end: subEnd.toISOString(),
       }).eq('id', tx.subscription_id)
+
+      // Reset generate counter for the new billing period.
+      // Look up the user_id from the activated subscription, then reset profiles counters.
+      const { data: subRow } = await supabase
+        .from('subscriptions')
+        .select('user_id')
+        .eq('id', tx.subscription_id)
+        .maybeSingle()
+      if (subRow?.user_id) {
+        await supabase.from('profiles').update({
+          period_generate_count: 0,
+          last_generate_reset: subStart.toISOString().slice(0, 10),
+        }).eq('user_id', subRow.user_id)
+      }
 
       console.log(`[midtrans-webhook] ✅ Activated subscription ${tx.subscription_id}`)
     }
