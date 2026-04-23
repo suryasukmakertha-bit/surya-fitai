@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal, CheckCircle2, AlertTriangle, Info } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,14 +58,6 @@ interface PlanData {
   deloadWeek?: string;
   recoveryTips?: string;
   warnings?: string[];
-  coach_message?: {
-    opening?: string;
-    key_tips?: string[];
-    motivation?: string;
-    week_focus?: string;
-  };
-  injury_notes?: string | null;
-  meal_plan_notes?: string[];
   // Existing fields
   workout_plan: DayPlan[];
   meal_plan: MealPlan[];
@@ -568,8 +560,7 @@ export default function Results() {
       // We pass the saved userInfo + programType + extensionContext = previous month number
       // so the prompt builds Month N+1 with proper progressive overload directives.
       const ui: any = userInfo || {};
-      // Clamp legacy plans saved with 6 or 7 training days to the new max of 5
-      const trainingDaysPerWeekVal = Math.min(parseInt(ui.trainingDaysPerWeek) || 4, 5);
+      const trainingDaysPerWeekVal = parseInt(ui.trainingDaysPerWeek) || 4;
       const restDaysVal = 7 - trainingDaysPerWeekVal;
 
       const res = await supabase.functions.invoke("generate-plan", {
@@ -914,8 +905,6 @@ export default function Results() {
         plan_data: plan as any,
         plan_name: planName,
         client_generated_id: clientGeneratedId,
-        injuries: Array.isArray((userInfo as any)?.injuries) ? (userInfo as any).injuries : [],
-        food_allergies: Array.isArray((userInfo as any)?.foodAllergies) ? (userInfo as any).foodAllergies : [],
       } as any).select("id").single();
       if (error) {
         if (error.code === '23505') {
@@ -1034,78 +1023,40 @@ export default function Results() {
           </>
         )}
 
-        {/* Coach Surya Message Card */}
-        {(plan.coach_message?.opening ||
-          plan.coach_message?.motivation ||
-          (plan.coach_message?.key_tips && plan.coach_message.key_tips.length > 0) ||
-          plan.programOverview ||
-          plan.motivational_message) && (
-          <div
-            className="rounded-2xl mb-4"
-            style={{
-              background: "rgba(0,255,120,0.06)",
-              border: "1px solid rgba(0,255,120,0.2)",
-              padding: "20px",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-primary-foreground text-xs font-bold">S</span>
+        {/* Program Overview */}
+        {plan.programOverview && (
+          <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-foreground text-xs font-bold">S</span>
+                </div>
+                <div>
+                  <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
+                  <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
-                <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
-              </div>
+              <p className="text-foreground text-sm italic">{plan.programOverview}</p>
             </div>
-
-            {(plan.coach_message?.opening || plan.programOverview) && (
-              <p className="text-foreground text-sm leading-relaxed mb-3" style={{ fontSize: "14px" }}>
-                {plan.coach_message?.opening || plan.programOverview}
-              </p>
-            )}
-
-            {plan.coach_message?.key_tips && plan.coach_message.key_tips.length > 0 && (
-              <ul className="space-y-2 mb-3">
-                {plan.coach_message.key_tips.map((tip, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <CheckCircle2 className="text-primary mt-0.5 flex-shrink-0" style={{ width: 16, height: 16 }} />
-                    <span className="text-foreground" style={{ fontSize: "13px", lineHeight: 1.5 }}>{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {(plan.coach_message?.motivation || plan.motivational_message) && (
-              <p
-                className="italic"
-                style={{
-                  color: "rgba(255,255,255,0.6)",
-                  borderLeft: "3px solid hsl(var(--primary))",
-                  paddingLeft: "10px",
-                  fontSize: "13px",
-                  lineHeight: 1.5,
-                }}
-              >
-                {plan.coach_message?.motivation || plan.motivational_message}
-              </p>
-            )}
           </div>
         )}
 
-        {/* Injury Warning Banner */}
-        {plan.injury_notes && plan.injury_notes.trim() && (
-          <div
-            className="mb-4 flex items-center"
-            style={{
-              background: "rgba(245,158,11,0.1)",
-              border: "1px solid rgba(245,158,11,0.3)",
-              borderRadius: "12px",
-              padding: "12px 16px",
-              gap: "10px",
-            }}
-          >
-            <AlertTriangle style={{ width: 16, height: 16, color: "#f59e0b" }} className="flex-shrink-0" />
-            <span className="text-foreground text-sm">{plan.injury_notes}</span>
+        {!plan.programOverview && plan.motivational_message && (
+          <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-foreground text-xs font-bold">S</span>
+                </div>
+                <div>
+                  <p className="text-primary text-xs font-bold leading-none">{(t as any).coachCardTitle}</p>
+                  <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
+                </div>
+              </div>
+              <p className="text-foreground text-sm italic">{plan.motivational_message}</p>
+            </div>
           </div>
         )}
 
@@ -1270,28 +1221,6 @@ export default function Results() {
                 </ul>
               </div>
             ))}
-
-            {/* Meal plan notes (pills) */}
-            {plan.meal_plan_notes && plan.meal_plan_notes.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2">
-                {plan.meal_plan_notes.map((note, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1.5"
-                    style={{
-                      background: "rgba(0,255,120,0.08)",
-                      borderRadius: "20px",
-                      padding: "6px 12px",
-                      fontSize: "12px",
-                      color: "rgba(255,255,255,0.7)",
-                    }}
-                  >
-                    <Info style={{ width: 14, height: 14 }} className="text-primary flex-shrink-0" />
-                    {note}
-                  </span>
-                ))}
-              </div>
-            )}
           </TabsContent>
 
           <TabsContent value="grocery">

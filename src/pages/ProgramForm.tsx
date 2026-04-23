@@ -12,8 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Loader2, CalendarIcon, HelpCircle, Activity, Flame, Beef, Wheat, Droplet, ChevronDown } from "lucide-react";
+import { Loader2, CalendarIcon, HelpCircle, Activity, Flame, Beef, Wheat, Droplet } from "lucide-react";
 import { programs } from "@/components/ProgramCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +21,6 @@ import AppHeader from "@/components/AppHeader";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { computeAll } from "@/lib/fitnessCalculations";
-import { useSubscription } from "@/hooks/useSubscription";
 
 const EQUIPMENT_OPTIONS = [
   { value: "bodyweight", labelKey: "equipBodyweight" },
@@ -63,12 +61,9 @@ export default function ProgramForm() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const { access } = useSubscription();
 
   const titleKey = `${type}Title` as keyof typeof t;
   const programTitle = (t[titleKey] as string) || program?.title || "Program";
-
-  const isBeginnerProgram = (type || "").toLowerCase() === "beginner" || (type || "").toLowerCase() === "pemula";
 
   const [form, setForm] = useState({
     name: "",
@@ -81,6 +76,8 @@ export default function ProgramForm() {
     // Plans are 4 weeks; users continue to month 2/3/etc via the completion modal.
     duration: "1 Month",
     experience: "Beginner",
+    limitations: "",
+    allergies: "",
     occupation: "",
     occupationOther: "",
     trainingDaysPerWeek: "4",
@@ -96,11 +93,6 @@ export default function ProgramForm() {
     nightShift: false,
     mealFrequency: "4",
     intermittentFasting: false,
-    // Additional Info (Optional)
-    injuries: [] as string[],
-    foodAllergies: [] as string[],
-    additionalConditions: "",
-    additionalAllergies: "",
   });
 
   // Sync goal text when language changes
@@ -112,27 +104,6 @@ export default function ProgramForm() {
     }
   }, [lang, type, t]);
 
-  // Force experience to Beginner for beginner program (field is hidden)
-  useEffect(() => {
-    if (isBeginnerProgram) {
-      setForm((p) => (p.experience === "Beginner" ? p : { ...p, experience: "Beginner" }));
-    }
-  }, [isBeginnerProgram]);
-
-  // Clamp legacy trainingDaysPerWeek values (6/7) to max 5
-  useEffect(() => {
-    setForm((p) => {
-      const n = parseInt(p.trainingDaysPerWeek);
-      if (n > 5) return { ...p, trainingDaysPerWeek: "5" };
-      return p;
-    });
-  }, []);
-
-  // Default foodStyle if user previously selected the removed "local" option
-  useEffect(() => {
-    setForm((p) => (p.foodStyle === "local" ? { ...p, foodStyle: "western" } : p));
-  }, []);
-
   const set = (key: string, val: any) => setForm((p) => ({ ...p, [key]: val }));
 
   const toggleEquipment = (val: string) => {
@@ -141,24 +112,6 @@ export default function ProgramForm() {
         ? p.equipment.filter((e) => e !== val)
         : [...p.equipment, val];
       return { ...p, equipment: eq };
-    });
-  };
-
-  const toggleInjury = (val: string) => {
-    setForm((p) => {
-      const next = p.injuries.includes(val)
-        ? p.injuries.filter((e) => e !== val)
-        : [...p.injuries, val];
-      return { ...p, injuries: next };
-    });
-  };
-
-  const toggleFoodAllergy = (val: string) => {
-    setForm((p) => {
-      const next = p.foodAllergies.includes(val)
-        ? p.foodAllergies.filter((e) => e !== val)
-        : [...p.foodAllergies, val];
-      return { ...p, foodAllergies: next };
     });
   };
 
@@ -177,7 +130,6 @@ export default function ProgramForm() {
       toast({ title: t.fillRequired, variant: "destructive" });
       return;
     }
-
     setLoading(true);
     setLoadingStep(0);
     const stepInterval = setInterval(() => {
@@ -217,11 +169,6 @@ export default function ProgramForm() {
           nightShift: form.nightShift,
           mealFrequency: form.mealFrequency,
           intermittentFasting: form.intermittentFasting,
-          injuries: form.injuries,
-          foodAllergies: form.foodAllergies,
-          additionalConditions: form.additionalConditions,
-          additionalAllergies: form.additionalAllergies,
-          country_code: ((typeof navigator !== "undefined" && navigator.language?.split("-")[1]) || "ID").toUpperCase(),
           calculatedMetrics: metrics,
           targetLiftingMinutes,
           targetTotalSets: targetSets,
@@ -359,25 +306,23 @@ export default function ProgramForm() {
             {/* Duration selector removed: all plans are now fixed at 4 weeks (1 month).
                 Users can extend to the next month via the completion celebration modal. */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {!isBeginnerProgram && (
-                <div className="space-y-2">
-                  <Label>{t.experienceLevel}</Label>
-                  <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
-                    <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Beginner">{t.beginner}</SelectItem>
-                      <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
-                      <SelectItem value="Advanced">{t.advanced}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label>{t.experienceLevel}</Label>
+                <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
+                  <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">{t.beginner}</SelectItem>
+                    <SelectItem value="Intermediate">{t.intermediate}</SelectItem>
+                    <SelectItem value="Advanced">{t.advanced}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>{t.trainingFrequency}</Label>
                 <Select value={form.trainingDaysPerWeek} onValueChange={(v) => set("trainingDaysPerWeek", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2, 3, 4, 5].map((n) => (
+                    {[2, 3, 4, 5, 6, 7].map((n) => (
                       <SelectItem key={n} value={String(n)}>{(t as any)[`freq${n}`]}</SelectItem>
                     ))}
                   </SelectContent>
@@ -519,6 +464,7 @@ export default function ProgramForm() {
                 <Select value={form.foodStyle} onValueChange={(v) => set("foodStyle", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.foodStylePlaceholder} /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="local">{t.foodStyleLocal}</SelectItem>
                     <SelectItem value="western">{t.foodStyleWestern}</SelectItem>
                     <SelectItem value="asian">{t.foodStyleAsian}</SelectItem>
                     <SelectItem value="high-protein">{t.foodStyleHighProtein}</SelectItem>
@@ -549,111 +495,17 @@ export default function ProgramForm() {
                 {t.ifLabel} <WhyTooltip text={t.whyIF} />
               </Label>
             </div>
+
+            <div className="space-y-2">
+              <Label>{t.limitations}</Label>
+              <Textarea value={form.limitations} onChange={(e) => set("limitations", e.target.value)} placeholder={t.limitationsPlaceholder} className="bg-secondary border-border" />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t.allergies}</Label>
+              <Textarea value={form.allergies} onChange={(e) => set("allergies", e.target.value)} placeholder={t.allergiesPlaceholder} className="bg-secondary border-border" />
+            </div>
           </div>
-
-          {/* Additional Info (Optional) — Collapsible */}
-          <Collapsible className="card-gradient rounded-lg border border-border/50">
-            <CollapsibleTrigger className="w-full flex items-center justify-between p-6 group [&[data-state=open]>svg]:rotate-180">
-              <div className="text-left">
-                <h3 className="font-display font-bold text-foreground text-sm uppercase tracking-wider text-primary">
-                  {(t as any).additionalInfoSection}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {(t as any).additionalInfoHint}
-                </p>
-              </div>
-              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 flex-shrink-0" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-6 pb-6 space-y-5 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-              {/* Injuries chips */}
-              <div className="space-y-3">
-                <Label>{(t as any).injuriesLabel}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "knee_injury", labelKey: "injuryKnee" },
-                    { value: "lower_back_pain", labelKey: "injuryLowerBack" },
-                    { value: "shoulder_injury", labelKey: "injuryShoulder" },
-                    { value: "elbow_pain", labelKey: "injuryElbow" },
-                    { value: "wrist_injury", labelKey: "injuryWrist" },
-                    { value: "ankle_injury", labelKey: "injuryAnkle" },
-                    { value: "neck_pain", labelKey: "injuryNeck" },
-                  ].map((inj) => {
-                    const active = form.injuries.includes(inj.value);
-                    return (
-                      <button
-                        key={inj.value}
-                        type="button"
-                        onClick={() => toggleInjury(inj.value)}
-                        className={cn(
-                          "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                          active
-                            ? "border-primary bg-primary/15 text-primary"
-                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/40"
-                        )}
-                      >
-                        {(t as any)[inj.labelKey]}
-                      </button>
-                    );
-                  })}
-                </div>
-                {/* Other conditions free text */}
-                <div className="space-y-2 pt-1">
-                  <Label className="text-xs text-muted-foreground">{(t as any).otherConditionsLabel}</Label>
-                  <Textarea
-                    value={form.additionalConditions}
-                    onChange={(e) => set("additionalConditions", e.target.value.slice(0, 200))}
-                    placeholder={(t as any).otherConditionsPlaceholder}
-                    maxLength={200}
-                    className="bg-secondary border-border min-h-[64px]"
-                  />
-                  <p className="text-[10px] text-muted-foreground/60 text-right">{form.additionalConditions.length}/200</p>
-                </div>
-              </div>
-
-              {/* Food allergies chips */}
-              <div className="space-y-3">
-                <Label>{(t as any).foodAllergiesLabel}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "gluten", labelKey: "allergyGluten" },
-                    { value: "dairy", labelKey: "allergyDairy" },
-                    { value: "nuts", labelKey: "allergyNuts" },
-                    { value: "egg", labelKey: "allergyEgg" },
-                    { value: "seafood", labelKey: "allergySeafood" },
-                  ].map((al) => {
-                    const active = form.foodAllergies.includes(al.value);
-                    return (
-                      <button
-                        key={al.value}
-                        type="button"
-                        onClick={() => toggleFoodAllergy(al.value)}
-                        className={cn(
-                          "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                          active
-                            ? "border-primary bg-primary/15 text-primary"
-                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/40"
-                        )}
-                      >
-                        {(t as any)[al.labelKey]}
-                      </button>
-                    );
-                  })}
-                </div>
-                {/* Other allergies free text */}
-                <div className="space-y-2 pt-1">
-                  <Label className="text-xs text-muted-foreground">{(t as any).otherAllergiesLabel}</Label>
-                  <Textarea
-                    value={form.additionalAllergies}
-                    onChange={(e) => set("additionalAllergies", e.target.value.slice(0, 200))}
-                    placeholder={(t as any).otherAllergiesPlaceholder}
-                    maxLength={200}
-                    className="bg-secondary border-border min-h-[64px]"
-                  />
-                  <p className="text-[10px] text-muted-foreground/60 text-right">{form.additionalAllergies.length}/200</p>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
 
           {/* Live Metrics Card */}
           {metrics && (
