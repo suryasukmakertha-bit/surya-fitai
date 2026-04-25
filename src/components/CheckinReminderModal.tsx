@@ -17,7 +17,7 @@ export default function CheckinReminderModal({ open, onClose }: Props) {
 
   const body =
     lang === "id"
-      ? "Setiap kali selesai latihan, catat progressmu dengan langkah berikut:\n\n1️⃣ Buka ☰ → Rencana Saya\n2️⃣ Pilih program yang ingin dijalankan\n3️⃣ Centang setiap exercise yang sudah diselesaikan\n4️⃣ Cek section Progress untuk melihat perkembanganmu\n\nKonsistensi check-in ini yang membantu Coach Surya memantau progressmu secara akurat."
+      ? "Setiap kali selesai latihan, catat progressmu dengan langkah berikut:\n\n1️⃣ Buka ☰ → Rencana Saya\n2️⃣ Pilih program yang ingin dijalankan\n3️⃣ Centang setiap exercise yang sudah diselesaikan\n4️⃣ Check-in di bagian Progress untuk melihat perkembanganmu\n\nKonsistensi check-in ini yang membantu Coach Surya memantau progressmu secara akurat."
       : lang === "zh"
       ? "每次完成训练后，按以下步骤记录进度：\n\n1️⃣ 打开 ☰ → 我的计划\n2️⃣ 选择您刚完成的计划\n3️⃣ 勾选每个已完成的训练\n4️⃣ 请在进度栏查看您的进度\n\n坚持打卡帮助Coach Surya准确监控您的进度。"
       : "Every time you finish a workout, record your progress with these steps:\n\n1️⃣ Open ☰ → My Plans\n2️⃣ Select the program you just ran\n3️⃣ Check off every exercise you completed\n4️⃣ Check-in in the Progress section to see your development\n\nConsistent check-ins help Coach Surya accurately monitor your progress.";
