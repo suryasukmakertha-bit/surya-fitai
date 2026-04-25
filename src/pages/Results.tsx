@@ -22,6 +22,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 import PlanCompletionModal from "@/components/PlanCompletionModal";
 import PlanExtendBanner from "@/components/PlanExtendBanner";
+import SavePlanReminderModal from "@/components/SavePlanReminderModal";
+import CheckinReminderModal from "@/components/CheckinReminderModal";
 
 interface DayPlan {
   day: string;
