@@ -22,6 +22,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 import PlanCompletionModal from "@/components/PlanCompletionModal";
 import PlanExtendBanner from "@/components/PlanExtendBanner";
+import SavePlanReminderModal from "@/components/SavePlanReminderModal";
+import CheckinReminderModal from "@/components/CheckinReminderModal";
 
 interface DayPlan {
   day: string;
@@ -388,6 +390,25 @@ export default function Results() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionStats, setCompletionStats] = useState<{ totalWorkouts: number; totalActiveDays: number }>({ totalWorkouts: 0, totalActiveDays: 0 });
   const [continueLoading, setContinueLoading] = useState(false);
+
+  // Reminder popups (Save plan -> then Check-in instructions)
+  const [showSaveReminder, setShowSaveReminder] = useState(false);
+  const [showCheckinReminder, setShowCheckinReminder] = useState(false);
+  const [saveReminderShownForPlan, setSaveReminderShownForPlan] = useState(false);
+
+  // Show "Save your plan" reminder once per fresh generation (no planId yet, not restored draft)
+  useEffect(() => {
+    if (
+      plan &&
+      !planId &&
+      !saved &&
+      !restoredFromDraft &&
+      !saveReminderShownForPlan
+    ) {
+      setShowSaveReminder(true);
+      setSaveReminderShownForPlan(true);
+    }
+  }, [plan, planId, saved, restoredFromDraft, saveReminderShownForPlan]);
 
   useEffect(() => {
     setCheckIns([]);
@@ -926,6 +947,14 @@ export default function Results() {
       }
       toast({ title: t.planSaved });
       await refetchSub();
+      // Show check-in instructions popup once per plan_id
+      if (data?.id) {
+        const key = `checkin_reminder_shown_${data.id}`;
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, "1");
+          setShowCheckinReminder(true);
+        }
+      }
     } catch (err: any) {
       console.error('Save plan error:', err);
       toast({ title: t.errorSaving, variant: "destructive" });
@@ -1475,6 +1504,19 @@ export default function Results() {
         onContinue={handleContinueToNextMonth}
         onStartFresh={handleStartFreshProgram}
         loading={continueLoading}
+      />
+      <SavePlanReminderModal
+        open={showSaveReminder}
+        saving={saving}
+        onSave={async () => {
+          setShowSaveReminder(false);
+          await handleSave();
+        }}
+        onViewFirst={() => setShowSaveReminder(false)}
+      />
+      <CheckinReminderModal
+        open={showCheckinReminder}
+        onClose={() => setShowCheckinReminder(false)}
       />
     </div>
   );
