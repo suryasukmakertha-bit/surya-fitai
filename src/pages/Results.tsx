@@ -947,6 +947,14 @@ export default function Results() {
       }
       toast({ title: t.planSaved });
       await refetchSub();
+      // Show check-in instructions popup once per plan_id
+      if (data?.id) {
+        const key = `checkin_reminder_shown_${data.id}`;
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, "1");
+          setShowCheckinReminder(true);
+        }
+      }
     } catch (err: any) {
       console.error('Save plan error:', err);
       toast({ title: t.errorSaving, variant: "destructive" });
