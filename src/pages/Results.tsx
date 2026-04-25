@@ -391,6 +391,25 @@ export default function Results() {
   const [completionStats, setCompletionStats] = useState<{ totalWorkouts: number; totalActiveDays: number }>({ totalWorkouts: 0, totalActiveDays: 0 });
   const [continueLoading, setContinueLoading] = useState(false);
 
+  // Reminder popups (Save plan -> then Check-in instructions)
+  const [showSaveReminder, setShowSaveReminder] = useState(false);
+  const [showCheckinReminder, setShowCheckinReminder] = useState(false);
+  const [saveReminderShownForPlan, setSaveReminderShownForPlan] = useState(false);
+
+  // Show "Save your plan" reminder once per fresh generation (no planId yet, not restored draft)
+  useEffect(() => {
+    if (
+      plan &&
+      !planId &&
+      !saved &&
+      !restoredFromDraft &&
+      !saveReminderShownForPlan
+    ) {
+      setShowSaveReminder(true);
+      setSaveReminderShownForPlan(true);
+    }
+  }, [plan, planId, saved, restoredFromDraft, saveReminderShownForPlan]);
+
   useEffect(() => {
     setCheckIns([]);
     if (planId && user) {
