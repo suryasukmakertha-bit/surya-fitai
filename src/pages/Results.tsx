@@ -1505,6 +1505,19 @@ export default function Results() {
         onStartFresh={handleStartFreshProgram}
         loading={continueLoading}
       />
+      <SavePlanReminderModal
+        open={showSaveReminder}
+        saving={saving}
+        onSave={async () => {
+          setShowSaveReminder(false);
+          await handleSave();
+        }}
+        onViewFirst={() => setShowSaveReminder(false)}
+      />
+      <CheckinReminderModal
+        open={showCheckinReminder}
+        onClose={() => setShowCheckinReminder(false)}
+      />
     </div>
   );
 }
