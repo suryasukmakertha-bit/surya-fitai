@@ -28,11 +28,15 @@ import SubscribeRequiredModal from "@/components/subscription/SubscribeRequiredM
 
 const EQUIPMENT_OPTIONS = [
   { value: "bodyweight", labelKey: "equipBodyweight" },
-  { value: "dumbbell", labelKey: "equipDumbbell" },
   { value: "full-gym", labelKey: "equipFullGym" },
-  { value: "home-barbell", labelKey: "equipHomeBarbell" },
-  { value: "resistance-bands", labelKey: "equipBands" },
 ] as const;
+
+// Maps the user-facing single-select equipment value to the engine
+// equipment array consumed by the AI prompt in `generate-plan`.
+const EQUIPMENT_ENGINE_MAP: Record<string, string[]> = {
+  "bodyweight": ["bodyweight"],
+  "full-gym": ["barbell", "dumbbell", "cable", "machine", "gym", "bodyweight"],
+};
 
 function WhyTooltip({ text }: { text: string }) {
   const { t } = useLanguage();
@@ -90,9 +94,8 @@ export default function ProgramForm() {
     trainingDaysPerWeek: "4",
     foodStyle: "",
     dietType: "",
-    // New fields
     sessionDuration: 60,
-    equipment: "" as string,
+    equipment: "full-gym" as string,
     dailySteps: "4000-8000",
     sleepHours: "",
     sleepQuality: 7,
@@ -193,7 +196,7 @@ export default function ProgramForm() {
           trainingDaysPerWeek,
           foodStyle: form.foodStyle,
           sessionDuration: form.sessionDuration,
-          equipment: form.equipment ? [form.equipment] : [],
+          equipment: EQUIPMENT_ENGINE_MAP[form.equipment] ?? (form.equipment ? [form.equipment] : []),
           dailySteps: form.dailySteps,
           sleepHours: form.sleepHours,
           sleepQuality: form.sleepQuality,
@@ -421,7 +424,7 @@ export default function ProgramForm() {
               <Label>
                 {t.equipmentLabel} <WhyTooltip text={t.whyEquipment} />
               </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {EQUIPMENT_OPTIONS.map((eq) => (
                   <label
                     key={eq.value}
@@ -536,7 +539,6 @@ export default function ProgramForm() {
                 <Select value={form.foodStyle} onValueChange={(v) => set("foodStyle", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.foodStylePlaceholder} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="local">{t.foodStyleLocal}</SelectItem>
                     <SelectItem value="western">{t.foodStyleWestern}</SelectItem>
                     <SelectItem value="asian">{t.foodStyleAsian}</SelectItem>
                     <SelectItem value="high-protein">{t.foodStyleHighProtein}</SelectItem>
