@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { Dumbbell, Zap, Scissors, Heart } from "lucide-react";
+import { Dumbbell, Scissors, Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProgramDef {
   id: string;
-  titleKey: "beginnerTitle" | "bulkingTitle" | "cuttingTitle" | "seniorTitle";
-  descKey: "beginnerDesc" | "bulkingDesc" | "cuttingDesc" | "seniorDesc";
-  benefitsKey: "beginnerBenefits" | "bulkingBenefits" | "cuttingBenefits" | "seniorBenefits";
-  goalKey: "beginnerGoal" | "bulkingGoal" | "cuttingGoal" | "seniorGoal";
+  titleKey: "beginnerTitle" | "bulkingTitle" | "cuttingTitle";
+  descKey: "beginnerDesc" | "bulkingDesc" | "cuttingDesc";
+  benefitsKey: "beginnerBenefits" | "bulkingBenefits" | "cuttingBenefits";
+  goalKey: "beginnerGoal" | "bulkingGoal" | "cuttingGoal";
   icon: typeof Heart;
 }
 
@@ -15,7 +15,6 @@ const programDefs: ProgramDef[] = [
   { id: "beginner", titleKey: "beginnerTitle", descKey: "beginnerDesc", benefitsKey: "beginnerBenefits", goalKey: "beginnerGoal", icon: Heart },
   { id: "bulking", titleKey: "bulkingTitle", descKey: "bulkingDesc", benefitsKey: "bulkingBenefits", goalKey: "bulkingGoal", icon: Dumbbell },
   { id: "cutting", titleKey: "cuttingTitle", descKey: "cuttingDesc", benefitsKey: "cuttingBenefits", goalKey: "cuttingGoal", icon: Scissors },
-  { id: "senior", titleKey: "seniorTitle", descKey: "seniorDesc", benefitsKey: "seniorBenefits", goalKey: "seniorGoal", icon: Zap },
 ];
 
 // Keep a static list for ProgramForm to reference goals by id
@@ -23,7 +22,6 @@ const programs = [
   { id: "beginner", title: "Beginner Program", goal: "Build fitness foundation" },
   { id: "bulking", title: "Bulking Program", goal: "Build muscle mass" },
   { id: "cutting", title: "Cutting Program", goal: "Lose fat and get lean" },
-  { id: "senior", title: "Senior Fitness", goal: "Improve mobility and strength" },
 ];
 
 export default function ProgramCard({ onSelect }: { onSelect?: (id: string) => void }) {
