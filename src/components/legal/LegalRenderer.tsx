@@ -21,10 +21,22 @@ export default function LegalRenderer({ sections }: Props) {
           {s.items && (
             <div className="space-y-2 mt-1">
               {s.items.map((item, j) => (
-                <p key={j} className="text-sm text-gray-400 leading-relaxed">
-                  <span className="text-white font-medium">{item.label}: </span>
-                  {item.text}
-                </p>
+                <div key={j} className="text-sm text-gray-400 leading-relaxed">
+                  <p>
+                    <span className="text-white font-medium">{item.label}: </span>
+                    {item.text}
+                  </p>
+                  {item.bullets && (
+                    <ul className="space-y-1 mt-1 ml-1">
+                      {item.bullets.map((b, k) => (
+                        <li key={k} className="flex gap-2">
+                          <span className="text-green-400 flex-shrink-0">•</span>
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               ))}
             </div>
           )}
