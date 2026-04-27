@@ -49,7 +49,7 @@ export const UI = {
 export interface LegalSection {
   heading: string;
   body?: string;
-  items?: { label: string; text: string }[];
+  items?: { label: string; text: string; bullets?: string[] }[];
   bullets?: string[];
   highlight?: boolean;
   contact?: boolean;
