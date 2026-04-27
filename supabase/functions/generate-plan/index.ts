@@ -140,24 +140,51 @@ serve(async (req) => {
     const isExtension = !!extensionContext?.previousMonthNumber;
 
     const sbAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    let incrementCounter: 'trial' | 'period' | null = null;
+    let incrementCounter: 'trial' | 'period' | 'free' | null = null;
+    const now0 = new Date();
+    const currentMonthKey = `${now0.getFullYear()}-${String(now0.getMonth() + 1).padStart(2, '0')}`;
 
     if (!isAdmin && !isExtension) {
       const { data: sub } = await sbAdmin.from('subscriptions').select('*').eq('user_id', userId).maybeSingle();
-      const { data: profile } = await sbAdmin.from('profiles').select('period_generate_count, trial_generate_count, last_generate_reset').eq('user_id', userId).maybeSingle();
+      const { data: profile } = await sbAdmin.from('profiles').select('period_generate_count, trial_generate_count, last_generate_reset, free_generate_count, free_generate_month').eq('user_id', userId).maybeSingle();
       const now = new Date();
 
+      // Helper for FREE tier (1x per calendar month). Used for both
+      // "no subscription row" and "expired trial/sub" fallbacks.
+      const checkFreeTierLimit = async () => {
+        const FREE_MAX = 1;
+        const storedMonth = (profile as any)?.free_generate_month ?? '';
+        const rawUsed = (profile as any)?.free_generate_count ?? 0;
+        const used = storedMonth === currentMonthKey ? rawUsed : 0;
+        if (used >= FREE_MAX) {
+          return jsonResponse({ error: 'free_limit_reached', message: 'Free monthly generate limit (1) reached.' }, 403);
+        }
+        // Reset the month bucket if needed.
+        if (storedMonth !== currentMonthKey) {
+          await sbAdmin.from('profiles').update({ free_generate_count: 0, free_generate_month: currentMonthKey }).eq('user_id', userId);
+        }
+        incrementCounter = 'free';
+        return null;
+      };
+
       if (!sub) {
-        const used = profile?.trial_generate_count ?? 0;
-        if (used >= MAX_GEN) return jsonResponse({ error: 'trial_limit_reached', message: 'Trial generate limit (3) reached.' }, 403);
-        incrementCounter = 'trial';
+        const blocked = await checkFreeTierLimit();
+        if (blocked) return blocked;
       } else if (sub.status === 'trial') {
-        if (now >= new Date(sub.trial_end)) return jsonResponse({ error: 'subscription_expired', message: 'Subscription required.' }, 403);
+        if (now >= new Date(sub.trial_end)) {
+          // Trial expired → fall back to FREE tier (1x per calendar month)
+          const blocked = await checkFreeTierLimit();
+          if (blocked) return blocked;
+        } else {
         const used = profile?.trial_generate_count ?? 0;
         if (used >= MAX_GEN) return jsonResponse({ error: 'trial_limit_reached', message: 'Trial generate limit (3) reached.' }, 403);
         incrementCounter = 'trial';
+        }
       } else if (sub.status === 'active' && sub.subscription_start && sub.subscription_end) {
-        if (now >= new Date(sub.subscription_end)) return jsonResponse({ error: 'subscription_expired', message: 'Subscription required.' }, 403);
+        if (now >= new Date(sub.subscription_end)) {
+          const blocked = await checkFreeTierLimit();
+          if (blocked) return blocked;
+        } else {
         const subStart = new Date(sub.subscription_start);
         const pStart = new Date(subStart);
         while (true) {
@@ -175,8 +202,11 @@ serve(async (req) => {
         }
         if (used >= MAX_GEN) return jsonResponse({ error: 'period_limit_reached', message: 'Monthly generate limit (3) reached.' }, 403);
         incrementCounter = 'period';
+        }
       } else {
-        return jsonResponse({ error: 'subscription_expired', message: 'Subscription required.' }, 403);
+        // expired / cancelled / unknown → FREE fallback
+        const blocked = await checkFreeTierLimit();
+        if (blocked) return blocked;
       }
     }
 
@@ -679,6 +709,11 @@ Generate the complete plan now.`;
       const { data: p } = await sbAdmin.from('profiles').select('period_generate_count').eq('user_id', userId).maybeSingle();
       const next = (p?.period_generate_count ?? 0) + 1;
       await sbAdmin.from('profiles').update({ period_generate_count: next }).eq('user_id', userId);
+    } else if (incrementCounter === 'free') {
+      const { data: p } = await sbAdmin.from('profiles').select('free_generate_count, free_generate_month').eq('user_id', userId).maybeSingle();
+      const sameMonth = (p as any)?.free_generate_month === currentMonthKey;
+      const next = (sameMonth ? ((p as any)?.free_generate_count ?? 0) : 0) + 1;
+      await sbAdmin.from('profiles').update({ free_generate_count: next, free_generate_month: currentMonthKey }).eq('user_id', userId);
     }
 
     return jsonResponse(plan, 200);

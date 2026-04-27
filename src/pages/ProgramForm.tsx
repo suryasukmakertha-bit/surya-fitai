@@ -69,7 +69,7 @@ export default function ProgramForm() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const { info: genLimit, refetch: refetchLimit } = useGenerateLimit();
-  const { userEmail } = useSubscription();
+  const { userEmail, openPopup, showPopup, popupTrigger, closePopup, access, refetch: refetchSub } = useSubscription();
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
 
@@ -136,8 +136,9 @@ export default function ProgramForm() {
       return;
     }
     // Client-side gate (server still enforces).
-    if (genLimit.status === "expired") {
-      setShowSubscribeModal(true);
+    // Free / expired-fallback users: 1x per calendar month → show upgrade popup when used.
+    if (genLimit.status === "free" && !genLimit.canGenerate) {
+      openPopup('generate_limit' as any);
       return;
     }
     if (!genLimit.canGenerate && genLimit.status !== "loading" && genLimit.status !== "admin") {
@@ -221,8 +222,8 @@ export default function ProgramForm() {
           let body: any = null;
           try { body = await (res.error as any)?.context?.json?.(); } catch {}
           const code = body?.error;
-          if (code === 'subscription_expired') {
-            setShowSubscribeModal(true);
+          if (code === 'free_limit_reached' || code === 'subscription_expired') {
+            openPopup('generate_limit' as any);
           } else {
             const trial = code === 'trial_limit_reached';
             const msgs = {
@@ -646,31 +647,31 @@ export default function ProgramForm() {
               </>
             ) : t.generatePlan}
           </Button>
-          {/* Generate-limit counter (hidden for admin & loading & expired) */}
-          {genLimit.status !== "admin" && genLimit.status !== "loading" && genLimit.status !== "expired" && (
-            <p className="text-center text-xs text-muted-foreground mt-2">
+          {/* Generate-limit counter (hidden for admin & loading) */}
+          {genLimit.status !== "admin" && genLimit.status !== "loading" && (
+            <p
+              className="text-center mt-2"
+              style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}
+            >
               {(() => {
                 const remaining = genLimit.remaining;
                 const max = genLimit.max;
+                if (genLimit.status === "free") {
+                  if (lang === "id") return `Sisa generate gratis bulan ini: ${remaining}/${max}`;
+                  if (lang === "zh") return `本月剩余免费生成次数：${remaining}/${max}`;
+                  return `Free generates remaining this month: ${remaining}/${max}`;
+                }
                 if (genLimit.status === "trial") {
                   if (lang === "id") return `Sisa generate trial: ${remaining}/${max}`;
                   if (lang === "zh") return `剩余试用生成次数：${remaining}/${max}`;
                   return `Trial generates remaining: ${remaining}/${max}`;
                 }
                 // active
-                const renewal = genLimit.periodEnd
-                  ? genLimit.periodEnd.toLocaleDateString(lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-GB", { day: "2-digit", month: "short" })
-                  : "";
-                if (lang === "id") return `Sisa generate bulan ini: ${remaining}/${max} (reset ${renewal})`;
-                if (lang === "zh") return `本月剩余生成次数：${remaining}/${max}（${renewal} 重置）`;
-                return `Remaining this month: ${remaining}/${max} (resets ${renewal})`;
+                if (lang === "id") return `Sisa generate bulan ini: ${remaining}/${max}`;
+                if (lang === "zh") return `本月剩余生成次数：${remaining}/${max}`;
+                return `Remaining generates this month: ${remaining}/${max}`;
               })()}
             </p>
-          )}
-          {genLimit.status === "expired" && (
-            <button type="button" onClick={() => setShowSubscribeModal(true)} className="w-full text-center text-xs text-primary hover:text-primary/80 underline mt-2">
-              {lang === "id" ? "Berlangganan untuk generate plan" : lang === "zh" ? "订阅以生成计划" : "Subscribe to generate a plan"}
-            </button>
           )}
           <p className="text-muted-foreground/60 text-xs text-center mt-2">
             {(t as any).coachGenerateHelper}
@@ -686,12 +687,12 @@ export default function ProgramForm() {
         onSubscribe={() => { setShowSubscribeModal(false); setShowPaymentPopup(true); }}
       />
       <SubscriptionPopup
-        isOpen={showPaymentPopup}
-        onClose={() => setShowPaymentPopup(false)}
-        trigger="save_plan"
+        isOpen={showPaymentPopup || showPopup}
+        onClose={() => { setShowPaymentPopup(false); closePopup(); }}
+        trigger={showPopup ? popupTrigger : 'save_plan'}
         userEmail={userEmail}
-        onPaymentDone={() => { setShowPaymentPopup(false); refetchLimit(); }}
-        trialNotStarted={false}
+        onPaymentDone={() => { setShowPaymentPopup(false); closePopup(); refetchLimit(); refetchSub(); }}
+        trialNotStarted={access.trialNotStarted}
         isTrialActive={genLimit.status === "trial"}
       />
     </div>

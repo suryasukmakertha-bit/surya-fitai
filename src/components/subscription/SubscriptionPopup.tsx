@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface SubscriptionPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  trigger?: 'save_plan' | 'saved_plans' | 'saved_plan_item';
+  trigger?: 'save_plan' | 'saved_plans' | 'saved_plan_item' | 'locked_tab' | 'generate_limit' | 'save_limit' | 'extend_plan';
   userEmail?: string | null;
   onPaymentDone?: () => void;
   trialNotStarted?: boolean;
@@ -19,6 +19,10 @@ const TEXT = {
     subtitleSavePlan: 'Save this plan requires a Pro account.',
     subtitleSavedPlans: 'Access your saved plans with Pro.',
     subtitleSavedPlanItem: 'Access this plan requires a Pro account.',
+    contextLockedTab: 'This feature is only available for active Coach Surya subscribers.',
+    contextGenerateLimit: "You've used your free monthly generate (1x). Subscribe to get 3x generates per month + full access to all Coach Surya features.",
+    contextSaveLimit: 'Free accounts can only save 1 plan. Subscribe to save up to 3 plans.',
+    contextExtendPlan: 'Extending to next month is an active subscriber feature.',
     trialExpired: 'Your free trial has ended.',
     benefits: [
       '✅ Generate unlimited AI workout plans',
@@ -41,6 +45,10 @@ const TEXT = {
     subtitleSavePlan: 'Simpan plan ini membutuhkan akun Pro.',
     subtitleSavedPlans: 'Akses saved plans membutuhkan akun Pro.',
     subtitleSavedPlanItem: 'Akses plan ini membutuhkan akun Pro.',
+    contextLockedTab: 'Fitur ini hanya tersedia untuk subscriber aktif Coach Surya.',
+    contextGenerateLimit: 'Kamu sudah menggunakan jatah generate gratis bulan ini (1x). Subscribe untuk generate 3x per bulan + akses penuh semua fitur Coach Surya.',
+    contextSaveLimit: 'Akun gratis hanya bisa menyimpan 1 program. Subscribe untuk simpan hingga 3 program sekaligus.',
+    contextExtendPlan: 'Extend program ke bulan berikutnya adalah fitur subscriber aktif.',
     trialExpired: 'Masa uji coba gratis kamu telah berakhir.',
     benefits: [
       '✅ Generate program AI tanpa batas',
@@ -63,6 +71,10 @@ const TEXT = {
     subtitleSavePlan: '保存此计划需要Pro账户。',
     subtitleSavedPlans: '访问已保存的计划需要Pro账户。',
     subtitleSavedPlanItem: '访问此计划需要Pro账户。',
+    contextLockedTab: '此功能仅适用于Coach Surya的活跃订阅者。',
+    contextGenerateLimit: '您已使用本月免费生成次数（1次）。订阅以获得每月3次生成 + Coach Surya所有功能的完整访问权限。',
+    contextSaveLimit: '免费账户只能保存1个计划。订阅以保存最多3个计划。',
+    contextExtendPlan: '将计划延长到下个月是活跃订阅者的功能。',
     trialExpired: '您的免费试用期已结束。',
     benefits: [
       '✅ 无限生成AI训练计划',
@@ -104,6 +116,13 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
   const subtitle = trigger === 'saved_plans' ? t.subtitleSavedPlans
     : trigger === 'saved_plan_item' ? t.subtitleSavedPlanItem
     : t.subtitleSavePlan;
+
+  const contextMessage =
+    trigger === 'locked_tab' ? t.contextLockedTab
+    : trigger === 'generate_limit' ? t.contextGenerateLimit
+    : trigger === 'save_limit' ? t.contextSaveLimit
+    : trigger === 'extend_plan' ? t.contextExtendPlan
+    : null;
 
   const handlePay = async () => {
     setPayLoading(true);
@@ -152,6 +171,13 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
           </div>
 
           <p className="text-sm text-muted-foreground">{subtitle}</p>
+
+          {/* Context-specific message at top */}
+          {contextMessage && (
+            <div className="rounded-xl border border-primary/30 bg-primary/10 px-3 py-2.5">
+              <p className="text-xs text-foreground leading-relaxed">{contextMessage}</p>
+            </div>
+          )}
 
           {/* Trial expired notice — only show if trial existed and is no longer active */}
           {!trialNotStarted && !isTrialActive && (

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal, Lock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -344,6 +344,28 @@ export default function Results() {
   const [planId, setPlanId] = useState<string | undefined>(statePlanId);
 
   const { access, checkSaveGuard, ensureSubscription, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail: subEmail, refetch: refetchSub, openPopup, savedPlansCount } = useSubscription();
+
+  // Free/expired tier: if user navigates directly to a saved plan that isn't
+  // their most recent one, redirect to /saved-plans where the locked modal
+  // will surface for them.
+  useEffect(() => {
+    if (!planId) return;
+    if (!access.isFreeTier || access.isUnlimited) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("saved_plans")
+        .select("id, created_at")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      const mostRecentId = data?.[0]?.id;
+      if (mostRecentId && mostRecentId !== planId) {
+        navigate("/saved-plans", { replace: true });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [planId, access.isFreeTier, access.isUnlimited, navigate]);
 
   // Draft restore on mount
   useEffect(() => {
@@ -1107,11 +1129,59 @@ export default function Results() {
         <Tabs defaultValue="workout" className="space-y-6">
           <TabsList className="bg-secondary w-full justify-start overflow-x-auto flex-nowrap">
             <TabsTrigger data-tour="tab-workout" value="workout" className="whitespace-nowrap">{t.workoutPlan}</TabsTrigger>
-            <TabsTrigger data-tour="tab-meals" value="meals" className="whitespace-nowrap">{t.mealPlan}</TabsTrigger>
-            <TabsTrigger data-tour="tab-grocery" value="grocery" className="whitespace-nowrap">{t.groceryList}</TabsTrigger>
-            <TabsTrigger data-tour="tab-info" value="info" className="whitespace-nowrap">{t.infoSafety}</TabsTrigger>
+            <TabsTrigger
+              data-tour="tab-meals"
+              value="meals"
+              className="whitespace-nowrap"
+              onPointerDown={(e) => {
+                if (access.isFreeTier && !access.isUnlimited) { e.preventDefault(); e.stopPropagation(); openPopup('locked_tab' as any); }
+              }}
+            >
+              <span className="inline-flex items-center gap-1">
+                {t.mealPlan}
+                {access.isFreeTier && !access.isUnlimited && <Lock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger
+              data-tour="tab-grocery"
+              value="grocery"
+              className="whitespace-nowrap"
+              onPointerDown={(e) => {
+                if (access.isFreeTier && !access.isUnlimited) { e.preventDefault(); e.stopPropagation(); openPopup('locked_tab' as any); }
+              }}
+            >
+              <span className="inline-flex items-center gap-1">
+                {t.groceryList}
+                {access.isFreeTier && !access.isUnlimited && <Lock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger
+              data-tour="tab-info"
+              value="info"
+              className="whitespace-nowrap"
+              onPointerDown={(e) => {
+                if (access.isFreeTier && !access.isUnlimited) { e.preventDefault(); e.stopPropagation(); openPopup('locked_tab' as any); }
+              }}
+            >
+              <span className="inline-flex items-center gap-1">
+                {t.infoSafety}
+                {access.isFreeTier && !access.isUnlimited && <Lock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />}
+              </span>
+            </TabsTrigger>
             {planId && user && (
-              <TabsTrigger data-tour="tab-progress" value="progress" className="whitespace-nowrap">{t.progressTab}</TabsTrigger>
+              <TabsTrigger
+                data-tour="tab-progress"
+                value="progress"
+                className="whitespace-nowrap"
+                onPointerDown={(e) => {
+                  if (access.isFreeTier && !access.isUnlimited) { e.preventDefault(); e.stopPropagation(); openPopup('locked_tab' as any); }
+                }}
+              >
+                <span className="inline-flex items-center gap-1">
+                  {t.progressTab}
+                  {access.isFreeTier && !access.isUnlimited && <Lock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />}
+                </span>
+              </TabsTrigger>
             )}
           </TabsList>
 
@@ -1120,7 +1190,13 @@ export default function Results() {
             {planCompletedAt && (
               <PlanExtendBanner
                 monthNumber={planMonthNumber}
-                onExtend={() => setShowCompletionModal(true)}
+                onExtend={() => {
+                  if (access.isFreeTier && !access.isUnlimited) {
+                    openPopup('extend_plan' as any);
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
               />
             )}
 
