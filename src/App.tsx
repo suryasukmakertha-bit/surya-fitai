@@ -12,6 +12,7 @@ import ProgramForm from "./pages/ProgramForm";
 import Results from "./pages/Results";
 import Auth from "./pages/Auth";
 import SavedPlans from "./pages/SavedPlans";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
 import PWAManager from "./components/pwa/PWAManager";
@@ -39,6 +40,7 @@ const App = () => (
                   <Route path="/program/:type" element={<ProgramForm />} />
                   <Route path="/results" element={<Results />} />
                   <Route path="/saved-plans" element={<SavedPlans />} />
+                  <Route path="/admin" element={<Admin />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </InactivityRedirect>
