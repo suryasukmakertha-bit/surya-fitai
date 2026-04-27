@@ -5,6 +5,7 @@ export type SubscriptionTrigger = 'save_plan' | 'saved_plans' | 'saved_plan_item
 
 const SPECIAL_EMAIL = 'surya.sukmakertha@gmail.com';
 const MAX_PLANS = 3;
+const FREE_MAX_PLANS = 1;
 const TRIAL_DAYS = 14;
 
 export function useSubscription() {
@@ -18,6 +19,10 @@ export function useSubscription() {
     trialDaysLeft: 0,
     isSubscriptionActive: false,
     trialNotStarted: true,
+    /** True for free tier (no sub) OR expired trial/subscription. */
+    isFreeTier: false,
+    /** True only when previously had a trial/sub that has now ended. */
+    isExpired: false,
   });
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -28,12 +33,12 @@ export function useSubscription() {
 
   const computeAccess = useCallback((sub: any, email: string | null) => {
     if (email?.toLowerCase() === SPECIAL_EMAIL.toLowerCase()) {
-      return { canSavePlans: true, canAccessSavedPlans: true, maxPlans: Infinity, isUnlimited: true, isTrialActive: false, trialDaysLeft: 0, isSubscriptionActive: true, trialNotStarted: false };
+      return { canSavePlans: true, canAccessSavedPlans: true, maxPlans: Infinity, isUnlimited: true, isTrialActive: false, trialDaysLeft: 0, isSubscriptionActive: true, trialNotStarted: false, isFreeTier: false, isExpired: false };
     }
 
-    // No subscription record yet — allow first save (trial hasn't started)
+    // No subscription record yet → FREE tier (1 plan slot, accessible)
     if (!sub) {
-      return { canSavePlans: true, canAccessSavedPlans: true, maxPlans: MAX_PLANS, isUnlimited: false, isTrialActive: false, trialDaysLeft: 0, isSubscriptionActive: false, trialNotStarted: true };
+      return { canSavePlans: true, canAccessSavedPlans: true, maxPlans: FREE_MAX_PLANS, isUnlimited: false, isTrialActive: false, trialDaysLeft: 0, isSubscriptionActive: false, trialNotStarted: true, isFreeTier: true, isExpired: false };
     }
 
     const now = new Date();
@@ -42,16 +47,38 @@ export function useSubscription() {
       const trialEnd = new Date(sub.trial_end);
       const active = now < trialEnd;
       const daysLeft = active ? Math.ceil((trialEnd.getTime() - now.getTime()) / 86400000) : 0;
-      return { canSavePlans: active, canAccessSavedPlans: active, maxPlans: active ? MAX_PLANS : 0, isUnlimited: false, isTrialActive: active, trialDaysLeft: daysLeft, isSubscriptionActive: false, trialNotStarted: false };
+      return {
+        canSavePlans: true,
+        canAccessSavedPlans: true,
+        maxPlans: active ? MAX_PLANS : FREE_MAX_PLANS,
+        isUnlimited: false,
+        isTrialActive: active,
+        trialDaysLeft: daysLeft,
+        isSubscriptionActive: false,
+        trialNotStarted: false,
+        isFreeTier: !active,
+        isExpired: !active,
+      };
     }
 
     if (sub.status === 'active' && sub.subscription_end) {
       const active = now < new Date(sub.subscription_end);
-      return { canSavePlans: active, canAccessSavedPlans: active, maxPlans: active ? MAX_PLANS : 0, isUnlimited: false, isTrialActive: false, trialDaysLeft: 0, isSubscriptionActive: active, trialNotStarted: false };
+      return {
+        canSavePlans: true,
+        canAccessSavedPlans: true,
+        maxPlans: active ? MAX_PLANS : FREE_MAX_PLANS,
+        isUnlimited: false,
+        isTrialActive: false,
+        trialDaysLeft: 0,
+        isSubscriptionActive: active,
+        trialNotStarted: false,
+        isFreeTier: !active,
+        isExpired: !active,
+      };
     }
 
-    // expired or unknown status
-    return { canSavePlans: false, canAccessSavedPlans: false, maxPlans: 0, isUnlimited: false, isTrialActive: false, trialDaysLeft: 0, isSubscriptionActive: false, trialNotStarted: false };
+    // expired / cancelled / unknown → FREE fallback
+    return { canSavePlans: true, canAccessSavedPlans: true, maxPlans: FREE_MAX_PLANS, isUnlimited: false, isTrialActive: false, trialDaysLeft: 0, isSubscriptionActive: false, trialNotStarted: false, isFreeTier: true, isExpired: true };
   }, []);
 
   const fetchSubscription = useCallback(async () => {
@@ -155,17 +182,12 @@ export function useSubscription() {
   }, [userId, userEmail, computeAccess, fetchSubscription]);
 
   // Guard for save plan button — returns 'allow' | 'popup' | 'toast_limit'
-  const checkSaveGuard = useCallback((): 'allow' | 'popup' | 'toast_limit' => {
+  const checkSaveGuard = useCallback((): 'allow' | 'popup' | 'toast_limit' | 'free_limit' => {
     if (access.isUnlimited) return 'allow';
 
-    // Trial not started — allow if under limit
-    if (access.trialNotStarted) {
-      return savedPlansCount < MAX_PLANS ? 'allow' : 'toast_limit';
-    }
-
-    // Trial expired & not subscribed — show popup
-    if (!access.isTrialActive && !access.isSubscriptionActive && !access.trialNotStarted) {
-      return 'popup';
+    // Free tier (never subscribed OR expired) — 1 plan slot only
+    if (access.isFreeTier) {
+      return savedPlansCount < FREE_MAX_PLANS ? 'allow' : 'free_limit';
     }
 
     // Active trial or subscription — check plan count
@@ -178,18 +200,15 @@ export function useSubscription() {
 
   // Guard for accessing saved plans page
   const checkMyPlansGuard = useCallback((): 'allow' | 'popup' => {
-    if (access.isUnlimited) return 'allow';
-    if (access.trialNotStarted) return 'allow';
-    if (access.isTrialActive) return 'allow';
-    if (access.isSubscriptionActive) return 'allow';
-    // trial expired, not subscribed
-    return 'popup';
+    // Free/expired users still see saved plans page (with 1 unlocked + others locked)
+    return 'allow';
   }, [access]);
 
   // Legacy guards kept for backward compat
   const guardSavePlan = useCallback((): boolean => {
     const result = checkSaveGuard();
     if (result === 'popup') { openPopup('save_plan'); return false; }
+    if (result === 'free_limit') { openPopup('save_plan'); return false; }
     if (result === 'toast_limit') return false;
     return true;
   }, [checkSaveGuard, openPopup]);
@@ -202,7 +221,7 @@ export function useSubscription() {
 
   const guardSavedPlanItem = useCallback((): boolean => {
     if (access.isUnlimited) return true;
-    if (access.trialNotStarted) return true;
+    // Free-tier per-plan locking is enforced in SavedPlans (only most recent allowed).
     if (access.canAccessSavedPlans) return true;
     openPopup('saved_plan_item');
     return false;
