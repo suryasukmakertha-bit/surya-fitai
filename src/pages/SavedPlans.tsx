@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Loader2, Eye, Pencil, Check, X, Flame, CheckCircle2, Lock } from "lucide-react";
+import { Trash2, Loader2, Eye, Pencil, Check, X, Flame, CheckCircle2, Lock, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import AppHeader from "@/components/AppHeader";
 import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
+import LockedPlanModal from "@/components/subscription/LockedPlanModal";
 
 interface SavedPlan {
   id: string;
@@ -17,6 +18,7 @@ interface SavedPlan {
   user_info: any;
   plan_data: any;
   created_at: string;
+  updated_at?: string;
   plan_name: string | null;
   plan_month_number?: number;
   plan_completed_at?: string | null;
@@ -31,13 +33,21 @@ export default function SavedPlans() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [lockedModalPlan, setLockedModalPlan] = useState<SavedPlan | null>(null);
 
   const { access, loading: subLoading, openPopup, checkMyPlansGuard, checkSaveGuard, guardSavedPlanItem, showPopup, popupTrigger, closePopup, userEmail, refetch: refetchSub, savedPlansCount } = useSubscription();
 
   const planLimitToastMsg = lang === "id" ? "Maksimal 3 plan tersimpan. Hapus 1 plan untuk menyimpan yang baru." : lang === "zh" ? "已达到最多3个计划。删除一个计划以保存新计划。" : "Maximum 3 plans reached. Delete a plan to save a new one.";
 
-  const lockedTitle = lang === "id" ? "Upgrade untuk akses program kamu" : lang === "zh" ? "升级以访问您的计划" : "Upgrade to access your plans";
-  const lockedBtn = lang === "id" ? "Lihat Paket Pro" : lang === "zh" ? "查看Pro计划" : "See Pro Plans";
+  const activeBadge = lang === "id" ? "Aktif" : lang === "zh" ? "激活" : "Active";
+  const lockedBtnText = lang === "id" ? "Terkunci" : lang === "zh" ? "已锁定" : "Locked";
+
+  const expiredBannerText =
+    lang === "id" ? "Trial kamu telah berakhir. Kamu hanya bisa mengakses 1 program terbaru. Subscribe untuk buka semua program dan fitur."
+    : lang === "zh" ? "您的试用已结束。您只能访问最新的一个计划。订阅以解锁所有计划和功能。"
+    : "Your trial has ended. You can only access your most recent plan. Subscribe to unlock all plans and features.";
+  const expiredBannerBtn =
+    lang === "id" ? "Subscribe Sekarang" : lang === "zh" ? "立即订阅" : "Subscribe Now";
 
   useEffect(() => {
     if (authLoading) return;
@@ -60,19 +70,11 @@ export default function SavedPlans() {
     };
   }, [user, authLoading]);
 
-  // Check access on page load — show popup only if trial expired & not subscribed
-  useEffect(() => {
-    if (!subLoading) {
-      const guard = checkMyPlansGuard();
-      if (guard === 'popup') openPopup('saved_plans');
-    }
-  }, [subLoading, checkMyPlansGuard]);
-
   const fetchPlans = async () => {
     const { data, error } = await supabase
       .from("saved_plans")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("updated_at", { ascending: false });
     if (!error && data) setPlans(data as SavedPlan[]);
     setLoading(false);
   };
@@ -98,6 +100,14 @@ export default function SavedPlans() {
   };
 
   const handlePlanClick = (plan: SavedPlan) => {
+    // Free/expired tier: only the most recent plan is accessible.
+    if (access.isFreeTier && !access.isUnlimited) {
+      const mostRecentId = getMostRecentPlanId();
+      if (plan.id !== mostRecentId) {
+        setLockedModalPlan(plan);
+        return;
+      }
+    }
     if (!guardSavedPlanItem()) return;
     navigate("/results", { state: { plan: plan.plan_data, userInfo: plan.user_info, programType: plan.program_type, planId: plan.id } });
   };
@@ -105,11 +115,23 @@ export default function SavedPlans() {
   const handleAddPlan = () => {
     const guard = checkSaveGuard();
     if (guard === 'popup') { openPopup('saved_plans'); return; }
+    if (guard === 'free_limit') { openPopup('save_limit' as any); return; }
     if (guard === 'toast_limit') {
       toast({ title: planLimitToastMsg, duration: 3000 });
       return;
     }
     navigate("/programs");
+  };
+
+  // Most recent plan id by GREATEST(updated_at, created_at)
+  const getMostRecentPlanId = (): string | null => {
+    if (plans.length === 0) return null;
+    const sorted = [...plans].sort((a, b) => {
+      const aT = Math.max(new Date(a.updated_at || a.created_at).getTime(), new Date(a.created_at).getTime());
+      const bT = Math.max(new Date(b.updated_at || b.created_at).getTime(), new Date(b.created_at).getTime());
+      return bT - aT;
+    });
+    return sorted[0].id;
   };
 
   // Determine add plan button state
@@ -124,8 +146,8 @@ export default function SavedPlans() {
     );
   }
 
-  // Show locked state only when trial expired & not subscribed (not for trialNotStarted)
-  const showLockedState = !access.canAccessSavedPlans && !access.trialNotStarted;
+  const isFreeOrExpired = access.isFreeTier && !access.isUnlimited;
+  const mostRecentId = getMostRecentPlanId();
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,37 +168,48 @@ export default function SavedPlans() {
         </div>
         <p className="text-muted-foreground mb-8">{t.savedPlansDesc}</p>
 
-        {/* Locked state when trial expired & not subscribed */}
-        {showLockedState && (
-          <div className="relative">
-            <div className="filter blur-sm pointer-events-none select-none opacity-40">
-              <div className="rounded-2xl bg-secondary h-28 mb-3" />
-              <div className="rounded-2xl bg-secondary h-28 mb-3" />
-              <div className="rounded-2xl bg-secondary h-28" />
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
-                <Lock className="w-8 h-8 text-primary" strokeWidth={1.5} />
-              </div>
-              <p className="font-semibold text-foreground text-lg text-center px-4">
-                {lockedTitle}
-              </p>
-              <button onClick={() => openPopup('saved_plans')} className="bg-primary text-primary-foreground font-bold px-6 py-3 rounded-2xl">
-                {lockedBtn}
-              </button>
-            </div>
+        {/* Expired banner — show only for users whose trial/sub ended (not for never-subscribed) */}
+        {access.isExpired && (
+          <div
+            className="flex items-center gap-2.5"
+            style={{
+              background: "rgba(245,158,11,0.1)",
+              border: "1px solid rgba(245,158,11,0.3)",
+              borderRadius: 12,
+              padding: "12px 16px",
+              marginBottom: 16,
+            }}
+          >
+            <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: "#f59e0b" }} />
+            <p className="text-xs text-foreground/85 flex-1 leading-relaxed">{expiredBannerText}</p>
+            <button
+              onClick={() => openPopup('save_plan')}
+              className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-md border"
+              style={{ color: "#f59e0b", borderColor: "rgba(245,158,11,0.5)", background: "transparent" }}
+            >
+              {expiredBannerBtn}
+            </button>
           </div>
         )}
 
-        {!showLockedState && plans.length === 0 ? (
+        {plans.length === 0 ? (
           <div className="card-gradient rounded-lg p-8 border border-border/50 text-center">
             <p className="text-muted-foreground mb-4">{t.noSavedPlans}</p>
             <Button onClick={() => navigate("/programs")}>{t.generateFirst}</Button>
           </div>
-        ) : !showLockedState && (
+        ) : (
           <div className="space-y-3">
-            {plans.map((p) => (
-              <div key={p.id} className="card-gradient rounded-lg p-5 border border-border/50 flex items-center justify-between">
+            {plans.map((p) => {
+              const isLocked = isFreeOrExpired && p.id !== mostRecentId;
+              const isAccessible = isFreeOrExpired && p.id === mostRecentId;
+              return (
+              <div key={p.id} className="relative card-gradient rounded-lg p-5 border border-border/50 flex items-center justify-between">
+                {isLocked && (
+                  <>
+                    <div className="absolute inset-0 rounded-lg pointer-events-none" style={{ background: "rgba(0,0,0,0.3)" }} />
+                    <Lock className="absolute top-3 right-3 w-4 h-4 text-muted-foreground z-10" strokeWidth={2} />
+                  </>
+                )}
                 <div className="flex-1 min-w-0">
                   {editingId === p.id ? (
                     <div className="flex items-center gap-2">
@@ -200,6 +233,12 @@ export default function SavedPlans() {
                         <h3 className="font-display font-bold text-foreground capitalize truncate">
                           {p.plan_name || `${p.program_type} ${t.program}`}
                         </h3>
+                        {/* Active badge for the one accessible free plan */}
+                        {isAccessible && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30 shrink-0">
+                            {activeBadge}
+                          </span>
+                        )}
                         {/* Bulan X badge — pill with icon on the left */}
                         <span
                           className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30 shrink-0"
@@ -220,24 +259,46 @@ export default function SavedPlans() {
                     </>
                   )}
                 </div>
-                <div className="flex items-center gap-2 ml-3">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => handlePlanClick(p)}
-                  >
-                    <Eye className="w-4 h-4 mr-1" /> {t.view}
-                  </Button>
+                <div className="flex items-center gap-2 ml-3 relative z-10">
+                  {isLocked ? (
+                    <button
+                      onClick={() => setLockedModalPlan(p)}
+                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-md"
+                      style={{
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        color: "rgba(255,255,255,0.35)",
+                      }}
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      {lockedBtnText}
+                    </button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handlePlanClick(p)}
+                    >
+                      <Eye className="w-4 h-4 mr-1" /> {t.view}
+                    </Button>
+                  )}
                   <button onClick={() => deletePlan(p.id)} className="text-muted-foreground hover:text-destructive transition-colors p-2">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
       <SubscriptionPopup isOpen={showPopup} onClose={closePopup} trigger={popupTrigger} userEmail={userEmail} onPaymentDone={refetchSub} trialNotStarted={access.trialNotStarted} isTrialActive={access.isTrialActive} />
+      <LockedPlanModal
+        isOpen={!!lockedModalPlan}
+        planName={lockedModalPlan?.plan_name || `${lockedModalPlan?.program_type || ''} ${t.program}`.trim()}
+        onClose={() => setLockedModalPlan(null)}
+        onSubscribe={() => { setLockedModalPlan(null); openPopup('saved_plan_item'); }}
+      />
     </div>
   );
 }
