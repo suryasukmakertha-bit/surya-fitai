@@ -143,6 +143,8 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string | null
+          free_generate_count: number
+          free_generate_month: string
           id: string
           last_generate_reset: string | null
           period_generate_count: number
@@ -153,6 +155,8 @@ export type Database = {
         Insert: {
           created_at?: string
           display_name?: string | null
+          free_generate_count?: number
+          free_generate_month?: string
           id?: string
           last_generate_reset?: string | null
           period_generate_count?: number
@@ -163,6 +167,8 @@ export type Database = {
         Update: {
           created_at?: string
           display_name?: string | null
+          free_generate_count?: number
+          free_generate_month?: string
           id?: string
           last_generate_reset?: string | null
           period_generate_count?: number
