@@ -18,7 +18,6 @@ interface SavedPlan {
   user_info: any;
   plan_data: any;
   created_at: string;
-  updated_at?: string;
   plan_name: string | null;
   plan_month_number?: number;
   plan_completed_at?: string | null;
@@ -74,7 +73,7 @@ export default function SavedPlans() {
     const { data, error } = await supabase
       .from("saved_plans")
       .select("*")
-      .order("updated_at", { ascending: false });
+      .order("created_at", { ascending: false });
     if (!error && data) setPlans(data as SavedPlan[]);
     setLoading(false);
   };
@@ -126,11 +125,7 @@ export default function SavedPlans() {
   // Most recent plan id by GREATEST(updated_at, created_at)
   const getMostRecentPlanId = (): string | null => {
     if (plans.length === 0) return null;
-    const sorted = [...plans].sort((a, b) => {
-      const aT = Math.max(new Date(a.updated_at || a.created_at).getTime(), new Date(a.created_at).getTime());
-      const bT = Math.max(new Date(b.updated_at || b.created_at).getTime(), new Date(b.created_at).getTime());
-      return bT - aT;
-    });
+    const sorted = [...plans].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return sorted[0].id;
   };
 
