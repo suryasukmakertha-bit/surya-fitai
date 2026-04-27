@@ -1168,7 +1168,13 @@ export default function Results() {
             {planCompletedAt && (
               <PlanExtendBanner
                 monthNumber={planMonthNumber}
-                onExtend={() => setShowCompletionModal(true)}
+                onExtend={() => {
+                  if (access.isFreeTier && !access.isUnlimited) {
+                    openPopup('extend_plan' as any);
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
               />
             )}
 
