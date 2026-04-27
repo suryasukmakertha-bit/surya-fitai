@@ -345,6 +345,28 @@ export default function Results() {
 
   const { access, checkSaveGuard, ensureSubscription, isAtPlanLimit, showPopup, popupTrigger, closePopup, userEmail: subEmail, refetch: refetchSub, openPopup, savedPlansCount } = useSubscription();
 
+  // Free/expired tier: if user navigates directly to a saved plan that isn't
+  // their most recent one, redirect to /saved-plans where the locked modal
+  // will surface for them.
+  useEffect(() => {
+    if (!planId) return;
+    if (!access.isFreeTier || access.isUnlimited) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("saved_plans")
+        .select("id, updated_at, created_at")
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      const mostRecentId = data?.[0]?.id;
+      if (mostRecentId && mostRecentId !== planId) {
+        navigate("/saved-plans", { replace: true });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [planId, access.isFreeTier, access.isUnlimited, navigate]);
+
   // Draft restore on mount
   useEffect(() => {
     if (!stateplan && !statePlanId) {
