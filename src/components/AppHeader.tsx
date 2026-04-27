@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown, Bell, Home } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown, Bell, Home, MessageSquare, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,9 @@ import { openLegalPopup } from "@/components/legal/legalEvents";
 import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
 import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
+import FeedbackModal from "@/components/FeedbackModal";
+
+const ADMIN_EMAIL = "surya.sukmakertha@gmail.com";
 
 const LANG_OPTIONS: { value: Lang; flag: string; label: string }[] = [
   { value: "en", flag: "🇬🇧", label: "English" },
@@ -31,8 +34,13 @@ export default function AppHeader() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const { access, guardSavedPlans, checkMyPlansGuard, openPopup: openSubPopup, showPopup: showSubPopup, popupTrigger: subPopupTrigger, closePopup: closeSubPopup, userEmail: subEmail, refetch: refetchSub } = useSubscription();
+
+  const isAdmin = (user?.email ?? "").toLowerCase() === ADMIN_EMAIL;
+  const feedbackLabel = lang === "id" ? "Masukan & Saran" : lang === "zh" ? "反馈与建议" : "Feedback";
+  const adminLabel = lang === "id" ? "Admin Report" : lang === "zh" ? "管理员报告" : "Admin Report";
 
   // Track notification permission
   useEffect(() => {
@@ -130,6 +138,16 @@ export default function AppHeader() {
                   <ScrollText className="w-4 h-4 text-primary" />
                   {UI[lang as LangCode].menuItem}
                 </button>
+                <button onClick={() => setFeedbackOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  {feedbackLabel}
+                </button>
+                {isAdmin && (
+                  <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                    <ShieldCheck className="w-4 h-4 text-primary" />
+                    {adminLabel}
+                  </button>
+                )}
                 <button onClick={() => signOut()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <LogOut className="w-4 h-4" /> {t.signOut}
                 </button>
@@ -253,6 +271,26 @@ export default function AppHeader() {
                     <span className="font-medium">{UI[lang as LangCode].menuItem}</span>
                   </button>
 
+                  {/* Feedback */}
+                  <button
+                    onClick={() => { closeDrawer(); setFeedbackOpen(true); }}
+                    className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{feedbackLabel}</span>
+                  </button>
+
+                  {/* Admin Report (admin only) */}
+                  {isAdmin && (
+                    <button
+                      onClick={() => { closeDrawer(); navigate("/admin"); }}
+                      className="flex items-center gap-3 w-full py-3 text-sm text-foreground hover:text-primary transition-colors"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-primary" />
+                      <span className="font-medium">{adminLabel}</span>
+                    </button>
+                  )}
+
                   {/* Sign Out */}
                   <button
                     onClick={() => { signOut(); closeDrawer(); }}
@@ -279,6 +317,7 @@ export default function AppHeader() {
       <PricingModal isOpen={pricingOpen} onClose={() => setPricingOpen(false)} />
       <NotificationSettingsPopup open={notifSettingsOpen} onOpenChange={setNotifSettingsOpen} />
       <SubscriptionPopup isOpen={showSubPopup} onClose={closeSubPopup} trigger={subPopupTrigger} userEmail={subEmail} onPaymentDone={refetchSub} trialNotStarted={access.trialNotStarted} isTrialActive={access.isTrialActive} />
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   );
 }

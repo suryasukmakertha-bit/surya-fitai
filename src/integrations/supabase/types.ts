@@ -372,6 +372,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          plan_goal: string | null
+          rating: number | null
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          plan_goal?: string | null
+          rating?: number | null
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          plan_goal?: string | null
+          rating?: number | null
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       workout_checkins: {
         Row: {
           completed_date: string
