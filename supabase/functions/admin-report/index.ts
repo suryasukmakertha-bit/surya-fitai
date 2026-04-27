@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       if (diet) dietCount[diet] = (dietCount[diet] ?? 0) + 1;
       const age = Number(ui.age);
       if (!isNaN(age) && age > 0) ages.push(age);
-      const dpw = Number(ui.daysPerWeek ?? ui.days_per_week);
+      const dpw = Number(ui.trainingDaysPerWeek ?? ui.daysPerWeek ?? ui.days_per_week);
       if (!isNaN(dpw) && dpw > 0) daysPerWeek.push(dpw);
       const sd = Number(ui.sessionDuration ?? ui.session_duration);
       if (!isNaN(sd) && sd > 0) sessionDur.push(sd);
