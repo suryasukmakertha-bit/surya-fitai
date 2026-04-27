@@ -355,8 +355,8 @@ export default function Results() {
     (async () => {
       const { data } = await supabase
         .from("saved_plans")
-        .select("id, updated_at, created_at")
-        .order("updated_at", { ascending: false })
+        .select("id, created_at")
+        .order("created_at", { ascending: false })
         .limit(1);
       if (cancelled) return;
       const mostRecentId = data?.[0]?.id;
