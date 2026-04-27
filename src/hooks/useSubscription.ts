@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type SubscriptionTrigger = 'save_plan' | 'saved_plans' | 'saved_plan_item';
+export type SubscriptionTrigger = 'save_plan' | 'saved_plans' | 'saved_plan_item' | 'locked_tab' | 'generate_limit' | 'save_limit' | 'extend_plan';
 
 const SPECIAL_EMAIL = 'surya.sukmakertha@gmail.com';
 const MAX_PLANS = 3;
