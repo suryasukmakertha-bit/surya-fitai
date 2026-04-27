@@ -67,7 +67,6 @@ export function useGenerateLimit() {
     ]);
 
     const now = new Date();
-    const currentMonthKey = `${now.getUFullYearSafe?.() ?? now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
     // Helper: build a "free" status info (1x per calendar month).
     const buildFreeInfo = (isExpiredFallback: boolean): GenerateLimitInfo => {
@@ -101,7 +100,7 @@ export function useGenerateLimit() {
         setInfo(buildFreeInfo(true));
         return;
       }
-      const used = profile?.trial_generate_count ?? 0;
+      const used = (profile as any)?.trial_generate_count ?? 0;
       setInfo({
         status: "trial",
         used,
@@ -125,8 +124,8 @@ export function useGenerateLimit() {
       const subStart = new Date((sub as any).subscription_start);
       const pStart = currentPeriodStart(subStart, now);
       const pEnd = currentPeriodEnd(pStart);
-      const lastReset = profile?.last_generate_reset ? new Date(profile.last_generate_reset) : null;
-      let used = profile?.period_generate_count ?? 0;
+      const lastReset = (profile as any)?.last_generate_reset ? new Date((profile as any).last_generate_reset) : null;
+      let used = (profile as any)?.period_generate_count ?? 0;
       // Auto-reset if last_generate_reset is before current period start
       if (!lastReset || lastReset < new Date(pStart.toDateString())) {
         await supabase.from("profiles").update({
