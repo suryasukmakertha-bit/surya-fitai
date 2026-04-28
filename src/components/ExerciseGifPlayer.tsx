@@ -34,19 +34,25 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     async function fetchGif() {
       try {
         const searchTerm = normalizeExerciseName(exerciseName);
+        console.log("[ExerciseGifPlayer] received exerciseName:", exerciseName, "| normalized:", searchTerm);
         const { data, error: fnError } = await supabase.functions.invoke("exercise-gif-lookup", {
           body: { exerciseName: searchTerm },
         });
 
         if (cancelled) return;
 
+        console.log("[ExerciseGifPlayer] lookup result for", exerciseName, ":", { data, fnError });
+
         if (fnError || !data?.gifUrl) {
+          console.warn("[ExerciseGifPlayer] no gifUrl returned for", exerciseName);
           setGifUrl(null);
           setError(true);
         } else {
+          console.log("[ExerciseGifPlayer] will fetch URL:", data.gifUrl);
           setGifUrl(data.gifUrl);
         }
-      } catch {
+      } catch (e) {
+        console.error("[ExerciseGifPlayer] fetch error for", exerciseName, e);
         if (!cancelled) {
           setGifUrl(null);
           setError(true);
@@ -60,7 +66,12 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     return () => { cancelled = true; };
   }, [exerciseName]);
 
-  const handleImgError = () => {
+  const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error("[ExerciseGifPlayer] <img> failed to load", {
+      exerciseName,
+      attemptedUrl: gifUrl,
+      naturalWidth: (e.currentTarget as HTMLImageElement).naturalWidth,
+    });
     setError(true);
     setGifUrl(null);
   };
