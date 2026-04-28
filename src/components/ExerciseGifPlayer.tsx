@@ -8,13 +8,10 @@ interface ExerciseGifPlayerProps {
   exerciseName: string;
 }
 
-function normalizeExerciseName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/\(.*?\)/g, "")
-    .replace(/[-–—]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+// Only strip parenthetical qualifiers and trim. Preserve case and hyphens
+// so curated keys like "T-Bar Row" still match STATIC_GIF_MAP exactly.
+function stripParens(name: string): string {
+  return name.replace(/\s*\([^)]*\)/g, "").trim();
 }
 
 export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerProps) {
@@ -31,25 +28,45 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
     setGifUrl(null);
     setImgLoaded(false);
 
+    async function tryLookup(term: string) {
+      console.log("[ExerciseGifPlayer] trying lookup with term:", term);
+      const { data, error: fnError } = await supabase.functions.invoke("exercise-gif-lookup", {
+        body: { exerciseName: term },
+      });
+      console.log("[ExerciseGifPlayer] result for term", term, ":", { data, fnError });
+      if (fnError) return null;
+      return data?.gifUrl ?? null;
+    }
+
     async function fetchGif() {
       try {
-        const searchTerm = normalizeExerciseName(exerciseName);
-        console.log("[ExerciseGifPlayer] received exerciseName:", exerciseName, "| normalized:", searchTerm);
-        const { data, error: fnError } = await supabase.functions.invoke("exercise-gif-lookup", {
-          body: { exerciseName: searchTerm },
-        });
+        const original = exerciseName;
+        const stripped = stripParens(exerciseName);
+        const lower = original.toLowerCase();
+        console.log("[ExerciseGifPlayer] received exerciseName:", original, "| stripped:", stripped, "| lower:", lower);
+
+        // 1. Original name as-is
+        let url = await tryLookup(original);
+
+        // 2. Parentheses stripped
+        if (!url && stripped && stripped !== original) {
+          url = await tryLookup(stripped);
+        }
+
+        // 3. Lowercase fallback (lets edge function hit normalized map / API)
+        if (!url && lower !== original) {
+          url = await tryLookup(lower);
+        }
 
         if (cancelled) return;
 
-        console.log("[ExerciseGifPlayer] lookup result for", exerciseName, ":", { data, fnError });
-
-        if (fnError || !data?.gifUrl) {
+        if (!url) {
           console.warn("[ExerciseGifPlayer] no gifUrl returned for", exerciseName);
           setGifUrl(null);
           setError(true);
         } else {
-          console.log("[ExerciseGifPlayer] will fetch URL:", data.gifUrl);
-          setGifUrl(data.gifUrl);
+          console.log("[ExerciseGifPlayer] will fetch URL:", url);
+          setGifUrl(url);
         }
       } catch (e) {
         console.error("[ExerciseGifPlayer] fetch error for", exerciseName, e);
