@@ -25,7 +25,7 @@ const TEXT = {
     contextExtendPlan: 'Extending to next month is an active subscriber feature.',
     trialExpired: 'Your free trial has ended.',
     benefits: [
-      '✅ Generate unlimited AI workout plans',
+      '✅ 3x AI program generates per month',
       '✅ Save up to 3 personalized plans',
       '✅ Meal plans & grocery lists',
       '✅ Progress tracking',
@@ -51,7 +51,7 @@ const TEXT = {
     contextExtendPlan: 'Extend program ke bulan berikutnya adalah fitur subscriber aktif.',
     trialExpired: 'Masa uji coba gratis kamu telah berakhir.',
     benefits: [
-      '✅ Generate program AI tanpa batas',
+      '✅ 3x generate program AI per bulan',
       '✅ Simpan hingga 3 program personal',
       '✅ Rencana makan & daftar belanja',
       '✅ Pelacakan progres latihan',
@@ -77,7 +77,7 @@ const TEXT = {
     contextExtendPlan: '将计划延长到下个月是活跃订阅者的功能。',
     trialExpired: '您的免费试用期已结束。',
     benefits: [
-      '✅ 无限生成AI训练计划',
+      '✅ 每月3次AI训练计划生成',
       '✅ 保存最多3个个性化计划',
       '✅ 饮食计划和购物清单',
       '✅ 训练进度追踪',
