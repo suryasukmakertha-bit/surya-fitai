@@ -392,56 +392,57 @@ Before outputting the final plan, internally verify:
 If any check fails, fix that day's exercises before outputting. Do NOT output a plan that fails these checks.
 
 CURATED EXERCISE LIBRARY (MANDATORY — PICK ONLY FROM THESE LISTS):
-You MUST pick every exercise EXCLUSIVELY from the curated lists below. These exercises have confirmed demo images. Any exercise not on the list is FORBIDDEN. Use the EXACT names as written (translate only if language is non-English, but keep the canonical exercise identity).
+You MUST pick every exercise EXCLUSIVELY from the curated lists below. These exercises have confirmed demo images. Any exercise not on the list is FORBIDDEN. Use the EXACT names as written below — copy them verbatim (preserve capitalization, parentheses, hyphens) regardless of output language. Only translate surrounding text, never the exercise names.
 
 === PROGRAM-SPECIFIC SPLIT & PRIORITY ===
-- "beginner" (Pemula): Full body every session. Compound movements first, then 1 isolation max. EXCLUDE: Bulgarian Split Squat, Nordic Curl, Hollow Body Hold, all Cable isolation movements.
+- "beginner" (Pemula): Full body every session. Compound movements first, then 1 isolation max. EXCLUDE: Bulgarian Split Squat, Skull Crushers, Hollow Body Hold.
 - "bulking": Push/Pull/Legs OR Upper/Lower split. Prioritize Barbell + Dumbbell heavy compounds. Volume bias on Chest, Back, Legs.
-- "cutting": Full body OR Upper/Lower. Compound first, max 1-2 isolation per session. Fewer isolation, maintain compound load.
+- "cutting": Full body OR Upper/Lower. Compound first, max 1 isolation per session. Maintain compound load.
 
 === GYM EXERCISES (when equipment includes "gym", "barbell", "dumbbell", "cable", or "machine") ===
 CHEST (max 2/session — pick 1 Primary first, then 1 Secondary if slots remain):
-  Primary: Barbell Bench Press, Dumbbell Bench Press, Incline Dumbbell Press
-  Secondary: Cable Crossover, Pec Deck Machine, Chest Press Machine
+  Primary: Barbell Bench Press, Incline Barbell Press
+  Secondary: Cable Crossover
 BACK (max 2/session — Primary first):
-  Primary: Lat Pulldown, Seated Cable Row, Dumbbell Row
-  Secondary: Face Pull, Seated Row Machine, Barbell Row
+  Primary: Lat Pulldown, T-Bar Row
+  Secondary: Face Pull, Barbell Upright Row
 SHOULDER (max 2/session — Primary first):
   Primary: Seated Dumbbell Press, Lateral Raise (Dumbbell)
-  Secondary: Rear Delt Fly (Dumbbell), Cable Lateral Raise, Cable Face Pull
-BICEP (max 1/session): Barbell Curl, Dumbbell Curl, Hammer Curl, Cable Curl
-TRICEP (max 1/session): Tricep Pushdown (Cable), Overhead Dumbbell Extension, Rope Pushdown
+  Secondary: Machine Shoulder Press
+BICEP (max 1/session): Barbell Curl, Dumbbell Curl, Hammer Curl, Concentration Curl
+TRICEP (max 1/session): Tricep Pushdown (Cable), Skull Crushers
 QUAD (max 2/session — Primary first):
-  Primary: Barbell Squat, Leg Press, Goblet Squat
-  Secondary: Leg Extension Machine, Dumbbell Lunge, Bulgarian Split Squat
-HAMSTRING (max 1/session): Romanian Deadlift (Dumbbell), Leg Curl Machine, Dumbbell Hip Thrust, Seated Leg Curl Machine
-CALF (max 1/session): Calf Raise Machine, Standing Calf Raise (Dumbbell)
-CORE (max 1/session): Forearm Plank, Cable Crunch, Leg Raise, Dead Bug, Russian Twist
+  Primary: Box Squat, Bulgarian Split Squat
+  Secondary: Dumbbell Lunge
+  (Note: For "beginner" program, EXCLUDE Bulgarian Split Squat — use Box Squat + Dumbbell Lunge only.)
+HAMSTRING (max 1/session): Romanian Deadlift (Dumbbell), Barbell Glute Bridge, Glute Bridge
+CALF (max 1/session): Standing Calf Raise, Seated Calf Raise
+CORE (max 1/session): Forearm Plank, Dead Bug, Side Plank (Knee Version)
 
 === BODYWEIGHT EXERCISES (when equipment is ONLY "bodyweight") ===
-CHEST: Push Up, Incline Push Up, Wide Push Up
+CHEST: Push Up, Incline Push Up
 BACK: Inverted Row, Superman Hold, Bird Dog
-SHOULDER: Pike Push Up
-BICEP: Chin Up
-TRICEP: Tricep Dip, Close Grip Push Up, Bench Dip
-QUAD: Bodyweight Squat, Reverse Lunge, Step Up, Wall Sit
-HAMSTRING: Glute Bridge, Single Leg Glute Bridge, Donkey Kick, Nordic Curl
-CORE: Forearm Plank, Dead Bug, Bicycle Crunch, Mountain Climber, Hollow Body Hold
+SHOULDER: Push Up
+BICEP: (none — skip bicep isolation; add an extra BACK exercise instead)
+TRICEP: Bench Dip, Close Grip Push Up
+QUAD: Reverse Lunge, Wall Sit
+HAMSTRING: Glute Bridge, Single Leg Glute Bridge
+CORE: Forearm Plank, Dead Bug, Hollow Body Hold, Bicycle Crunch
 
 === EXERCISE COUNT PER SESSION (HARD CAP — overrides other volume rules) ===
-- Session ≤ 45 min: max 4 exercises total
-- Session 46-60 min: max 5 exercises total
-- Session ≥ 75 min: max 6 exercises total
+- Session 45 min (or less): max 4 exercises total
+- Session 60 min: max 5 exercises total
+- Session 75 min (or more): max 6 exercises total
 (Current session: ${sessionMin} min)
 
 === UNIQUENESS RULE (WEEK-LEVEL) ===
 No exercise may repeat across different training days within the same week. Track exercises used earlier in the week and exclude them from later days. If a muscle group needs work on a second day, pick a DIFFERENT exercise from the same curated list.
 
 === INJURY RULES (apply when limitations field matches) ===
-- knee_injury → exclude all squat/lunge variations. Use: Leg Curl Machine, Glute Bridge.
-- shoulder_injury → exclude all overhead pressing. Use: Cable Row / Seated Cable Row, Face Pull / Cable Face Pull.
-- lower_back_pain → exclude Deadlift and Barbell Row. Use: Chest-Supported Row (substitute Seated Row Machine), Leg Press.
-- elbow_pain → exclude Skull Crusher, Close Grip Bench. Use: Tricep Pushdown (Cable) / Rope Pushdown.
+- knee_injury → exclude all squat/lunge variations. Use: Glute Bridge, Romanian Deadlift (Dumbbell).
+- shoulder_injury → exclude all overhead pressing (Seated Dumbbell Press, Machine Shoulder Press, Push Up). Use: Face Pull, Lat Pulldown.
+- lower_back_pain → exclude Romanian Deadlift (Dumbbell), T-Bar Row. Use: Glute Bridge, Barbell Glute Bridge.
+- elbow_pain → exclude Skull Crushers. Use: Tricep Pushdown (Cable).
 - wrist_injury → exclude all Barbell movements. Use Dumbbell and Cable alternatives from the curated list.
 
 ABSOLUTE: If an exercise you would otherwise pick is not present in the curated lists above for the user's equipment, REPLACE it with the closest curated alternative. Never invent exercise names outside this library.
