@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,6 +85,17 @@ function stripParens(s: string): string {
   return s.replace(/\s*\([^)]*\)/g, "").trim();
 }
 
+// Normalize for ExerciseDB API: lowercase, no parens, spaces instead of hyphens
+function normalizeForApi(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/[-–—]/g, " ")
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // Pre-build a normalized lookup so client-supplied names with minor
 // case/punctuation variation still hit the curated map. This stays
 // strictly within the curated set — nothing outside it ever resolves.
@@ -111,9 +123,12 @@ serve(async (req) => {
       });
     }
 
+    console.log(`[exercise-gif-lookup] received: "${exerciseName}"`);
+
     // 1. Exact (case-sensitive) match against curated map
     const exact = STATIC_GIF_MAP[exerciseName];
     if (exact) {
+      console.log(`[exercise-gif-lookup] step 1 hit (exact static): ${exact}`);
       return new Response(
         JSON.stringify({ gifUrl: BASE + exact, source: "static" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -124,6 +139,7 @@ serve(async (req) => {
     const normalized = norm(exerciseName);
     const normHit = NORMALIZED_MAP[normalized];
     if (normHit) {
+      console.log(`[exercise-gif-lookup] step 2a hit (normalized static): ${normHit}`);
       return new Response(
         JSON.stringify({ gifUrl: normHit, source: "static_normalized" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -135,6 +151,7 @@ serve(async (req) => {
     if (stripped && stripped !== normalized) {
       const strippedHit = NORMALIZED_MAP[stripped];
       if (strippedHit) {
+        console.log(`[exercise-gif-lookup] step 2b hit (stripped static): ${strippedHit}`);
         return new Response(
           JSON.stringify({ gifUrl: strippedHit, source: "static_stripped" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -142,7 +159,81 @@ serve(async (req) => {
       }
     }
 
-    // 4. NO further fallback — placeholder shown by the client
+    // 4. Check exercise_gif_cache in DB
+    const apiName = normalizeForApi(exerciseName);
+    console.log(`[exercise-gif-lookup] step 3: checking cache for "${apiName}"`);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    try {
+      const { data: cached } = await supabase
+        .from("exercise_gif_cache")
+        .select("gif_url")
+        .eq("exercise_name_normalized", apiName)
+        .maybeSingle();
+      if (cached?.gif_url) {
+        console.log(`[exercise-gif-lookup] step 3 hit (cache): ${cached.gif_url}`);
+        return new Response(
+          JSON.stringify({ gifUrl: cached.gif_url, source: "cache" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    } catch (e) {
+      console.log(`[exercise-gif-lookup] cache lookup error: ${e}`);
+    }
+
+    // 5. ExerciseDB API via RapidAPI
+    const apiKey = Deno.env.get("RAPIDAPI_KEY");
+    if (apiKey) {
+      console.log(`[exercise-gif-lookup] step 4: calling ExerciseDB for "${apiName}"`);
+      try {
+        const endpoint = `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(apiName)}?limit=5&offset=0`;
+        const resp = await fetch(endpoint, {
+          headers: {
+            "X-RapidAPI-Key": apiKey,
+            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com",
+          },
+        });
+        console.log(`[exercise-gif-lookup] ExerciseDB status: ${resp.status}`);
+        if (resp.ok) {
+          const list = await resp.json();
+          if (Array.isArray(list) && list.length > 0) {
+            const match = list.find((e: any) =>
+              norm(e.name).includes(apiName) || apiName.includes(norm(e.name))
+            ) || list[0];
+            if (match?.gifUrl) {
+              console.log(`[exercise-gif-lookup] step 4 hit (ExerciseDB): ${match.name} -> ${match.gifUrl}`);
+              // Best-effort cache write
+              supabase.from("exercise_gif_cache").upsert(
+                {
+                  exercise_name_normalized: apiName,
+                  exercise_name_display: match.name,
+                  gif_url: match.gifUrl,
+                  target_muscle: match.target,
+                  equipment: match.equipment,
+                  source: "exercisedb",
+                },
+                { onConflict: "exercise_name_normalized" },
+              ).then(() => {}, () => {});
+              return new Response(
+                JSON.stringify({ gifUrl: match.gifUrl, source: "exercisedb" }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+              );
+            }
+          } else {
+            console.log(`[exercise-gif-lookup] ExerciseDB returned no results`);
+          }
+        }
+      } catch (e) {
+        console.log(`[exercise-gif-lookup] ExerciseDB error: ${e}`);
+      }
+    } else {
+      console.log(`[exercise-gif-lookup] RAPIDAPI_KEY missing — skipping API`);
+    }
+
+    // 6. Nothing found — placeholder shown by the client
+    console.log(`[exercise-gif-lookup] no result for "${exerciseName}"`);
     return new Response(JSON.stringify({ gifUrl: null, source: "none" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
