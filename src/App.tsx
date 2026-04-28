@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { OnboardingTourProvider } from "@/contexts/OnboardingTourContext";
 import Index from "./pages/Index";
 import Programs from "./pages/Programs";
 import ProgramForm from "./pages/ProgramForm";
@@ -17,7 +16,6 @@ import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
 import PWAManager from "./components/pwa/PWAManager";
 import ConsentManager from "./components/legal/ConsentManager";
-import TourOverlay from "./components/tour/TourOverlay";
 
 const queryClient = new QueryClient();
 
@@ -25,29 +23,26 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <AuthProvider>
-        <OnboardingTourProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <TourOverlay />
-              <PWAManager />
-              <InactivityRedirect>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/programs" element={<Programs />} />
-                  <Route path="/program/:type" element={<ProgramForm />} />
-                  <Route path="/results" element={<Results />} />
-                  <Route path="/saved-plans" element={<SavedPlans />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </InactivityRedirect>
-              <ConsentManager />
-            </BrowserRouter>
-          </TooltipProvider>
-        </OnboardingTourProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <PWAManager />
+            <InactivityRedirect>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/programs" element={<Programs />} />
+                <Route path="/program/:type" element={<ProgramForm />} />
+                <Route path="/results" element={<Results />} />
+                <Route path="/saved-plans" element={<SavedPlans />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </InactivityRedirect>
+            <ConsentManager />
+          </BrowserRouter>
+        </TooltipProvider>
       </AuthProvider>
     </LanguageProvider>
   </QueryClientProvider>
