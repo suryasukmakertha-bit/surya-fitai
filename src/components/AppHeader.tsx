@@ -115,7 +115,7 @@ export default function AppHeader() {
                   <FolderOpen className="w-4 h-4" /> {t.myPlans}
                 </button>
                 <button onClick={() => {
-                  if (access.isSubscriptionActive || access.isTrialActive || access.isUnlimited) {
+                  if (access.isSubscriptionActive || access.isUnlimited) {
                     toast({ title: lang === "id" ? "Langganan Pro kamu aktif ✅" : lang === "zh" ? "您的Pro订阅已激活 ✅" : "Your Pro subscription is active ✅" });
                   } else {
                     openSubPopup('save_plan');
@@ -226,7 +226,7 @@ export default function AppHeader() {
                   <button
                     onClick={() => {
                       closeDrawer();
-                      if (access.isSubscriptionActive || access.isTrialActive || access.isUnlimited) {
+                      if (access.isSubscriptionActive || access.isUnlimited) {
                         toast({ title: lang === "id" ? "Langganan Pro kamu aktif ✅" : lang === "zh" ? "您的Pro订阅已激活 ✅" : "Your Pro subscription is active ✅" });
                       } else {
                         openSubPopup('save_plan');
