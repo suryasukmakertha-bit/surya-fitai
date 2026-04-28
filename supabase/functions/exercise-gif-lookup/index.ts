@@ -46,6 +46,7 @@ const STATIC_GIF_MAP: Record<string, string> = {
 
   // HAMSTRING
   "Romanian Deadlift (Dumbbell)": "romanian-deadlift-dumbbell.jpg",
+  "Romanian Deadlift": "romanian-deadlift-dumbbell.jpg",
   "Barbell Glute Bridge": "barbell-glute-bridge.jpg",
 
   // CALF
@@ -78,12 +79,23 @@ function norm(s: string): string {
   return s.toLowerCase().trim().replace(/[^a-z0-9\s()]/g, "").replace(/\s+/g, " ");
 }
 
+// Strip parenthetical qualifiers, e.g. "Romanian Deadlift (Dumbbell)" -> "Romanian Deadlift"
+function stripParens(s: string): string {
+  return s.replace(/\s*\([^)]*\)/g, "").trim();
+}
+
 // Pre-build a normalized lookup so client-supplied names with minor
 // case/punctuation variation still hit the curated map. This stays
 // strictly within the curated set — nothing outside it ever resolves.
 const NORMALIZED_MAP: Record<string, string> = {};
 for (const [key, file] of Object.entries(STATIC_GIF_MAP)) {
   NORMALIZED_MAP[norm(key)] = BASE + file;
+  // Also index the parenthesis-stripped form so "Romanian Deadlift (Dumbbell)"
+  // resolves when the client only sends "Romanian Deadlift".
+  const stripped = norm(stripParens(key));
+  if (stripped && !NORMALIZED_MAP[stripped]) {
+    NORMALIZED_MAP[stripped] = BASE + file;
+  }
 }
 
 serve(async (req) => {
@@ -118,7 +130,19 @@ serve(async (req) => {
       );
     }
 
-    // 3. NO further fallback — placeholder shown by the client
+    // 3. Strip parenthetical qualifiers and retry (e.g. "Foo (Cable)" -> "Foo")
+    const stripped = norm(stripParens(exerciseName));
+    if (stripped && stripped !== normalized) {
+      const strippedHit = NORMALIZED_MAP[stripped];
+      if (strippedHit) {
+        return new Response(
+          JSON.stringify({ gifUrl: strippedHit, source: "static_stripped" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
+    // 4. NO further fallback — placeholder shown by the client
     return new Response(JSON.stringify({ gifUrl: null, source: "none" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
