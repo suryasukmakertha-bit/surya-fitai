@@ -99,7 +99,7 @@ export default function FeedbackModal({ open, onClose }: Props) {
         className="w-full max-w-md relative"
         style={{
           background: "#111",
-          border: "1px solid rgba(0,255,120,0.3)",
+          border: "1px solid rgba(255,107,0,0.3)",
           borderRadius: 20,
           padding: 28,
         }}
@@ -115,7 +115,7 @@ export default function FeedbackModal({ open, onClose }: Props) {
         {success ? (
           <>
             <div className="flex justify-center mb-4">
-              <MessageSquare size={40} color="#00ff78" />
+              <MessageSquare size={40} color="#ff6b00" />
             </div>
             <p
               className="text-center mb-6"
@@ -127,7 +127,7 @@ export default function FeedbackModal({ open, onClose }: Props) {
               onClick={handleClose}
               className="w-full"
               style={{
-                background: "#00ff78",
+                background: "#ff6b00",
                 color: "#000",
                 fontWeight: 700,
                 borderRadius: 12,
@@ -172,8 +172,8 @@ export default function FeedbackModal({ open, onClose }: Props) {
                   >
                     <Star
                       className="w-7 h-7"
-                      fill={n <= rating ? "#00ff78" : "transparent"}
-                      color={n <= rating ? "#00ff78" : "rgba(255,255,255,0.4)"}
+                      fill={n <= rating ? "#ff6b00" : "transparent"}
+                      color={n <= rating ? "#ff6b00" : "rgba(255,255,255,0.4)"}
                     />
                   </button>
                 ))}
@@ -185,7 +185,7 @@ export default function FeedbackModal({ open, onClose }: Props) {
               disabled={submitting || !message.trim()}
               className="w-full disabled:opacity-50"
               style={{
-                background: "#00ff78",
+                background: "#ff6b00",
                 color: "#000",
                 fontWeight: 700,
                 borderRadius: 12,

@@ -124,7 +124,7 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
           <span className="text-primary text-xs font-semibold">{coachLabel}</span>
         </div>
         <div className="relative aspect-square bg-black/80 mx-3 rounded-lg overflow-hidden flex flex-col items-center justify-center gap-3">
-          <Dumbbell size={48} style={{ color: "#00ff78" }} strokeWidth={2} />
+          <Dumbbell size={48} style={{ color: "#ff6b00" }} strokeWidth={2} />
           <p className="text-muted-foreground text-sm text-center px-6 leading-relaxed">{errorText}</p>
         </div>
         <div className="py-2" />

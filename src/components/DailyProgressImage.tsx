@@ -64,7 +64,7 @@ export default function DailyProgressImage({
     const SCALE = 2;
     const W = 360;
     const PAD = 28;
-    const GREEN = "#00ff78";
+    const GREEN = "#ff6b00";
     const DARK = "#111111";
     const WHITE = "#ffffff";
 
@@ -168,8 +168,8 @@ export default function DailyProgressImage({
     // Glow bottom-left
     cardPath();
     const grd = ctx.createRadialGradient(0, CARD_H, 0, 0, CARD_H, 140);
-    grd.addColorStop(0, "rgba(0,255,120,0.10)");
-    grd.addColorStop(1, "rgba(0,255,120,0)");
+    grd.addColorStop(0, "rgba(255,107,0,0.10)");
+    grd.addColorStop(1, "rgba(255,107,0,0)");
     ctx.fillStyle = grd;
     ctx.fill();
 
@@ -202,13 +202,13 @@ export default function DailyProgressImage({
     const pillY = HEADER_Y;
 
     anyCtx.roundRect!(pillX, pillY, pillW, pillH, 6);
-    ctx.fillStyle = "rgba(0,255,120,0.08)";
+    ctx.fillStyle = "rgba(255,107,0,0.08)";
     ctx.fill();
-    ctx.strokeStyle = "rgba(0,255,120,0.30)";
+    ctx.strokeStyle = "rgba(255,107,0,0.30)";
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(0,255,120,0.8)";
+    ctx.fillStyle = "rgba(255,107,0,0.8)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(pillText, pillX + pillW / 2, pillY + pillH / 2);
@@ -250,7 +250,7 @@ export default function DailyProgressImage({
       const cy = y + h / 2;
       ctx.beginPath();
       ctx.arc(cx, cy, 10, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0,255,120,0.2)";
+      ctx.fillStyle = "rgba(255,107,0,0.2)";
       ctx.fill();
 
       // Checkmark

@@ -41,7 +41,7 @@ export default function LockedPlanModal({ isOpen, planName, onClose, onSubscribe
         className="relative w-full sm:max-w-md mx-4 animate-in slide-in-from-bottom duration-300"
         style={{
           background: "#111",
-          border: "1px solid rgba(0,255,120,0.3)",
+          border: "1px solid rgba(255,107,0,0.3)",
           borderRadius: 20,
           padding: 28,
         }}

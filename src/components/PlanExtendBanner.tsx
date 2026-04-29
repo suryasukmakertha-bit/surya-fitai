@@ -27,14 +27,14 @@ export default function PlanExtendBanner({ monthNumber, onExtend }: PlanExtendBa
     <div
       className="flex items-center justify-between gap-3"
       style={{
-        background: "rgba(0,255,120,0.08)",
-        border: "1px solid rgba(0,255,120,0.25)",
+        background: "rgba(255,107,0,0.08)",
+        border: "1px solid rgba(255,107,0,0.25)",
         borderRadius: 12,
         padding: "14px 16px",
       }}
     >
       <div className="flex items-center gap-2 min-w-0">
-        <Flame className="w-4 h-4 shrink-0" style={{ color: "#00ff78" }} strokeWidth={2} />
+        <Flame className="w-4 h-4 shrink-0" style={{ color: "#ff6b00" }} strokeWidth={2} />
         <span
           className="truncate"
           style={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}
@@ -47,7 +47,7 @@ export default function PlanExtendBanner({ monthNumber, onExtend }: PlanExtendBa
         onClick={onExtend}
         className="shrink-0 transition-opacity hover:opacity-90"
         style={{
-          background: "#00ff78",
+          background: "#ff6b00",
           color: "#000",
           fontWeight: 700,
           fontSize: 12,

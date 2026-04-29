@@ -11,7 +11,7 @@ import {
 import { Loader2, Users, Crown, Clock, AlertTriangle, DollarSign, Activity, Star } from "lucide-react";
 
 const ADMIN_EMAIL = "surya.sukmakertha@gmail.com";
-const COLORS = ["#00ff78", "#00b894", "#7bed9f", "#2ed573", "#26de81"];
+const COLORS = ["#ff6b00", "#00b894", "#7bed9f", "#2ed573", "#26de81"];
 
 const I18N = {
   id: {
@@ -187,7 +187,7 @@ function StarsDisplay({ rating }: { rating: number | null }) {
   return (
     <span className="inline-flex">
       {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} className="w-3.5 h-3.5" fill={n <= rating ? "#00ff78" : "transparent"} color={n <= rating ? "#00ff78" : "rgba(255,255,255,0.25)"} />
+        <Star key={n} className="w-3.5 h-3.5" fill={n <= rating ? "#ff6b00" : "transparent"} color={n <= rating ? "#ff6b00" : "rgba(255,255,255,0.25)"} />
       ))}
     </span>
   );
@@ -282,8 +282,8 @@ export default function Admin() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="rgba(255,255,255,0.4)" />
                   <YAxis tick={{ fontSize: 10 }} stroke="rgba(255,255,255,0.4)" allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: "#111", border: "1px solid rgba(0,255,120,0.3)" }} />
-                  <Line type="monotone" dataKey="count" stroke="#00ff78" strokeWidth={2} dot={false} />
+                  <Tooltip contentStyle={{ background: "#111", border: "1px solid rgba(255,107,0,0.3)" }} />
+                  <Line type="monotone" dataKey="count" stroke="#ff6b00" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -294,8 +294,8 @@ export default function Admin() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="rgba(255,255,255,0.4)" />
                   <YAxis tick={{ fontSize: 10 }} stroke="rgba(255,255,255,0.4)" allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: "#111", border: "1px solid rgba(0,255,120,0.3)" }} />
-                  <Bar dataKey="count" fill="#00ff78" />
+                  <Tooltip contentStyle={{ background: "#111", border: "1px solid rgba(255,107,0,0.3)" }} />
+                  <Bar dataKey="count" fill="#ff6b00" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -308,7 +308,7 @@ export default function Admin() {
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ background: "#111", border: "1px solid rgba(0,255,120,0.3)" }} />
+                  <Tooltip contentStyle={{ background: "#111", border: "1px solid rgba(255,107,0,0.3)" }} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -322,7 +322,7 @@ export default function Admin() {
             <h2 className="text-xl font-semibold text-foreground">{t.feedbackTitle}</h2>
             <div className="text-sm text-muted-foreground">
               {t.avgRating} <span className="font-bold text-foreground">{avgRating || t.dash}</span>{" "}
-              {avgRating > 0 && <Star className="inline w-4 h-4" fill="#00ff78" color="#00ff78" />}
+              {avgRating > 0 && <Star className="inline w-4 h-4" fill="#ff6b00" color="#ff6b00" />}
               <span className="ml-3">({feedback.length} {t.entries})</span>
             </div>
           </div>
