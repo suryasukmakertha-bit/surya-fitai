@@ -163,15 +163,15 @@ export default function Progress() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#ff6b00" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 15%, 18%)" />
-                  <XAxis dataKey="date" tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
-                  <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} labelStyle={{ color: "hsl(135, 100%, 60%)" }} />
-                  <Area type="monotone" dataKey="weight" stroke="hsl(135, 100%, 60%)" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "hsl(135, 100%, 60%)", r: 4 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="date" tick={{ fill: "#555555", fontSize: 12 }} />
+                  <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "#555555", fontSize: 12 }} />
+                  <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "#ffffff" }} labelStyle={{ color: "#ffffff" }} itemStyle={{ color: "#ff6b00" }} />
+                  <Area type="monotone" dataKey="weight" stroke="#ff6b00" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "#ff6b00", r: 4 }} activeDot={{ fill: "#ff3d7f", r: 5 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
