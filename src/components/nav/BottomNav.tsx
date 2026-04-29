@@ -27,8 +27,7 @@ export default function BottomNav() {
     { key: "home",   path: "/",            icon: Home,       label: t("Home", "Home", "首页") },
     { key: "prog",   path: "/programs",    icon: Dumbbell,   label: t("Program", "Program", "计划") },
     { key: "saved",  path: "/saved-plans", icon: FolderOpen, label: t("Rencana", "Plans", "我的") },
-    // Profile lives inside the existing hamburger drawer — open it via event.
-    { key: "profile",path: "__drawer__",   icon: User,       label: t("Profil", "Profile", "我") },
+    { key: "profile",path: "/profile",     icon: User,       label: t("Profil", "Profile", "我") },
   ];
 
   const isActive = (path: string) => {
