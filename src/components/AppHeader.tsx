@@ -16,6 +16,7 @@ import FeedbackModal from "@/components/FeedbackModal";
 import BrandLogo from "@/components/brand/BrandLogo";
 import TierBadge, { Tier } from "@/components/brand/TierBadge";
 import { useTheme } from "@/hooks/useTheme";
+import { OPEN_PROFILE_DRAWER_EVENT } from "@/components/nav/BottomNav";
 
 const ADMIN_EMAIL = "surya.sukmakertha@gmail.com";
 
@@ -62,6 +63,13 @@ export default function AppHeader() {
       setNotifPermission(Notification.permission);
     }
   }, [notifSettingsOpen]);
+
+  // Open drawer when bottom nav "Profil" tab is clicked
+  useEffect(() => {
+    const handler = () => setDrawerOpen(true);
+    window.addEventListener(OPEN_PROFILE_DRAWER_EVENT, handler);
+    return () => window.removeEventListener(OPEN_PROFILE_DRAWER_EVENT, handler);
+  }, []);
 
   const isHome = location.pathname === "/";
 
