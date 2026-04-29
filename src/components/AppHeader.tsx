@@ -197,7 +197,7 @@ export default function AppHeader() {
                 <button onClick={() => setNotifSettingsOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <Bell className="w-4 h-4 text-primary" />
                   {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
-                  {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />}
+                  {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-primary inline-block" />}
                   {notifPermission === "denied" && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
                 </button>
                 <button onClick={() => openLegalPopup('terms')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -330,7 +330,7 @@ export default function AppHeader() {
                     <Bell className="w-4 h-4 text-primary" />
                     <span className="font-medium flex items-center gap-2">
                       {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
-                      {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />}
+                      {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-primary inline-block" />}
                       {notifPermission === "denied" && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
                     </span>
                   </button>

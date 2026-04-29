@@ -57,7 +57,7 @@ export default function LegalViewPopup({ isOpen, onClose, defaultSection = 'term
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  activeTab === tab ? 'bg-green-500 text-black' : 'text-gray-400'
+                  activeTab === tab ? 'bg-primary text-primary-foreground' : 'text-gray-400'
                 }`}
                 style={activeTab !== tab ? { backgroundColor: 'rgba(255,255,255,0.07)' } : {}}
               >
