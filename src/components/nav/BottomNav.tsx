@@ -3,6 +3,12 @@ import { Home, Dumbbell, FolderOpen, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
+/**
+ * Custom event used to open the existing hamburger drawer (which holds
+ * profile/account items). Listened to by AppHeader.
+ */
+export const OPEN_PROFILE_DRAWER_EVENT = "fitai:open-profile-drawer";
+
 const HIDE_ROUTES = ["/auth"];
 
 export default function BottomNav() {
@@ -21,12 +27,22 @@ export default function BottomNav() {
     { key: "home",   path: "/",            icon: Home,       label: t("Home", "Home", "首页") },
     { key: "prog",   path: "/programs",    icon: Dumbbell,   label: t("Program", "Program", "计划") },
     { key: "saved",  path: "/saved-plans", icon: FolderOpen, label: t("Rencana", "Plans", "我的") },
-    { key: "profile",path: "/profile",     icon: User,       label: t("Profil", "Profile", "我") },
+    // Profile lives inside the existing hamburger drawer — open it via event.
+    { key: "profile",path: "__drawer__",   icon: User,       label: t("Profil", "Profile", "我") },
   ];
 
   const isActive = (path: string) => {
+    if (path === "__drawer__") return false;
     if (path === "/") return loc.pathname === "/";
     return loc.pathname === path || loc.pathname.startsWith(path + "/");
+  };
+
+  const handleClick = (path: string) => {
+    if (path === "__drawer__") {
+      window.dispatchEvent(new CustomEvent(OPEN_PROFILE_DRAWER_EVENT));
+      return;
+    }
+    nav(path);
   };
 
   return (
@@ -46,7 +62,7 @@ export default function BottomNav() {
           return (
             <li key={it.key} className="flex-1">
               <button
-                onClick={() => nav(it.path)}
+                onClick={() => handleClick(it.path)}
                 className="w-full h-full flex flex-col items-center justify-center gap-0.5 transition-colors"
                 style={{ color: active ? "#ff6b00" : undefined }}
               >
