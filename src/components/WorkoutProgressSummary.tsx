@@ -150,15 +150,17 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         <div className="h-44">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={weeklyData} barSize={24}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 15%, 18%)" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis allowDecimals={false} tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: "#555555", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: "#555555", fontSize: 12 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }}
-                labelStyle={{ color: "hsl(135, 100%, 60%)" }}
+                cursor={{ fill: "rgba(255,61,127,0.10)" }}
+                contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "#ffffff" }}
+                labelStyle={{ color: "#ffffff" }}
+                itemStyle={{ color: "#ff6b00" }}
                 formatter={(value: number) => [`${value} ${t.exercises}`, t.completed]}
               />
-              <Bar dataKey="count" fill="hsl(135, 100%, 60%)" radius={[4, 4, 0, 0]} fillOpacity={0.85} />
+              <Bar dataKey="count" fill="#ff6b00" radius={[4, 4, 0, 0]} fillOpacity={0.95} />
             </BarChart>
           </ResponsiveContainer>
         </div>
