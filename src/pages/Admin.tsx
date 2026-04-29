@@ -11,7 +11,7 @@ import {
 import { Loader2, Users, Crown, Clock, AlertTriangle, DollarSign, Activity, Star } from "lucide-react";
 
 const ADMIN_EMAIL = "surya.sukmakertha@gmail.com";
-const COLORS = ["#ff6b00", "#00b894", "#7bed9f", "#2ed573", "#26de81"];
+const COLORS = ["#ff6b00", "#ff3d7f", "#ffaa00"];
 
 const I18N = {
   id: {

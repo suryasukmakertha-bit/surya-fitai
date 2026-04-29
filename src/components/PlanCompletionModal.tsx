@@ -71,7 +71,7 @@ export default function PlanCompletionModal({
           {/* Celebration icon */}
           <div className="flex justify-center" aria-hidden="true">
             <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center animate-bounce">
-              <Trophy className="w-10 h-10" style={{ color: "#22c55e" }} strokeWidth={1.5} />
+              <Trophy className="w-10 h-10" style={{ color: "#10b981" }} strokeWidth={1.5} />
             </div>
           </div>
 

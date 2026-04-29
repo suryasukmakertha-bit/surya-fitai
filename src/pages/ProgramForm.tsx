@@ -302,7 +302,7 @@ export default function ProgramForm() {
         <form data-tour="form-fields" onSubmit={handleSubmit} className="space-y-6">
           {/* Coach Intro Banner */}
           <div className="mb-5 px-4 py-3 rounded-2xl flex items-start gap-3"
-            style={{ backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+            style={{ backgroundColor: 'rgba(255,107,0,0.08)', border: '1px solid rgba(255,107,0,0.2)' }}>
             <span className="text-xl flex-shrink-0">👋</span>
             <p className="text-muted-foreground text-sm leading-relaxed">
               {(t as any).coachFormIntro}
