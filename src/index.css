@@ -2,97 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 220 20% 6%;
-    --foreground: 0 0% 95%;
+    /* DARK theme (default) — bg #0f0f11, surfaces #1a1a1a */
+    --background: 240 6% 7%;
+    --foreground: 0 0% 98%;
 
-    --card: 220 18% 10%;
-    --card-foreground: 0 0% 95%;
+    --surface: 0 0% 10%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 135 100% 60%;
-    --primary-foreground: 220 20% 6%;
+    /* Primary = brand orange #ff6b00 */
+    --primary: 25 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 16%;
-    --secondary-foreground: 0 0% 85%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 92%;
 
-    --muted: 220 15% 14%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 135 100% 60%;
-    --accent-foreground: 220 20% 6%;
+    --accent: 25 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 95%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 18%;
-    --ring: 135 100% 60%;
+    --border: 0 0% 100%;       /* used with /7 alpha via class border-border/30 */
+    --input: 0 0% 14%;
+    --ring: 25 100% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 220 18% 8%;
+    --sidebar-background: 240 6% 5%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 135 100% 60%;
-    --sidebar-primary-foreground: 220 20% 6%;
-    --sidebar-accent: 220 15% 14%;
+    --sidebar-primary: 25 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 14%;
     --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 135 100% 60%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 25 100% 50%;
 
-    /* Custom fitness tokens */
-    --neon-glow: 0 0 20px hsl(135 100% 60% / 0.3);
-    --neon-glow-strong: 0 0 40px hsl(135 100% 60% / 0.5);
-    --card-glow: 0 0 30px hsl(135 100% 60% / 0.1);
-    --gradient-primary: linear-gradient(135deg, hsl(135 100% 60%), hsl(160 100% 45%));
-    --gradient-dark: linear-gradient(180deg, hsl(220 20% 8%), hsl(220 20% 4%));
-    --gradient-card: linear-gradient(145deg, hsl(220 18% 12%), hsl(220 18% 8%));
+    /* Brand tokens */
+    --brand-orange: 25 100% 50%;     /* #ff6b00 */
+    --brand-pink: 339 100% 62%;      /* #ff3d7f */
+    --gradient-brand: linear-gradient(135deg, #ff6b00, #ff3d7f);
+    --gradient-brand-h: linear-gradient(90deg, #ff6b00, #ff3d7f);
+
+    /* Legacy compatibility (kept so old utilities don't break) */
+    --neon-glow: 0 4px 24px rgba(255,107,0,0.25);
+    --neon-glow-strong: 0 6px 30px rgba(255,107,0,0.45);
+    --card-glow: 0 0 30px rgba(255,107,0,0.08);
+    --gradient-primary: linear-gradient(135deg, #ff6b00, #ff3d7f);
+    --gradient-dark: linear-gradient(180deg, hsl(240 6% 9%), hsl(240 6% 5%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 12%), hsl(0 0% 8%));
   }
 
-  .dark {
-    --background: 220 20% 6%;
-    --foreground: 0 0% 95%;
+  /* LIGHT theme — warm white #faf8f5 */
+  .light {
+    --background: 36 33% 97%;
+    --foreground: 0 0% 10%;
+
+    --surface: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 25 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 36 25% 94%;
+    --secondary-foreground: 0 0% 15%;
+
+    --muted: 36 25% 94%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 25 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 0%;
+    --input: 36 20% 92%;
+    --ring: 25 100% 50%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 25 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 25% 94%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 0%;
+    --sidebar-ring: 25 100% 50%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border) / 0.07);
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.01em;
   }
 }
 
 @layer utilities {
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-primary);
+    background-image: var(--gradient-brand);
+  }
+
+  .bg-gradient-brand {
+    background-image: var(--gradient-brand-h);
+  }
+
+  .text-brand-orange { color: #ff6b00; }
+  .text-brand-pink { color: #ff3d7f; }
+
+  .btn-brand {
+    background-image: var(--gradient-brand-h);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 12px;
+    transition: filter .2s ease, transform .15s ease, box-shadow .2s ease;
+    box-shadow: 0 4px 18px rgba(255,107,0,0.30);
+  }
+  .btn-brand:hover { filter: brightness(1.05); }
+  .btn-brand:active { transform: translateY(1px); }
+
+  .surface-card {
+    background-color: hsl(var(--surface));
+    border: 1px solid hsl(var(--border) / 0.07);
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+  }
+
+  .micro-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
   .neon-border {
-    box-shadow: var(--neon-glow);
+    box-shadow: 0 4px 24px rgba(255,107,0,0.20);
     @apply border border-primary/30;
   }
 
   .neon-border-strong {
-    box-shadow: var(--neon-glow-strong);
+    box-shadow: 0 6px 30px rgba(255,107,0,0.40);
     @apply border border-primary/50;
   }
 
   .card-gradient {
-    background: var(--gradient-card);
+    background: hsl(var(--surface));
   }
 
   .glass-card {

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown, Bell, Home, MessageSquare, ShieldCheck } from "lucide-react";
+import { LogIn, LogOut, FolderOpen, Menu, X, Globe, Check, Download, ScrollText, Crown, Bell, MessageSquare, ShieldCheck, RotateCcw, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Lang } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,10 @@ import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopu
 import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 import FeedbackModal from "@/components/FeedbackModal";
+import BrandLogo from "@/components/brand/BrandLogo";
+import TierBadge, { Tier } from "@/components/brand/TierBadge";
+import { useTheme } from "@/hooks/useTheme";
+import { OPEN_PROFILE_DRAWER_EVENT } from "@/components/nav/BottomNav";
 
 const ADMIN_EMAIL = "surya.sukmakertha@gmail.com";
 
@@ -41,6 +45,17 @@ export default function AppHeader() {
   const isAdmin = (user?.email ?? "").toLowerCase() === ADMIN_EMAIL;
   const feedbackLabel = lang === "id" ? "Masukan & Saran" : lang === "zh" ? "反馈与建议" : "Feedback";
   const adminLabel = lang === "id" ? "Admin Report" : lang === "zh" ? "管理员报告" : "Admin Report";
+  const { theme, toggleTheme } = useTheme();
+
+  const tier: Tier = isAdmin
+    ? "ADMIN"
+    : access.isUnlimited || access.isSubscriptionActive
+    ? "PAID"
+    : access.isTrialActive
+    ? "TRIAL"
+    : access.isExpired
+    ? "EXPIRED"
+    : "FREE";
 
   // Track notification permission
   useEffect(() => {
@@ -49,7 +64,19 @@ export default function AppHeader() {
     }
   }, [notifSettingsOpen]);
 
+  // Open drawer when bottom nav "Profil" tab is clicked
+  useEffect(() => {
+    const handler = () => setDrawerOpen(true);
+    window.addEventListener(OPEN_PROFILE_DRAWER_EVENT, handler);
+    return () => window.removeEventListener(OPEN_PROFILE_DRAWER_EVENT, handler);
+  }, []);
+
   const isHome = location.pathname === "/";
+
+  const handleRefresh = () => {
+    // Simple soft-refresh of the current view
+    window.location.reload();
+  };
 
   // Close lang dropdown on outside click (desktop only)
   useEffect(() => {
@@ -76,14 +103,53 @@ export default function AppHeader() {
 
   return (
     <>
-      <nav className={`${isHome ? "absolute" : "sticky"} top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm border-b border-border/30`}>
+      <nav className={`${isHome ? "absolute" : "sticky"} top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm`} style={{ borderBottom: "1px solid hsl(var(--border) / 0.07)" }}>
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={() => navigate("/")} className={`font-display font-bold text-lg transition-colors ${isHome ? "text-foreground hover:text-primary" : "text-primary hover:opacity-80"}`}>
-            {isHome ? "Surya-FitAi" : <Home className="w-6 h-6" />}
+          <button onClick={() => navigate("/")} className="transition-opacity hover:opacity-90" aria-label="Surya-FitAi home">
+            <BrandLogo size={32} />
           </button>
+
+          {/* Right-side icon buttons (visible on all screens) */}
+          <div className="flex items-center gap-2 sm:hidden">
+            <button
+              onClick={handleRefresh}
+              aria-label="Refresh"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "hsl(var(--surface))", color: "hsl(var(--foreground))" }}
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "hsl(var(--surface))", color: "hsl(var(--foreground))" }}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button data-tour="language-selector" onClick={() => setDrawerOpen(true)} className="text-muted-foreground hover:text-foreground p-1" aria-label="Open menu">
+              <Menu className="w-5 h-5" />
+            </button>
+          </div>
 
           {/* Desktop nav */}
           <div className="hidden sm:flex items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              aria-label="Refresh"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "hsl(var(--surface))", color: "hsl(var(--foreground))" }}
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "hsl(var(--surface))", color: "hsl(var(--foreground))" }}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             {/* Language dropdown */}
             <div className="relative" ref={langRef}>
               <button
@@ -158,13 +224,6 @@ export default function AppHeader() {
               </button>
             )}
           </div>
-
-          {/* Mobile hamburger */}
-          <div className="sm:hidden">
-            <button data-tour="language-selector" onClick={() => setDrawerOpen(true)} className="text-muted-foreground hover:text-foreground p-1">
-              <Menu className="w-5 h-5" />
-            </button>
-          </div>
         </div>
       </nav>
 
@@ -173,12 +232,26 @@ export default function AppHeader() {
         <div className="fixed inset-0 z-[9998]" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeDrawer} />
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-xs bg-card border-l border-border shadow-2xl animate-in slide-in-from-right duration-300 overflow-y-auto">
-            <div className="px-5 py-4 flex items-center justify-between border-b border-border">
-              <span className="font-display font-bold text-foreground text-lg">Surya-FitAi</span>
-              <button onClick={closeDrawer} className="text-muted-foreground hover:text-foreground p-1">
+            <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--border) / 0.07)" }}>
+              <BrandLogo size={28} />
+              <button onClick={closeDrawer} className="text-muted-foreground hover:text-foreground p-1" aria-label="Close menu">
                 <X className="w-5 h-5" />
               </button>
             </div>
+            {user && (
+              <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: "1px solid hsl(var(--border) / 0.07)" }}>
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-white"
+                  style={{ background: "linear-gradient(135deg,#ff6b00,#ff3d7f)" }}
+                >
+                  {(user.email ?? "U").slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-foreground truncate">{user.email}</div>
+                  <div className="mt-0.5"><TierBadge tier={tier} /></div>
+                </div>
+              </div>
+            )}
 
             <div className="px-5 py-4 space-y-1">
               {/* Language */}

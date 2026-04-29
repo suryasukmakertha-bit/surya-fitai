@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"],
+        display: ["Plus Jakarta Sans", "Space Grotesk", "Inter", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -23,6 +23,12 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        surface: "hsl(var(--surface))",
+        "brand-orange": "#ff6b00",
+        "brand-pink": "#ff3d7f",
+        success: "#10b981",
+        "tier-trial": "#60a5fa",
+        "tier-expired": "#f87171",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -66,6 +72,14 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        card: "16px",
+        btn: "12px",
+        pill: "6px",
+      },
+      boxShadow: {
+        card: "0 2px 16px rgba(0,0,0,0.12)",
+        elevated: "0 4px 24px rgba(0,0,0,0.18)",
+        brand: "0 6px 20px rgba(255,107,0,0.35)",
       },
       keyframes: {
         "accordion-down": {
