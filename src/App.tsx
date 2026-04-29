@@ -16,29 +16,41 @@ import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
 import PWAManager from "./components/pwa/PWAManager";
 import ConsentManager from "./components/legal/ConsentManager";
+import BottomNav from "./components/nav/BottomNav";
+import { useTheme } from "./hooks/useTheme";
 
 const queryClient = new QueryClient();
+
+const ThemeBoot = () => {
+  // Initializes theme class on <html> before children render
+  useTheme();
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <AuthProvider>
         <TooltipProvider>
+          <ThemeBoot />
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <PWAManager />
             <InactivityRedirect>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/programs" element={<Programs />} />
-                <Route path="/program/:type" element={<ProgramForm />} />
-                <Route path="/results" element={<Results />} />
-                <Route path="/saved-plans" element={<SavedPlans />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <div className="pb-16 sm:pb-0">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/programs" element={<Programs />} />
+                  <Route path="/program/:type" element={<ProgramForm />} />
+                  <Route path="/results" element={<Results />} />
+                  <Route path="/saved-plans" element={<SavedPlans />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+              <BottomNav />
             </InactivityRedirect>
             <ConsentManager />
           </BrowserRouter>
