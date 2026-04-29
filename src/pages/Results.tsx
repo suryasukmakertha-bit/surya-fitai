@@ -1051,8 +1051,8 @@ export default function Results() {
         {/* Trial Banner — only show when trial is active, not when trialNotStarted */}
         {access.isTrialActive && !access.trialNotStarted && (
           <div className="mx-0 mb-3 p-3 rounded-xl bg-green-950 border border-green-800 flex items-center justify-between">
-            <span className="text-green-400 text-sm">{trialBannerText}</span>
-            <button onClick={() => openPopup('save_plan')} className="text-green-400 text-xs font-semibold underline">
+            <span className="text-primary text-sm">{trialBannerText}</span>
+            <button onClick={() => openPopup('save_plan')} className="text-primary text-xs font-semibold underline">
               {upgradeNowText}
             </button>
           </div>
@@ -1079,7 +1079,7 @@ export default function Results() {
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(255,107,0,0.15)' }}>
                 <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                   <span className="text-primary-foreground text-xs font-bold">S</span>
                 </div>
@@ -1097,7 +1097,7 @@ export default function Results() {
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+              <div className="flex items-center gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(255,107,0,0.15)' }}>
                 <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                   <span className="text-primary-foreground text-xs font-bold">S</span>
                 </div>

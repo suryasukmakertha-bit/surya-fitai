@@ -51,7 +51,7 @@ function downloadProgressReport(data: DownloadProgressData) {
   const H = 630;
   const P = 24;
   const SCALE = 2;
-  const G = '#00ff78';
+  const G = '#ff6b00';
   const FONT = 'Inter, Arial, sans-serif';
 
   // ── LANGUAGE STRINGS ───────────────────────────────────
@@ -163,7 +163,7 @@ function downloadProgressReport(data: DownloadProgressData) {
   cardBg.addColorStop(1, '#0a0a0a');
   ctx.fillStyle = cardBg;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(0, 255, 120, 0.45)';
+  ctx.strokeStyle = 'rgba(255, 107, 0, 0.45)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
@@ -176,13 +176,13 @@ function downloadProgressReport(data: DownloadProgressData) {
   // 2. BACKGROUND GLOWS (subtle, corner only)
   // ══════════════════════════════════════════════════════
   const glowTR = ctx.createRadialGradient(W, 0, 0, W, 0, 180);
-  glowTR.addColorStop(0, 'rgba(0, 255, 120, 0.10)');
-  glowTR.addColorStop(1, 'rgba(0, 255, 120, 0)');
+  glowTR.addColorStop(0, 'rgba(255, 107, 0, 0.10)');
+  glowTR.addColorStop(1, 'rgba(255, 107, 0, 0)');
   ctx.fillStyle = glowTR;
   ctx.fillRect(0, 0, W, H);
 
   const glowBL = ctx.createRadialGradient(0, H, 0, 0, H, 160);
-  glowBL.addColorStop(0, 'rgba(0, 200, 255, 0.06)');
+  glowBL.addColorStop(0, 'rgba(255, 61, 127, 0.06)');
   glowBL.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = glowBL;
   ctx.fillRect(0, 0, W, H);
@@ -190,7 +190,7 @@ function downloadProgressReport(data: DownloadProgressData) {
   // ══════════════════════════════════════════════════════
   // 3. HEADER — 3 green dots + brand text + name + sub
   // ══════════════════════════════════════════════════════
-  const dotColors = [G, 'rgba(0,255,120,0.5)', 'rgba(0,255,120,0.2)'];
+  const dotColors = [G, 'rgba(255,107,0,0.5)', 'rgba(255,107,0,0.2)'];
   const dotSizes = [3, 2.5, 2];
   dotColors.forEach((c, i) => {
     ctx.beginPath();
@@ -200,7 +200,7 @@ function downloadProgressReport(data: DownloadProgressData) {
   });
 
   ctx.font = `600 9px ${FONT}`;
-  ctx.fillStyle = 'rgba(0, 255, 120, 0.50)';
+  ctx.fillStyle = 'rgba(255, 107, 0, 0.50)';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(s.brand, P + 50, 16);
@@ -287,16 +287,16 @@ function downloadProgressReport(data: DownloadProgressData) {
   const CY = DY + 56;
   rr(ctx, P, CY, W - P * 2, 160, 16);
   const compBg = ctx.createLinearGradient(P, CY, W - P, CY + 160);
-  compBg.addColorStop(0, 'rgba(0, 255, 120, 0.07)');
-  compBg.addColorStop(1, 'rgba(0, 255, 120, 0.02)');
+  compBg.addColorStop(0, 'rgba(255, 107, 0, 0.07)');
+  compBg.addColorStop(1, 'rgba(255, 107, 0, 0.02)');
   ctx.fillStyle = compBg;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(0, 255, 120, 0.30)';
+  ctx.strokeStyle = 'rgba(255, 107, 0, 0.30)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   ctx.font = `700 8px ${FONT}`;
-  ctx.fillStyle = 'rgba(0, 255, 120, 0.60)';
+  ctx.fillStyle = 'rgba(255, 107, 0, 0.60)';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(s.comp, P + 14, CY + 14);
@@ -334,7 +334,7 @@ function downloadProgressReport(data: DownloadProgressData) {
   ctx.fill();
   ctx.beginPath();
   ctx.arc(bx + fill, by + 2.5, 9, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0, 255, 120, 0.20)';
+  ctx.fillStyle = 'rgba(255, 107, 0, 0.20)';
   ctx.fill();
 
   // ══════════════════════════════════════════════════════

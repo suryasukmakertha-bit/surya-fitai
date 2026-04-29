@@ -1,14 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
 import PricingCard from "@/components/pricing/PricingCard";
 import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
+import { useGenerateLimit } from "@/hooks/useGenerateLimit";
+import GenerateLimitIndicator from "@/components/brand/GenerateLimitIndicator";
+import TierBadge, { type Tier } from "@/components/brand/TierBadge";
+import { supabase } from "@/integrations/supabase/client";
 
-import heroBg from "@/assets/hero-bg.jpg";
 import logo from "@/assets/logo.png";
 
 function ScrollProgressBar() {
@@ -33,6 +36,191 @@ function ScrollProgressBar() {
         style={{ height: `${progress * 100}%` }}
       />
     </div>
+  );
+}
+
+function LoggedInDashboard({ onGenerate, onOpenPlans }: { onGenerate: () => void; onOpenPlans: () => void }) {
+  const { lang } = useLanguage();
+  const { user } = useAuth();
+  const { info: limit } = useGenerateLimit();
+  const [latestPlan, setLatestPlan] = useState<{ id: string; plan_name: string | null; program_type: string; plan_month_number?: number } | null>(null);
+  const [planCount, setPlanCount] = useState<number>(0);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, count } = await supabase
+          .from("saved_plans")
+          .select("id, plan_name, program_type, plan_month_number", { count: "exact" })
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (cancelled) return;
+        setLatestPlan((data && data[0]) || null);
+        setPlanCount(count ?? 0);
+      } finally {
+        if (!cancelled) setLoadingPlans(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const tier: Tier =
+    limit.status === "admin" ? "ADMIN" :
+    limit.status === "active" ? "PAID" :
+    limit.status === "trial" ? "TRIAL" :
+    limit.isExpiredFallback ? "EXPIRED" : "FREE";
+
+  const greeting =
+    lang === "id" ? "Selamat datang kembali" :
+    lang === "zh" ? "欢迎回来" :
+    "Welcome back";
+  const activeLabel =
+    lang === "id" ? "Program Aktif" :
+    lang === "zh" ? "活跃计划" :
+    "Active Plan";
+  const noPlanTitle =
+    lang === "id" ? "Belum ada program tersimpan" :
+    lang === "zh" ? "还没有保存的计划" :
+    "No saved plans yet";
+  const noPlanDesc =
+    lang === "id" ? "Mulai perjalanan kebugaranmu dengan membuat program pertama bersama Coach Surya." :
+    lang === "zh" ? "通过Coach Surya创建您的第一个计划开始健身之旅。" :
+    "Start your fitness journey by generating your first program with Coach Surya.";
+  const generateFirstCta =
+    lang === "id" ? "Generate Program Pertama" :
+    lang === "zh" ? "生成第一个计划" :
+    "Generate First Program";
+  const generateNewCta =
+    lang === "id" ? "Buat Program Baru" :
+    lang === "zh" ? "创建新计划" :
+    "Generate New Program";
+  const viewPlansCta =
+    lang === "id" ? "Lihat Semua Rencana" :
+    lang === "zh" ? "查看所有计划" :
+    "View All Plans";
+  const monthLabel = (n?: number) =>
+    lang === "id" ? `Bulan ${n ?? 1}` :
+    lang === "zh" ? `第${n ?? 1}个月` :
+    `Month ${n ?? 1}`;
+
+  return (
+    <section className="px-4 pt-8 pb-16">
+      <div className="max-w-3xl mx-auto">
+        {/* Greeting + tier */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">{greeting}</p>
+            <h1 className="text-2xl font-display font-bold text-foreground mt-1">
+              {user?.email?.split("@")[0] ?? "Athlete"}
+            </h1>
+          </div>
+          <TierBadge tier={tier} />
+        </div>
+
+        {/* Active plan card or empty state */}
+        {loadingPlans ? (
+          <div
+            className="rounded-card p-6 animate-pulse"
+            style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)", height: 140 }}
+          />
+        ) : latestPlan ? (
+          <button
+            onClick={onOpenPlans}
+            className="w-full text-left rounded-card p-5 transition-transform hover:scale-[1.01] active:scale-[0.99]"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,107,0,0.10), rgba(255,61,127,0.05))",
+              border: "1px solid rgba(255,107,0,0.25)",
+            }}
+          >
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#ff6b00" }}>
+                {activeLabel}
+              </span>
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{
+                  background: "rgba(255,107,0,0.15)",
+                  color: "#ff6b00",
+                  border: "0.5px solid rgba(255,107,0,0.3)",
+                }}
+              >
+                {monthLabel(latestPlan.plan_month_number)}
+              </span>
+            </div>
+            <h2 className="text-lg font-display font-bold text-foreground mb-1">
+              {latestPlan.plan_name || latestPlan.program_type}
+            </h2>
+            <p className="text-xs text-muted-foreground mb-4">{latestPlan.program_type}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {planCount} {lang === "id" ? "program tersimpan" : lang === "zh" ? "个保存的计划" : "saved"}
+              </span>
+              <ArrowRight className="w-4 h-4" style={{ color: "#ff6b00" }} />
+            </div>
+          </button>
+        ) : (
+          <div
+            className="rounded-card p-6 text-center"
+            style={{
+              background: "hsl(var(--surface))",
+              border: "1px dashed hsl(var(--border) / 0.3)",
+            }}
+          >
+            <div
+              className="w-14 h-14 rounded-xl mx-auto mb-3 flex items-center justify-center"
+              style={{ background: "rgba(255,107,0,0.15)" }}
+            >
+              <Sparkles className="w-7 h-7" style={{ color: "#ff6b00" }} />
+            </div>
+            <h2 className="text-lg font-display font-bold text-foreground mb-1">{noPlanTitle}</h2>
+            <p className="text-sm text-muted-foreground mb-5">{noPlanDesc}</p>
+            <Button
+              onClick={onGenerate}
+              className="h-12 px-6 font-bold text-primary-foreground"
+              style={{ background: "linear-gradient(90deg, #ff6b00, #ff3d7f)" }}
+            >
+              {generateFirstCta} <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        )}
+
+        {/* Generate limit + actions */}
+        <div
+          className="mt-5 rounded-card p-4 flex items-center justify-between gap-3 flex-wrap"
+          style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
+        >
+          <GenerateLimitIndicator used={limit.used} max={limit.max} />
+          {latestPlan && (
+            <Button
+              onClick={onGenerate}
+              size="sm"
+              className="font-bold text-primary-foreground"
+              style={{ background: "linear-gradient(90deg, #ff6b00, #ff3d7f)" }}
+            >
+              {generateNewCta}
+            </Button>
+          )}
+        </div>
+
+        {latestPlan && (
+          <button
+            onClick={onOpenPlans}
+            className="mt-3 w-full rounded-card p-4 flex items-center justify-between transition-colors"
+            style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <FolderOpen className="w-4 h-4" style={{ color: "#ff6b00" }} />
+              {viewPlansCta}
+            </span>
+            <ArrowRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -75,6 +263,19 @@ export default function Index() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Logged-in users see their dashboard, not the marketing landing.
+  if (!authLoading && user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <LoggedInDashboard
+          onGenerate={() => navigate("/programs")}
+          onOpenPlans={() => navigate("/saved-plans")}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background relative">
       <AppHeader />
@@ -82,9 +283,13 @@ export default function Index() {
 
 
       {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+      <section
+        className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(255,107,0,0.10), transparent 60%), radial-gradient(ellipse at bottom right, rgba(255,61,127,0.08), transparent 60%), #0f0f11",
+        }}
+      >
         <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
           <img src={logo} alt="Surya-FitAi" className="h-24 md:h-28 mx-auto mb-6 object-contain" />
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">

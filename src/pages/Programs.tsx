@@ -54,7 +54,7 @@ export default function Programs() {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-3 flex-wrap">
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ backgroundColor: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
+              style={{ backgroundColor: 'rgba(255,107,0,0.12)', border: '1px solid rgba(255,107,0,0.25)', color: '#ff6b00' }}>
               <ShieldCheck className="w-3.5 h-3.5" />
               {(t as any).coachProgramPill}
             </span>

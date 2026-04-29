@@ -38,13 +38,13 @@ export default function CheckinReminderModal({ open, onClose }: Props) {
         className="w-full max-w-sm"
         style={{
           background: "#111",
-          border: "1px solid rgba(0,255,120,0.3)",
+          border: "1px solid rgba(255,107,0,0.3)",
           borderRadius: 20,
           padding: 28,
         }}
       >
         <div className="flex justify-center mb-4">
-          <CheckCircle2 size={40} color="#00ff78" />
+          <CheckCircle2 size={40} color="#ff6b00" />
         </div>
         <h2
           className="text-center font-bold mb-3"
@@ -67,7 +67,7 @@ export default function CheckinReminderModal({ open, onClose }: Props) {
           onClick={onClose}
           className="w-full"
           style={{
-            background: "#00ff78",
+            background: "#ff6b00",
             color: "#000",
             fontWeight: 700,
             borderRadius: 12,

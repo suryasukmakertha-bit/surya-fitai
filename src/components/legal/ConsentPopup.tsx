@@ -68,7 +68,7 @@ export default function ConsentPopup({ isOpen, onAccept }: ConsentPopupProps) {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
-                  activeTab === tab ? 'bg-green-500 text-black' : 'text-gray-400'
+                  activeTab === tab ? 'bg-primary text-primary-foreground' : 'text-gray-400'
                 }`}
                 style={activeTab !== tab ? { backgroundColor: 'rgba(255,255,255,0.07)' } : {}}
               >
@@ -103,7 +103,7 @@ export default function ConsentPopup({ isOpen, onAccept }: ConsentPopupProps) {
             disabled={!canAccept}
             className={`w-full py-3.5 rounded-2xl font-bold text-base transition-all ${
               canAccept
-                ? 'bg-green-500 text-black active:scale-95'
+                ? 'bg-primary text-primary-foreground active:scale-95'
                 : 'text-gray-600 cursor-not-allowed'
             }`}
             style={!canAccept ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}

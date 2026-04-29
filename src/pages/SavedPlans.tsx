@@ -240,9 +240,9 @@ export default function SavedPlans() {
                           aria-label={p.plan_completed_at ? (t as any).completedBadgeLabel : (t as any).activeBadgeLabel}
                         >
                           {p.plan_completed_at ? (
-                            <CheckCircle2 className="w-3 h-3" strokeWidth={1.5} style={{ color: "#22c55e" }} />
+                            <CheckCircle2 className="w-3 h-3" strokeWidth={1.5} style={{ color: "#10b981" }} />
                           ) : (
-                            <Flame className="w-3 h-3" strokeWidth={1.5} style={{ color: "#22c55e" }} />
+                            <Flame className="w-3 h-3" strokeWidth={1.5} style={{ color: "#ff6b00" }} />
                           )}
                           <span>{(t as any).monthBadge} {p.plan_month_number || 1}</span>
                         </span>

@@ -30,7 +30,7 @@ export default function LegalRenderer({ sections }: Props) {
                     <ul className="space-y-1 mt-1 ml-1">
                       {item.bullets.map((b, k) => (
                         <li key={k} className="flex gap-2">
-                          <span className="text-green-400 flex-shrink-0">•</span>
+                          <span className="text-primary flex-shrink-0">•</span>
                           <span>{b}</span>
                         </li>
                       ))}
@@ -45,7 +45,7 @@ export default function LegalRenderer({ sections }: Props) {
             <ul className="space-y-1 mt-1">
               {s.bullets.map((b, j) => (
                 <li key={j} className="text-sm text-gray-400 flex gap-2">
-                  <span className="text-green-400 flex-shrink-0">•</span>
+                  <span className="text-primary flex-shrink-0">•</span>
                   <span>{b}</span>
                 </li>
               ))}
@@ -54,7 +54,7 @@ export default function LegalRenderer({ sections }: Props) {
 
           {s.contact && (
             <div className="text-sm text-gray-400 space-y-1">
-              <p>Email: <span className="text-green-400">fitaisurya@gmail.com</span></p>
+              <p>Email: <span className="text-primary">fitaisurya@gmail.com</span></p>
               <p>Website: <span className="text-gray-300">surya-fitai.com</span></p>
             </div>
           )}

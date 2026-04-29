@@ -41,7 +41,7 @@ export default function LockedPlanModal({ isOpen, planName, onClose, onSubscribe
         className="relative w-full sm:max-w-md mx-4 animate-in slide-in-from-bottom duration-300"
         style={{
           background: "#111",
-          border: "1px solid rgba(0,255,120,0.3)",
+          border: "1px solid rgba(255,107,0,0.3)",
           borderRadius: 20,
           padding: 28,
         }}
@@ -53,7 +53,8 @@ export default function LockedPlanModal({ isOpen, planName, onClose, onSubscribe
         <p className="text-sm text-muted-foreground text-center whitespace-pre-line mb-6 leading-relaxed">{body}</p>
         <button
           onClick={onSubscribe}
-          className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-primary to-green-400 text-primary-foreground hover:opacity-90 transition-opacity active:scale-[0.97]"
+          className="w-full py-3.5 rounded-2xl font-bold text-base text-primary-foreground hover:opacity-90 transition-opacity active:scale-[0.97]"
+          style={{ background: "linear-gradient(90deg, #ff6b00, #ff3d7f)" }}
         >
           {subscribeBtn}
         </button>

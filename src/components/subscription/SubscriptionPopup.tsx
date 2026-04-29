@@ -159,7 +159,7 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
 
       <div className="relative w-full sm:max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
         {/* Green accent bar */}
-        <div className="h-1 w-full bg-gradient-to-r from-primary to-green-400 rounded-t-3xl" />
+        <div className="h-1 w-full bg-gradient-to-r from-[#ff6b00] to-[#ff3d7f] rounded-t-3xl" />
 
         <div className="px-6 py-6 space-y-5">
           {/* Header */}
@@ -205,7 +205,7 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
           <button
             onClick={handlePay}
             disabled={payLoading}
-            className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-primary to-green-400 text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 active:scale-[0.97] transition-transform"
+            className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-[#ff6b00] to-[#ff3d7f] text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 active:scale-[0.97] transition-transform"
           >
             {payLoading ? t.loadingBtn : t.payBtn}
           </button>

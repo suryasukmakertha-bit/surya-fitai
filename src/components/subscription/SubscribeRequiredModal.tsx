@@ -37,7 +37,7 @@ export default function SubscribeRequiredModal({ isOpen, onClose, onSubscribe }:
     <div className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full sm:max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300">
-        <div className="h-1 w-full bg-gradient-to-r from-primary to-green-400 rounded-t-3xl" />
+        <div className="h-1 w-full bg-gradient-to-r from-[#ff6b00] to-[#ff3d7f] rounded-t-3xl" />
         <button onClick={onClose} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" aria-label="Close">
           <X className="w-5 h-5" />
         </button>
@@ -49,7 +49,7 @@ export default function SubscribeRequiredModal({ isOpen, onClose, onSubscribe }:
           <p className="text-sm text-muted-foreground leading-relaxed">{t.body}</p>
           <button
             onClick={onSubscribe}
-            className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-primary to-green-400 text-primary-foreground hover:opacity-90 transition-opacity active:scale-[0.97] transition-transform"
+            className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-[#ff6b00] to-[#ff3d7f] text-primary-foreground hover:opacity-90 transition-opacity active:scale-[0.97] transition-transform"
           >
             {t.cta}
           </button>
