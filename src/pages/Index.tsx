@@ -42,7 +42,7 @@ function ScrollProgressBar() {
 function LoggedInDashboard({ onGenerate, onOpenPlans }: { onGenerate: () => void; onOpenPlans: () => void }) {
   const { lang } = useLanguage();
   const { user } = useAuth();
-  const limit = useGenerateLimit();
+  const { info: limit } = useGenerateLimit();
   const [latestPlan, setLatestPlan] = useState<{ id: string; plan_name: string | null; program_type: string; plan_month_number?: number } | null>(null);
   const [planCount, setPlanCount] = useState<number>(0);
   const [loadingPlans, setLoadingPlans] = useState(true);
