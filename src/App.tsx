@@ -12,6 +12,7 @@ import Results from "./pages/Results";
 import Auth from "./pages/Auth";
 import SavedPlans from "./pages/SavedPlans";
 import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
 import PWAManager from "./components/pwa/PWAManager";
@@ -47,6 +48,7 @@ const App = () => (
                   <Route path="/results" element={<Results />} />
                   <Route path="/saved-plans" element={<SavedPlans />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
