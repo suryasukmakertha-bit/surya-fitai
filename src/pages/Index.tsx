@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check, Calendar, TrendingUp, Zap, BarChart2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
@@ -12,8 +12,6 @@ import GenerateLimitIndicator from "@/components/brand/GenerateLimitIndicator";
 import TierBadge, { type Tier } from "@/components/brand/TierBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-
-import logo from "@/assets/logo.png";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -56,9 +54,12 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const [planCount, setPlanCount] = useState<number>(0);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [displayName, setDisplayName] = useState<string>("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [stats, setStats] = useState({ total: 0, streak: 0, activeDaysWeek: 0 });
+  const [planStats, setPlanStats] = useState({ completedDays: 0, totalDays: 28, currentWeek: 1, totalWeeks: 4 });
   const [lastWorkout, setLastWorkout] = useState<{ date: string; day_label: string; count: number } | null>(null);
   const [planPickerOpen, setPlanPickerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const activePlanStorageKey = user ? `surya:activePlanId:${user.id}` : "";
 
@@ -70,10 +71,10 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         const [{ data: planData, count }, { data: profile }, { data: completions }] = await Promise.all([
           supabase
           .from("saved_plans")
-          .select("id, plan_name, program_type, plan_month_number, plan_data, user_info, created_at", { count: "exact" })
+          .select("id, plan_name, program_type, plan_month_number, plan_data, user_info, created_at, plan_started_at", { count: "exact" })
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
-          supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
+          supabase.from("profiles").select("display_name, avatar_url").eq("user_id", user.id).maybeSingle(),
           supabase
             .from("workout_completions")
             .select("workout_date, day_label")
@@ -91,6 +92,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         const stored = storedId ? plans.find((p: any) => p.id === storedId) : null;
         setActivePlan(stored || plans[0] || null);
         setDisplayName(((profile as any)?.display_name as string) || "");
+        setAvatarUrl(((profile as any)?.avatar_url as string) || null);
 
         // Compute stats
         const all = completions || [];
@@ -140,6 +142,33 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     if (p) setActivePlan(p);
     setPlanPickerOpen(false);
   };
+
+  // Compute plan-specific stats when active plan changes
+  useEffect(() => {
+    if (!user || !activePlan) {
+      setPlanStats({ completedDays: 0, totalDays: 28, currentWeek: 1, totalWeeks: 4 });
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("workout_completions")
+        .select("workout_date")
+        .eq("user_id", user.id)
+        .eq("plan_id", activePlan.id)
+        .eq("completed", true);
+      if (cancelled) return;
+      const completedDays = new Set((data || []).map((r: any) => r.workout_date)).size;
+      const totalWeeks = (activePlan.plan_data as any)?.durationWeeks || 4;
+      const totalDays = totalWeeks * 7;
+      // current week: based on plan_started_at
+      const startedAt = activePlan.plan_started_at ? new Date(activePlan.plan_started_at) : new Date(activePlan.created_at);
+      const daysSince = Math.floor((Date.now() - startedAt.getTime()) / 86400000);
+      const currentWeek = Math.min(totalWeeks, Math.max(1, Math.floor(daysSince / 7) + 1));
+      setPlanStats({ completedDays, totalDays, currentWeek, totalWeeks });
+    })();
+    return () => { cancelled = true; };
+  }, [user, activePlan]);
 
   const tier: Tier =
     limit.status === "admin" ? "ADMIN" :
@@ -192,18 +221,52 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const showUpgrade = tier === "FREE" && Number.isFinite(limit.max) && limit.used >= (limit.max as number);
 
   return (
-    <section className="px-4 pt-6 pb-20">
-      <div className="max-w-3xl mx-auto">
-        {/* Greeting + tier */}
-        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{greeting}</p>
-            <h1 className="text-2xl font-display font-bold text-foreground mt-1">
-              {userName}!
-            </h1>
-          </div>
+    <section className="px-4 pt-20 pb-24 relative">
+      <div className="max-w-3xl mx-auto relative">
+        {/* Greeting (avatar + name) + tier */}
+        <div className="flex items-center justify-between mb-5 gap-3">
+          <button
+            type="button"
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-3 min-w-0 text-left"
+            aria-label="Open profile"
+          >
+            <div
+              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center font-extrabold text-white shrink-0 shadow-md"
+              style={{ background: avatarUrl ? "transparent" : "linear-gradient(135deg,#ff6b00,#ff3d7f)", fontSize: 14 }}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span>{userName.slice(0,1).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground leading-none">{greeting}</p>
+              <h1 className="text-xl font-display font-bold text-foreground mt-1 truncate">
+                {userName}!
+              </h1>
+            </div>
+          </button>
           <TierBadge tier={tier} />
         </div>
+
+        {/* Radial gradient glow accent behind active plan card */}
+        {activePlan && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute"
+            style={{
+              top: 60,
+              right: -40,
+              width: 220,
+              height: 220,
+              background: "radial-gradient(circle, rgba(255,107,0,0.14) 0%, transparent 70%)",
+              zIndex: 0,
+            }}
+          />
+        )}
+        <div className="relative" style={{ zIndex: 1 }}>
 
         {/* SECTION 1 — Active plan card or empty state */}
         {loadingPlans ? (
@@ -327,20 +390,20 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         {/* SECTION 2 — Stats Row */}
         <div className="mt-5 grid grid-cols-3 gap-3">
           {[
-            { icon: CheckCircle2, label: tx("Workout Selesai","Workouts Done","已完成训练"), value: String(stats.total) },
-            { icon: Flame, label: tx("Streak","Streak","连续天数"), value: `${stats.streak}${tx(" hari"," d"," 天")}` },
-            { icon: CalendarDays, label: tx("Minggu Aktif","Active Week","本周活跃"), value: `${stats.activeDaysWeek}/7` },
+            { icon: CheckCircle2, label: tx("Latihan Selesai","Workouts Done","已完成训练"), value: String(planStats.completedDays) },
+            { icon: TrendingUp,   label: tx("Progress","Progress","进度"), value: `${planStats.totalDays > 0 ? Math.round((planStats.completedDays / planStats.totalDays) * 100) : 0}%` },
+            { icon: Calendar,     label: tx("Minggu","Week","周"), value: `${planStats.currentWeek}/${planStats.totalWeeks}` },
           ].map((s) => {
             const Icon = s.icon;
             return (
               <div
                 key={s.label}
-                className="rounded-card p-3 text-center"
+                className="rounded-card p-3 text-center surface-depth"
                 style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
               >
                 <Icon className="w-4 h-4 mx-auto mb-1" style={{ color: "#ff6b00" }} />
                 <p className="text-[10px] text-muted-foreground">{s.label}</p>
-                <p className="text-sm font-bold text-foreground mt-0.5">{s.value}</p>
+                <p className="text-base font-extrabold mt-0.5" style={{ color: "#ff6b00" }}>{s.value}</p>
               </div>
             );
           })}
@@ -420,6 +483,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
             <p className="text-sm font-bold text-foreground">{tx("Pilih Program","Choose Program","选择计划")}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">{tx("Jelajahi tipe program","Browse program types","浏览程序类型")}</p>
           </button>
+        </div>
         </div>
       </div>
 
@@ -518,7 +582,7 @@ export default function Index() {
   // Logged-in users see their dashboard, not the marketing landing.
   if (!authLoading && user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background noise-overlay">
         <AppHeader />
         <LoggedInDashboard
           onGenerate={() => navigate("/programs")}
@@ -540,42 +604,117 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative noise-overlay">
       <AppHeader />
       <ScrollProgressBar />
 
 
       {/* Hero */}
       <section
-        className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
+        className="relative min-h-[92vh] flex items-center justify-center overflow-hidden"
         style={{
-          background:
-            "radial-gradient(ellipse at top, rgba(255,107,0,0.10), transparent 60%), radial-gradient(ellipse at bottom right, rgba(255,61,127,0.08), transparent 60%), #0f0f11",
+          backgroundImage:
+            "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 60%, #0f0f11 100%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
-        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
-          <img src={logo} alt="Surya-FitAi" className="h-24 md:h-28 mx-auto mb-6 object-contain" />
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
-            <Brain className="w-4 h-4 text-primary" />
-            <span className="text-xs text-primary font-medium tracking-wide uppercase">{t.aiPowered}</span>
-          </div>
-          <div className="flex items-center justify-center gap-2 flex-wrap mt-2 mb-4">
-            <span className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5">
-              <ShieldCheck className="w-4 h-4 text-primary" />
-              <span className="text-xs text-primary font-medium tracking-wide uppercase">{(t as any).coachCertified}</span>
+        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center pt-16">
+          {/* Floating badge row (lucide only) */}
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
+              style={{
+                background: "rgba(255,107,0,0.15)",
+                border: "1px solid rgba(255,107,0,0.3)",
+              }}
+            >
+              <Brain className="w-3.5 h-3.5" style={{ color: "#ff9240" }} />
+              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff9240" }}>
+                {t.aiPowered}
+              </span>
+            </span>
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
+              style={{
+                background: "rgba(255,107,0,0.15)",
+                border: "1px solid rgba(255,107,0,0.3)",
+              }}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "#ff9240" }} />
+              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff9240" }}>
+                {lang === "id" ? "Certified Coach" : lang === "zh" ? "认证教练" : "Certified Coach"}
+              </span>
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-display font-black text-foreground leading-tight mb-6">
-            {t.heroTitle1} <br />
-            <span className="text-gradient">{t.heroTitle2}</span>
+
+          {/* Headline */}
+          <h1
+            className="font-display font-extrabold text-white leading-[1.05] mb-4"
+            style={{ fontSize: "clamp(32px, 9vw, 56px)" }}
+          >
+            {t.heroTitle1}
+            <br />
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage: "linear-gradient(90deg, #ff6b00, #ff3d7f)",
+                fontSize: "clamp(36px, 10vw, 64px)",
+                fontWeight: 800,
+              }}
+            >
+              {t.heroTitle2}
+            </span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-2">
+
+          <p
+            className="max-w-md mx-auto mb-8"
+            style={{ color: "rgba(255,255,255,0.65)", fontSize: 14, lineHeight: 1.5 }}
+          >
             {t.heroDesc}
           </p>
-          <div className="mb-8" />
-          <Button data-tour="start-program" size="lg" onClick={handleStartProgram} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
+
+          <Button
+            data-tour="start-program"
+            onClick={handleStartProgram}
+            className="animate-cta-pulse text-white"
+            style={{
+              background: "linear-gradient(90deg, #ff6b00, #ff3d7f)",
+              boxShadow: "0 4px 24px rgba(255,107,0,0.45)",
+              borderRadius: 14,
+              padding: "16px 32px",
+              fontWeight: 700,
+              fontSize: 16,
+              height: "auto",
+            }}
+          >
             {t.startProgram} <ChevronRight className="w-5 h-5 ml-1" />
           </Button>
+
+          {/* Social proof strip — lucide only, no emoji */}
+          <div
+            className="mt-8 mx-auto flex items-center justify-center gap-3 flex-wrap"
+            style={{ maxWidth: 360 }}
+          >
+            {[
+              { icon: Zap, label: lang === "id" ? "AI Coach 24/7" : lang === "zh" ? "AI教练 24/7" : "AI Coach 24/7" },
+              { icon: BarChart2, label: lang === "id" ? "Personal Plan" : lang === "zh" ? "个性化计划" : "Personal Plan" },
+              { icon: TrendingUp, label: lang === "id" ? "Hasil Lebih Cepat" : lang === "zh" ? "更快效果" : "Faster Results" },
+            ].map((it, i, arr) => {
+              const I = it.icon;
+              return (
+                <div key={it.label} className="flex items-center gap-3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <I style={{ width: 12, height: 12, color: "#ff6b00" }} />
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{it.label}</span>
+                  </span>
+                  {i < arr.length - 1 && (
+                    <span style={{ width: 1, height: 12, background: "rgba(255,255,255,0.15)" }} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {/* Scroll indicator */}
           <div
