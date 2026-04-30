@@ -10,7 +10,7 @@ const STYLES: Record<Tier, { bg: string; color: string; label: string }> = {
   TRIAL:   { bg: "rgba(59,130,246,0.15)",  color: "#60a5fa", label: "TRIAL" },
   PAID:    { bg: "rgba(255,107,0,0.15)",   color: "#ff6b00", label: "PAID" },
   EXPIRED: { bg: "rgba(239,68,68,0.15)",   color: "#f87171", label: "EXPIRED" },
-  ADMIN:   { bg: "rgba(255,107,0,0.18)",   color: "#ff6b00", label: "ADMIN" },
+  ADMIN:   { bg: "rgba(168,85,247,0.15)",  color: "#a855f7", label: "ADMIN" },
 };
 
 export default function TierBadge({ tier, className = "" }: TierBadgeProps) {
