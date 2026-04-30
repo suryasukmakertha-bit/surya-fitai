@@ -582,7 +582,7 @@ export default function Index() {
   // Logged-in users see their dashboard, not the marketing landing.
   if (!authLoading && user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background noise-overlay">
         <AppHeader />
         <LoggedInDashboard
           onGenerate={() => navigate("/programs")}
