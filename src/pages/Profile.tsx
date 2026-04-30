@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Pencil, Crown, Target, Heart, Bell, Globe, ScrollText, MessageSquare, LogOut, Loader2, Check, X, Flame, CalendarDays, Trophy, FolderOpen } from "lucide-react";
+import { Camera, Pencil, Crown, Bell, Globe, ScrollText, MessageSquare, LogOut, Loader2, Check, X, Flame, CalendarDays, Trophy, FolderOpen, AlertTriangle } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import TierBadge, { type Tier } from "@/components/brand/TierBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +98,53 @@ export default function Profile() {
   const initials = (displayName || user?.email || "U").slice(0, 1).toUpperCase();
   const showUpgrade = tier === "FREE" || tier === "TRIAL" || tier === "EXPIRED";
 
+  // Compute expiry / status helpers from subscription data
+  const subRow: any = sub.subscription;
+  const now = new Date();
+  const trialEnd: Date | null = subRow?.trial_end ? new Date(subRow.trial_end) : null;
+  const subEnd: Date | null = subRow?.subscription_end ? new Date(subRow.subscription_end) : null;
+  const dateFmt = (d: Date) => d.toLocaleDateString(lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US", { day: "2-digit", month: "short", year: "numeric" });
+  const daysUntil = (d: Date) => Math.ceil((d.getTime() - now.getTime()) / 86400000);
+
+  let tierSubline: { text: string; color: string; warning?: boolean } | null = null;
+  if (tier === "TRIAL" && trialEnd) {
+    if (now < trialEnd) {
+      const left = daysUntil(trialEnd);
+      tierSubline = {
+        text: tx(`Sisa trial: ${left} hari lagi`, `Trial left: ${left} days`, `试用剩余：${left} 天`),
+        color: "#60a5fa",
+      };
+    } else {
+      tierSubline = { text: tx("Trial berakhir","Trial ended","试用已结束"), color: "#f87171", warning: true };
+    }
+  } else if (tier === "PAID" && subEnd) {
+    if (now < subEnd) {
+      const left = daysUntil(subEnd);
+      if (left <= 7) {
+        tierSubline = {
+          text: tx(`Berakhir dalam ${left} hari — Perpanjang →`, `Expires in ${left} days — Renew →`, `${left} 天后到期 — 续费 →`),
+          color: "#ff6b00",
+          warning: true,
+        };
+      } else {
+        tierSubline = {
+          text: tx(`Aktif hingga: ${dateFmt(subEnd)}`, `Active until: ${dateFmt(subEnd)}`, `有效至：${dateFmt(subEnd)}`),
+          color: "#ff6b00",
+        };
+      }
+    } else {
+      tierSubline = { text: tx("Langganan berakhir — Perbarui →","Subscription ended — Renew →","订阅已结束 — 续费 →"), color: "#f87171", warning: true };
+    }
+  } else if (tier === "EXPIRED") {
+    tierSubline = { text: tx("Langgananmu berakhir — Perbarui sekarang →","Your subscription ended — Renew now →","您的订阅已结束 — 立即续费 →"), color: "#f87171", warning: true };
+  }
+
+  const upgradeBannerText =
+    tier === "FREE"    ? tx("Upgrade ke Pro — Rp 19.900/bulan →","Upgrade to Pro — Rp 19,900/month →","升级到 Pro — Rp 19,900/月 →") :
+    tier === "TRIAL"   ? tx("Trial aktif — Upgrade sebelum berakhir →","Trial active — Upgrade before it ends →","试用中 — 在结束前升级 →") :
+    tier === "EXPIRED" ? tx("Langgananmu berakhir — Perbarui sekarang →","Your subscription ended — Renew now →","您的订阅已结束 — 立即续费 →") :
+    "";
+
   const handlePickFile = () => fileRef.current?.click();
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,8 +211,6 @@ export default function Profile() {
       </div>
     );
   }
-
-  const upgradeCta = tx("Upgrade ke Pro — Rp 19.900/bulan","Upgrade to Pro — Rp 19,900/month","升级到 Pro — Rp 19,900/月");
 
   return (
     <div className="min-h-screen bg-background">
@@ -242,7 +287,21 @@ export default function Profile() {
             <p className="text-xs text-muted-foreground mt-2">
               {tx(`Anggota sejak ${memberSinceLabel}`, `Member since ${memberSinceLabel}`, `成员自 ${memberSinceLabel}`)}
             </p>
-            <div className="mt-2 flex justify-center"><TierBadge tier={tier} /></div>
+            <div className="mt-2 flex flex-col items-center gap-1">
+              <TierBadge tier={tier} />
+              {tierSubline && (
+                <button
+                  type="button"
+                  onClick={() => { if (tierSubline?.warning) sub.openPopup('save_plan'); }}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium"
+                  style={{ color: tierSubline.color, cursor: tierSubline.warning ? "pointer" : "default" }}
+                  disabled={!tierSubline.warning}
+                >
+                  {tierSubline.warning && <AlertTriangle className="w-3 h-3" />}
+                  {tierSubline.text}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -255,7 +314,7 @@ export default function Profile() {
           >
             <Crown className="w-6 h-6 shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-extrabold">{upgradeCta}</p>
+              <p className="text-sm font-extrabold">{upgradeBannerText}</p>
               <p className="text-[11px] opacity-90 mt-0.5">{tx("Tanpa batas + semua fitur Pro","Unlimited + all Pro features","无限制 + 所有Pro功能")}</p>
             </div>
             <span className="text-xl">→</span>
@@ -291,8 +350,6 @@ export default function Profile() {
           style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
         >
           {[
-            { icon: Target,        label: tx("Goals & Target","Goals & Target","目标"),               onClick: () => navigate("/programs") },
-            { icon: Heart,         label: tx("Health Data","Health Data","健康数据"),                  onClick: () => navigate("/programs") },
             { icon: Bell,          label: tx("Reminder Settings","Reminder Settings","提醒设置"),       onClick: () => setNotifOpen(true) },
             { icon: Globe,         label: tx("Bahasa","Language","语言"),                              onClick: () => setShowLang((v) => !v) },
             { icon: ScrollText,    label: tx("Syarat & Privasi","Terms & Privacy","条款与隐私"),        onClick: () => openLegalPopup('terms') },
