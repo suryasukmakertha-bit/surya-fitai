@@ -221,18 +221,52 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const showUpgrade = tier === "FREE" && Number.isFinite(limit.max) && limit.used >= (limit.max as number);
 
   return (
-    <section className="px-4 pt-6 pb-20">
-      <div className="max-w-3xl mx-auto">
-        {/* Greeting + tier */}
-        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{greeting}</p>
-            <h1 className="text-2xl font-display font-bold text-foreground mt-1">
-              {userName}!
-            </h1>
-          </div>
+    <section className="px-4 pt-20 pb-24 relative">
+      <div className="max-w-3xl mx-auto relative">
+        {/* Greeting (avatar + name) + tier */}
+        <div className="flex items-center justify-between mb-5 gap-3">
+          <button
+            type="button"
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-3 min-w-0 text-left"
+            aria-label="Open profile"
+          >
+            <div
+              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center font-extrabold text-white shrink-0 shadow-md"
+              style={{ background: avatarUrl ? "transparent" : "linear-gradient(135deg,#ff6b00,#ff3d7f)", fontSize: 14 }}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span>{userName.slice(0,1).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground leading-none">{greeting}</p>
+              <h1 className="text-xl font-display font-bold text-foreground mt-1 truncate">
+                {userName}!
+              </h1>
+            </div>
+          </button>
           <TierBadge tier={tier} />
         </div>
+
+        {/* Radial gradient glow accent behind active plan card */}
+        {activePlan && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute"
+            style={{
+              top: 60,
+              right: -40,
+              width: 220,
+              height: 220,
+              background: "radial-gradient(circle, rgba(255,107,0,0.14) 0%, transparent 70%)",
+              zIndex: 0,
+            }}
+          />
+        )}
+        <div className="relative" style={{ zIndex: 1 }}>
 
         {/* SECTION 1 — Active plan card or empty state */}
         {loadingPlans ? (
@@ -356,20 +390,20 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         {/* SECTION 2 — Stats Row */}
         <div className="mt-5 grid grid-cols-3 gap-3">
           {[
-            { icon: CheckCircle2, label: tx("Workout Selesai","Workouts Done","已完成训练"), value: String(stats.total) },
-            { icon: Flame, label: tx("Streak","Streak","连续天数"), value: `${stats.streak}${tx(" hari"," d"," 天")}` },
-            { icon: CalendarDays, label: tx("Minggu Aktif","Active Week","本周活跃"), value: `${stats.activeDaysWeek}/7` },
+            { icon: CheckCircle2, label: tx("Latihan Selesai","Workouts Done","已完成训练"), value: String(planStats.completedDays) },
+            { icon: TrendingUp,   label: tx("Progress","Progress","进度"), value: `${planStats.totalDays > 0 ? Math.round((planStats.completedDays / planStats.totalDays) * 100) : 0}%` },
+            { icon: Calendar,     label: tx("Minggu","Week","周"), value: `${planStats.currentWeek}/${planStats.totalWeeks}` },
           ].map((s) => {
             const Icon = s.icon;
             return (
               <div
                 key={s.label}
-                className="rounded-card p-3 text-center"
+                className="rounded-card p-3 text-center surface-depth"
                 style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
               >
                 <Icon className="w-4 h-4 mx-auto mb-1" style={{ color: "#ff6b00" }} />
                 <p className="text-[10px] text-muted-foreground">{s.label}</p>
-                <p className="text-sm font-bold text-foreground mt-0.5">{s.value}</p>
+                <p className="text-base font-extrabold mt-0.5" style={{ color: "#ff6b00" }}>{s.value}</p>
               </div>
             );
           })}
