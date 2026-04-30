@@ -143,6 +143,33 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     setPlanPickerOpen(false);
   };
 
+  // Compute plan-specific stats when active plan changes
+  useEffect(() => {
+    if (!user || !activePlan) {
+      setPlanStats({ completedDays: 0, totalDays: 28, currentWeek: 1, totalWeeks: 4 });
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("workout_completions")
+        .select("workout_date")
+        .eq("user_id", user.id)
+        .eq("plan_id", activePlan.id)
+        .eq("completed", true);
+      if (cancelled) return;
+      const completedDays = new Set((data || []).map((r: any) => r.workout_date)).size;
+      const totalWeeks = (activePlan.plan_data as any)?.durationWeeks || 4;
+      const totalDays = totalWeeks * 7;
+      // current week: based on plan_started_at
+      const startedAt = activePlan.plan_started_at ? new Date(activePlan.plan_started_at) : new Date(activePlan.created_at);
+      const daysSince = Math.floor((Date.now() - startedAt.getTime()) / 86400000);
+      const currentWeek = Math.min(totalWeeks, Math.max(1, Math.floor(daysSince / 7) + 1));
+      setPlanStats({ completedDays, totalDays, currentWeek, totalWeeks });
+    })();
+    return () => { cancelled = true; };
+  }, [user, activePlan]);
+
   const tier: Tier =
     limit.status === "admin" ? "ADMIN" :
     limit.status === "active" ? "PAID" :
