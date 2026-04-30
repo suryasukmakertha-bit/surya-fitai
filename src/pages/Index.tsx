@@ -611,35 +611,110 @@ export default function Index() {
 
       {/* Hero */}
       <section
-        className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
+        className="relative min-h-[92vh] flex items-center justify-center overflow-hidden"
         style={{
-          background:
-            "radial-gradient(ellipse at top, rgba(255,107,0,0.10), transparent 60%), radial-gradient(ellipse at bottom right, rgba(255,61,127,0.08), transparent 60%), #0f0f11",
+          backgroundImage:
+            "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 60%, #0f0f11 100%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
-        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
-          <img src={logo} alt="Surya-FitAi" className="h-24 md:h-28 mx-auto mb-6 object-contain" />
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
-            <Brain className="w-4 h-4 text-primary" />
-            <span className="text-xs text-primary font-medium tracking-wide uppercase">{t.aiPowered}</span>
-          </div>
-          <div className="flex items-center justify-center gap-2 flex-wrap mt-2 mb-4">
-            <span className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5">
-              <ShieldCheck className="w-4 h-4 text-primary" />
-              <span className="text-xs text-primary font-medium tracking-wide uppercase">{(t as any).coachCertified}</span>
+        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center pt-16">
+          {/* Floating badge row (lucide only) */}
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
+              style={{
+                background: "rgba(255,107,0,0.15)",
+                border: "1px solid rgba(255,107,0,0.3)",
+              }}
+            >
+              <Brain className="w-3.5 h-3.5" style={{ color: "#ff9240" }} />
+              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff9240" }}>
+                {t.aiPowered}
+              </span>
+            </span>
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
+              style={{
+                background: "rgba(255,107,0,0.15)",
+                border: "1px solid rgba(255,107,0,0.3)",
+              }}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "#ff9240" }} />
+              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff9240" }}>
+                {lang === "id" ? "Certified Coach" : lang === "zh" ? "认证教练" : "Certified Coach"}
+              </span>
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-display font-black text-foreground leading-tight mb-6">
-            {t.heroTitle1} <br />
-            <span className="text-gradient">{t.heroTitle2}</span>
+
+          {/* Headline */}
+          <h1
+            className="font-display font-extrabold text-white leading-[1.05] mb-4"
+            style={{ fontSize: "clamp(32px, 9vw, 56px)" }}
+          >
+            {t.heroTitle1}
+            <br />
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage: "linear-gradient(90deg, #ff6b00, #ff3d7f)",
+                fontSize: "clamp(36px, 10vw, 64px)",
+                fontWeight: 800,
+              }}
+            >
+              {t.heroTitle2}
+            </span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-2">
+
+          <p
+            className="max-w-md mx-auto mb-8"
+            style={{ color: "rgba(255,255,255,0.65)", fontSize: 14, lineHeight: 1.5 }}
+          >
             {t.heroDesc}
           </p>
-          <div className="mb-8" />
-          <Button data-tour="start-program" size="lg" onClick={handleStartProgram} className="h-14 px-8 text-lg font-bold animate-pulse-neon">
+
+          <Button
+            data-tour="start-program"
+            onClick={handleStartProgram}
+            className="animate-cta-pulse text-white"
+            style={{
+              background: "linear-gradient(90deg, #ff6b00, #ff3d7f)",
+              boxShadow: "0 4px 24px rgba(255,107,0,0.45)",
+              borderRadius: 14,
+              padding: "16px 32px",
+              fontWeight: 700,
+              fontSize: 16,
+              height: "auto",
+            }}
+          >
             {t.startProgram} <ChevronRight className="w-5 h-5 ml-1" />
           </Button>
+
+          {/* Social proof strip — lucide only, no emoji */}
+          <div
+            className="mt-8 mx-auto flex items-center justify-center gap-3 flex-wrap"
+            style={{ maxWidth: 360 }}
+          >
+            {[
+              { icon: Zap, label: lang === "id" ? "AI Coach 24/7" : lang === "zh" ? "AI教练 24/7" : "AI Coach 24/7" },
+              { icon: BarChart2, label: lang === "id" ? "Personal Plan" : lang === "zh" ? "个性化计划" : "Personal Plan" },
+              { icon: TrendingUp, label: lang === "id" ? "Hasil Lebih Cepat" : lang === "zh" ? "更快效果" : "Faster Results" },
+            ].map((it, i, arr) => {
+              const I = it.icon;
+              return (
+                <div key={it.label} className="flex items-center gap-3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <I style={{ width: 12, height: 12, color: "#ff6b00" }} />
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{it.label}</span>
+                  </span>
+                  {i < arr.length - 1 && (
+                    <span style={{ width: 1, height: 12, background: "rgba(255,255,255,0.15)" }} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {/* Scroll indicator */}
           <div
