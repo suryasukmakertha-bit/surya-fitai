@@ -9,6 +9,7 @@
     /* DARK theme (default) — bg #0f0f11, surfaces #1a1a1a */
     --background: 240 6% 7%;
     --foreground: 0 0% 98%;
+    --bottom-nav-bg: rgba(15,15,17,0.92);
 
     --surface: 0 0% 10%;
     --card: 0 0% 10%;
@@ -67,6 +68,7 @@
   .light {
     --background: 36 33% 97%;
     --foreground: 0 0% 10%;
+    --bottom-nav-bg: rgba(250,248,245,0.92);
 
     --surface: 0 0% 100%;
     --card: 0 0% 100%;
