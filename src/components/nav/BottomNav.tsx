@@ -46,11 +46,14 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="sm:hidden fixed bottom-0 left-0 right-0 z-30 backdrop-blur-md"
+      className="sm:hidden fixed bottom-0 left-0 right-0 z-30"
       style={{
-        background: "hsl(var(--surface) / 0.92)",
-        borderTop: "0.5px solid hsl(var(--border) / 0.12)",
+        background: "var(--bottom-nav-bg, rgba(15,15,17,0.92))",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderTop: "1px solid hsl(var(--border) / 0.12)",
         paddingBottom: "env(safe-area-inset-bottom)",
+        boxShadow: "0 -4px 24px rgba(0,0,0,0.25)",
       }}
       aria-label="Bottom navigation"
     >
