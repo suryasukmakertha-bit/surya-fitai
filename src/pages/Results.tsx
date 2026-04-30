@@ -1050,7 +1050,10 @@ export default function Results() {
 
         {/* Trial Banner — only show when trial is active, not when trialNotStarted */}
         {access.isTrialActive && !access.trialNotStarted && (
-          <div className="mx-0 mb-3 p-3 rounded-xl bg-green-950 border border-green-800 flex items-center justify-between">
+          <div
+            className="mx-0 mb-3 p-3 rounded-xl flex items-center justify-between"
+            style={{ background: "rgba(255,107,0,0.10)", border: "1px solid rgba(255,107,0,0.30)" }}
+          >
             <span className="text-primary text-sm">{trialBannerText}</span>
             <button onClick={() => openPopup('save_plan')} className="text-primary text-xs font-semibold underline">
               {upgradeNowText}
@@ -1563,7 +1566,7 @@ export default function Results() {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-3 w-full rounded-xl px-6 py-4 font-bold text-white text-base shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
-            style={{ backgroundColor: "#25D366" }}
+            style={{ background: "linear-gradient(90deg, #ff6b00, #ff3d7f)" }}
           >
             <MessageCircle className="w-6 h-6" />
             {(t as any).whatsappCtaCoach}

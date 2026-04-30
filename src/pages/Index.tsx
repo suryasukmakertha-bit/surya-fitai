@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2 } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
@@ -11,6 +11,7 @@ import { useGenerateLimit } from "@/hooks/useGenerateLimit";
 import GenerateLimitIndicator from "@/components/brand/GenerateLimitIndicator";
 import TierBadge, { type Tier } from "@/components/brand/TierBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 import logo from "@/assets/logo.png";
 
@@ -50,12 +51,16 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const { lang } = useLanguage();
   const { user } = useAuth();
   const { info: limit } = useGenerateLimit();
-  const [latestPlan, setLatestPlan] = useState<any | null>(null);
+  const [activePlan, setActivePlan] = useState<any | null>(null);
+  const [allPlans, setAllPlans] = useState<any[]>([]);
   const [planCount, setPlanCount] = useState<number>(0);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [displayName, setDisplayName] = useState<string>("");
   const [stats, setStats] = useState({ total: 0, streak: 0, activeDaysWeek: 0 });
   const [lastWorkout, setLastWorkout] = useState<{ date: string; day_label: string; count: number } | null>(null);
+  const [planPickerOpen, setPlanPickerOpen] = useState(false);
+
+  const activePlanStorageKey = user ? `surya:activePlanId:${user.id}` : "";
 
   useEffect(() => {
     if (!user) return;
@@ -65,10 +70,9 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         const [{ data: planData, count }, { data: profile }, { data: completions }] = await Promise.all([
           supabase
           .from("saved_plans")
-          .select("id, plan_name, program_type, plan_month_number, plan_data, user_info", { count: "exact" })
+          .select("id, plan_name, program_type, plan_month_number, plan_data, user_info, created_at", { count: "exact" })
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1),
+          .order("created_at", { ascending: false }),
           supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
           supabase
             .from("workout_completions")
@@ -79,8 +83,13 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
             .limit(500),
         ]);
         if (cancelled) return;
-        setLatestPlan((planData && planData[0]) || null);
+        const plans = planData || [];
+        setAllPlans(plans);
         setPlanCount(count ?? 0);
+        // Resolve active plan: stored choice if still exists, else most recent.
+        const storedId = activePlanStorageKey ? localStorage.getItem(activePlanStorageKey) : null;
+        const stored = storedId ? plans.find((p: any) => p.id === storedId) : null;
+        setActivePlan(stored || plans[0] || null);
         setDisplayName(((profile as any)?.display_name as string) || "");
 
         // Compute stats
@@ -124,6 +133,13 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     })();
     return () => { cancelled = true; };
   }, [user]);
+
+  const setAsActive = (planId: string) => {
+    if (activePlanStorageKey) localStorage.setItem(activePlanStorageKey, planId);
+    const p = allPlans.find((x) => x.id === planId);
+    if (p) setActivePlan(p);
+    setPlanPickerOpen(false);
+  };
 
   const tier: Tier =
     limit.status === "admin" ? "ADMIN" :
@@ -195,7 +211,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
             className="rounded-card p-6 animate-pulse"
             style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)", height: 140 }}
           />
-        ) : latestPlan ? (
+        ) : activePlan ? (
           <div
             className="w-full rounded-card p-5"
             style={{
@@ -203,37 +219,55 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
               border: "1px solid rgba(255,107,0,0.25)",
             }}
           >
-            <button
-              type="button"
-              onClick={() => onOpenPlan(latestPlan.id, latestPlan)}
-              className="w-full text-left transition-transform hover:scale-[1.005] active:scale-[0.995]"
-            >
-              <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center justify-between gap-3 mb-3">
               <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#ff6b00" }}>
                 {activeLabel}
               </span>
-              <span
-                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                style={{
-                  background: "rgba(255,107,0,0.15)",
-                  color: "#ff6b00",
-                  border: "0.5px solid rgba(255,107,0,0.3)",
-                }}
-              >
-                {monthLabel(latestPlan.plan_month_number)}
-              </span>
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{
+                    background: "rgba(255,107,0,0.15)",
+                    color: "#ff6b00",
+                    border: "0.5px solid rgba(255,107,0,0.3)",
+                  }}
+                >
+                  {monthLabel(activePlan.plan_month_number)}
+                </span>
+                {allPlans.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setPlanPickerOpen(true)}
+                    className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      color: "#ff6b00",
+                      border: "0.5px solid rgba(255,107,0,0.3)",
+                    }}
+                    aria-label={tx("Ganti program aktif","Change active plan","切换计划")}
+                  >
+                    {tx("Ganti","Change","切换")}
+                    <ChevronsUpDown className="w-3 h-3" />
+                  </button>
+                )}
               </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpenPlan(activePlan.id, activePlan)}
+              className="w-full text-left transition-transform hover:scale-[1.005] active:scale-[0.995]"
+            >
               <h2 className="text-lg font-display font-bold text-foreground mb-1">
-                {latestPlan.plan_name || latestPlan.program_type}
+                {activePlan.plan_name || activePlan.program_type}
               </h2>
-              <p className="text-xs text-muted-foreground mb-3">{latestPlan.program_type}</p>
+              <p className="text-xs text-muted-foreground mb-3">{activePlan.program_type}</p>
               {/* Mini progress bar */}
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] text-muted-foreground">
-                    {tx(`Minggu ${stats.activeDaysWeek > 0 ? Math.min(4, latestPlan.plan_month_number || 1) : 1}/4`,
-                       `Week ${stats.activeDaysWeek > 0 ? Math.min(4, latestPlan.plan_month_number || 1) : 1}/4`,
-                       `第${stats.activeDaysWeek > 0 ? Math.min(4, latestPlan.plan_month_number || 1) : 1}/4周`)}
+                    {tx(`Minggu ${stats.activeDaysWeek > 0 ? Math.min(4, activePlan.plan_month_number || 1) : 1}/4`,
+                       `Week ${stats.activeDaysWeek > 0 ? Math.min(4, activePlan.plan_month_number || 1) : 1}/4`,
+                       `第${stats.activeDaysWeek > 0 ? Math.min(4, activePlan.plan_month_number || 1) : 1}/4周`)}
                   </span>
                   <span className="text-[11px] text-muted-foreground">
                     {planCount} {tx("tersimpan","saved","已保存")}
@@ -246,7 +280,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
             </button>
             <div className="flex items-center gap-2">
               <Button
-                onClick={() => onOpenPlan(latestPlan.id, latestPlan)}
+                onClick={() => onOpenPlan(activePlan.id, activePlan)}
                 size="sm"
                 className="flex-1 font-bold text-primary-foreground"
                 style={{ background: "linear-gradient(90deg, #ff6b00, #ff3d7f)" }}
@@ -331,7 +365,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         </div>
 
         {/* SECTION 4 — Last workout summary */}
-        {lastWorkout && latestPlan && (
+        {lastWorkout && activePlan && (
           <div
             className="mt-5 rounded-card p-4"
             style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
@@ -355,7 +389,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
               </div>
               <Button
                 size="sm"
-                onClick={() => onOpenPlan(latestPlan.id, latestPlan)}
+                onClick={() => onOpenPlan(activePlan.id, activePlan)}
                 variant="outline"
                 className="font-semibold"
                 style={{ borderColor: "rgba(255,107,0,0.4)", color: "#ff6b00" }}
@@ -388,6 +422,56 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
           </button>
         </div>
       </div>
+
+      {/* Active plan picker bottom sheet */}
+      <Sheet open={planPickerOpen} onOpenChange={setPlanPickerOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl border-t border-border/40 bg-background max-h-[80vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-left text-foreground">
+              {tx("Pilih Program Aktif","Choose Active Plan","选择活跃计划")}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 space-y-2 pb-4">
+            {allPlans.map((p) => {
+              const isActive = activePlan?.id === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setAsActive(p.id)}
+                  className="w-full rounded-card p-4 text-left transition-transform active:scale-[0.99]"
+                  style={{
+                    background: isActive ? "rgba(255,107,0,0.10)" : "hsl(var(--surface))",
+                    border: isActive ? "1px solid rgba(255,107,0,0.4)" : "1px solid hsl(var(--border) / 0.12)",
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-foreground truncate">
+                        {p.plan_name || p.program_type}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                        {p.program_type} · {monthLabel(p.plan_month_number)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {new Date(p.created_at).toLocaleDateString(lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </div>
+                    {isActive && (
+                      <span
+                        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                        style={{ background: "rgba(255,107,0,0.18)", color: "#ff6b00" }}
+                      >
+                        <Check className="w-3 h-3" />
+                        {tx("Aktif","Active","活跃")}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
     </section>
   );
 }
