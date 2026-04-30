@@ -176,4 +176,34 @@
   .glass-card {
     @apply backdrop-blur-sm bg-card/80 border border-border/50;
   }
+
+  /* Subtle noise texture overlay for richer dark surfaces */
+  .noise-overlay::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+  }
+  .light .noise-overlay::before { opacity: 0.25; }
+
+  .surface-depth {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 16px rgba(0,0,0,0.30);
+  }
+  .light .surface-depth {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .featured-glow {
+    box-shadow: 0 0 0 1.5px #ff6b00, 0 4px 24px rgba(255,107,0,0.20);
+  }
+
+  @keyframes ctaPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+  .animate-cta-pulse { animation: ctaPulse 2.5s ease-in-out infinite; }
 }
