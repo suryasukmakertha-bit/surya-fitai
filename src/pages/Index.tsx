@@ -484,6 +484,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
             <p className="text-[11px] text-muted-foreground mt-0.5">{tx("Jelajahi tipe program","Browse program types","浏览程序类型")}</p>
           </button>
         </div>
+        </div>
       </div>
 
       {/* Active plan picker bottom sheet */}
