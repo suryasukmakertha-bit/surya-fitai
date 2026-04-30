@@ -54,9 +54,12 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const [planCount, setPlanCount] = useState<number>(0);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [displayName, setDisplayName] = useState<string>("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [stats, setStats] = useState({ total: 0, streak: 0, activeDaysWeek: 0 });
+  const [planStats, setPlanStats] = useState({ completedDays: 0, totalDays: 28, currentWeek: 1, totalWeeks: 4 });
   const [lastWorkout, setLastWorkout] = useState<{ date: string; day_label: string; count: number } | null>(null);
   const [planPickerOpen, setPlanPickerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const activePlanStorageKey = user ? `surya:activePlanId:${user.id}` : "";
 
@@ -68,10 +71,10 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         const [{ data: planData, count }, { data: profile }, { data: completions }] = await Promise.all([
           supabase
           .from("saved_plans")
-          .select("id, plan_name, program_type, plan_month_number, plan_data, user_info, created_at", { count: "exact" })
+          .select("id, plan_name, program_type, plan_month_number, plan_data, user_info, created_at, plan_started_at", { count: "exact" })
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
-          supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
+          supabase.from("profiles").select("display_name, avatar_url").eq("user_id", user.id).maybeSingle(),
           supabase
             .from("workout_completions")
             .select("workout_date, day_label")
@@ -89,6 +92,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         const stored = storedId ? plans.find((p: any) => p.id === storedId) : null;
         setActivePlan(stored || plans[0] || null);
         setDisplayName(((profile as any)?.display_name as string) || "");
+        setAvatarUrl(((profile as any)?.avatar_url as string) || null);
 
         // Compute stats
         const all = completions || [];
