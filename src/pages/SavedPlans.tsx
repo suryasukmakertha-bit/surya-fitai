@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Trash2, Loader2, Eye, Pencil, Check, X, Flame, CheckCircle2, Lock, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getPlanProgress, type PlanProgress } from "@/lib/planProgress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,35 @@ interface SavedPlan {
   plan_name: string | null;
   plan_month_number?: number;
   plan_completed_at?: string | null;
+}
+
+function PlanProgressBar({ userId, plan }: { userId: string; plan: SavedPlan }) {
+  const [p, setP] = useState<PlanProgress | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const r = await getPlanProgress(userId, { id: plan.id, plan_data: plan.plan_data });
+      if (!cancelled) setP(r);
+    })();
+    return () => { cancelled = true; };
+  }, [userId, plan.id]);
+  const pct = p?.percentage ?? 0;
+  return (
+    <div className="mt-2">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] text-muted-foreground">
+          {p ? `${p.completedDays}/${p.totalDays} · Minggu ${p.currentWeek}/${p.totalWeeks}` : "—"}
+        </span>
+        <span className="text-[10px] font-semibold" style={{ color: "#ff6b00" }}>{pct}%</span>
+      </div>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+        <div
+          className="h-full rounded-full"
+          style={{ width: `${pct}%`, background: "linear-gradient(90deg,#ff6b00,#ff3d7f)" }}
+        />
+      </div>
+    </div>
+  );
 }
 
 export default function SavedPlans() {
@@ -251,6 +281,7 @@ export default function SavedPlans() {
                         </button>
                       </div>
                       <p className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</p>
+                      {user && <PlanProgressBar userId={user.id} plan={p} />}
                     </>
                   )}
                 </div>

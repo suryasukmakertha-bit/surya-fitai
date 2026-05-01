@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal, Lock } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal, Lock, Moon, Lightbulb, ArrowLeftRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import PlanCompletionModal from "@/components/PlanCompletionModal";
 import PlanExtendBanner from "@/components/PlanExtendBanner";
 import SavePlanReminderModal from "@/components/SavePlanReminderModal";
 import CheckinReminderModal from "@/components/CheckinReminderModal";
+import { getPlanProgress, type PlanProgress } from "@/lib/planProgress";
 
 interface DayPlan {
   day: string;
@@ -400,6 +401,7 @@ export default function Results() {
 
   // Progress state (only for saved plans)
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [planProgress, setPlanProgress] = useState<PlanProgress | null>(null);
   const [progressWeight, setProgressWeight] = useState("");
   const [progressNote, setProgressNote] = useState("");
   const [progressDate, setProgressDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -431,6 +433,17 @@ export default function Results() {
       setSaveReminderShownForPlan(true);
     }
   }, [plan, planId, saved, restoredFromDraft, saveReminderShownForPlan]);
+
+  // Load plan-level progress for PNG download (single source of truth)
+  useEffect(() => {
+    if (!user || !planId) { setPlanProgress(null); return; }
+    let cancelled = false;
+    (async () => {
+      const p = await getPlanProgress(user.id, { id: planId, plan_data: plan });
+      if (!cancelled) setPlanProgress(p);
+    })();
+    return () => { cancelled = true; };
+  }, [user, planId, plan]);
 
   useEffect(() => {
     setCheckIns([]);
@@ -1253,8 +1266,8 @@ export default function Results() {
                   return (
                     <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
                       <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
-                      <div className="flex items-center gap-3 bg-secondary/50 rounded-md px-4 py-4 text-sm">
-                        <span className="text-2xl">😌</span>
+                       <div className="flex items-center gap-3 bg-secondary/50 rounded-md px-4 py-4 text-sm">
+                        <Moon className="w-8 h-8 shrink-0" style={{ color: "#ff6b00" }} aria-hidden />
                         <div>
                           <p className="text-foreground font-medium">{(t as any).restDayTitle || "Rest & Recovery"}</p>
                           <p className="text-muted-foreground text-xs mt-0.5">{(t as any).restDayTip || "Focus on mobility, nutrition, or light walks today."}</p>
@@ -1278,13 +1291,13 @@ export default function Results() {
                             </span>
                           </div>
                           {ex.cues && (
-                            <p className="text-xs text-muted-foreground/80 italic">💡 {ex.cues}</p>
+                            <p className="text-xs text-muted-foreground/80 italic inline-flex items-center gap-1.5"><Lightbulb className="w-3 h-3" /> {ex.cues}</p>
                           )}
                           {ex.alternative && (
-                            <p className="text-xs text-muted-foreground/70">↔ {(t as any).alternativeLabel || "Alt"}: {ex.alternative}</p>
+                            <p className="text-xs text-muted-foreground/70 inline-flex items-center gap-1.5"><ArrowLeftRight className="w-3 h-3" /> {(t as any).alternativeLabel || "Alt"}: {ex.alternative}</p>
                           )}
                           {ex.weight_kg && (
-                            <p className="text-xs text-primary/80">🏋️ {ex.weight_kg}</p>
+                            <p className="text-xs text-primary/80 inline-flex items-center gap-1.5"><Dumbbell className="w-3 h-3" /> {ex.weight_kg}</p>
                           )}
                         </div>
                       ))}
@@ -1478,7 +1491,10 @@ export default function Results() {
                     weight={lastWeight || 0}
                     bmi={bmi}
                     calorieTarget={plan.calorie_target || 2000}
-                    progressPercent={progressPercent}
+                    progressPercent={planProgress ? planProgress.percentage : 0}
+                    completedDays={planProgress?.completedDays}
+                    totalDays={planProgress?.totalDays}
+                    totalWeeks={planProgress?.totalWeeks}
                     weeklyAdherence={Math.min(100, Math.round((sorted.length / 12) * 100))}
                     monthNumber={planMonthNumber}
                   />

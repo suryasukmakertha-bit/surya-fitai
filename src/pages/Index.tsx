@@ -12,6 +12,7 @@ import GenerateLimitIndicator from "@/components/brand/GenerateLimitIndicator";
 import TierBadge, { type Tier } from "@/components/brand/TierBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { getPlanProgress } from "@/lib/planProgress";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -151,21 +152,14 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     }
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("workout_completions")
-        .select("workout_date")
-        .eq("user_id", user.id)
-        .eq("plan_id", activePlan.id)
-        .eq("completed", true);
+      const p = await getPlanProgress(user.id, activePlan);
       if (cancelled) return;
-      const completedDays = new Set((data || []).map((r: any) => r.workout_date)).size;
-      const totalWeeks = (activePlan.plan_data as any)?.durationWeeks || 4;
-      const totalDays = totalWeeks * 7;
-      // current week: based on plan_started_at
-      const startedAt = activePlan.plan_started_at ? new Date(activePlan.plan_started_at) : new Date(activePlan.created_at);
-      const daysSince = Math.floor((Date.now() - startedAt.getTime()) / 86400000);
-      const currentWeek = Math.min(totalWeeks, Math.max(1, Math.floor(daysSince / 7) + 1));
-      setPlanStats({ completedDays, totalDays, currentWeek, totalWeeks });
+      setPlanStats({
+        completedDays: p.completedDays,
+        totalDays: p.totalDays,
+        currentWeek: p.currentWeek,
+        totalWeeks: p.totalWeeks,
+      });
     })();
     return () => { cancelled = true; };
   }, [user, activePlan]);
@@ -328,16 +322,16 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] text-muted-foreground">
-                    {tx(`Minggu ${stats.activeDaysWeek > 0 ? Math.min(4, activePlan.plan_month_number || 1) : 1}/4`,
-                       `Week ${stats.activeDaysWeek > 0 ? Math.min(4, activePlan.plan_month_number || 1) : 1}/4`,
-                       `第${stats.activeDaysWeek > 0 ? Math.min(4, activePlan.plan_month_number || 1) : 1}/4周`)}
+                    {tx(`Minggu ${planStats.currentWeek}/${planStats.totalWeeks}`,
+                       `Week ${planStats.currentWeek}/${planStats.totalWeeks}`,
+                       `第${planStats.currentWeek}/${planStats.totalWeeks}周`)}
                   </span>
                   <span className="text-[11px] text-muted-foreground">
                     {planCount} {tx("tersimpan","saved","已保存")}
                   </span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (stats.activeDaysWeek / 7) * 100)}%`, background: "linear-gradient(90deg,#ff6b00,#ff3d7f)" }} />
+                  <div className="h-full rounded-full" style={{ width: `${planStats.totalDays > 0 ? Math.min(100, Math.round((planStats.completedDays / planStats.totalDays) * 100)) : 0}%`, background: "linear-gradient(90deg,#ff6b00,#ff3d7f)" }} />
                 </div>
               </div>
             </button>
