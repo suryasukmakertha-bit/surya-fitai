@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { X, Moon, Zap, Lightbulb, ArrowLeftRight, Dumbbell, StickyNote } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
 import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
 import { usePreloadExerciseMedia } from "@/hooks/usePreloadExerciseMedia";
@@ -199,10 +199,12 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
               <div key={`day-${day.day}-${i}`} className="card-gradient rounded-lg p-5 border border-border/50">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-display font-bold text-foreground">{day.day}</h3>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">🌿</span>
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full" style={{ background: "rgba(255,107,0,0.12)" }} aria-label="Rest day">
+                    <Moon className="w-3.5 h-3.5" style={{ color: "#ff6b00" }} />
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 bg-secondary/50 rounded-md px-4 py-4 text-sm">
-                  <span className="text-2xl">😌</span>
+                  <Moon className="w-8 h-8 shrink-0" style={{ color: "#ff6b00" }} aria-hidden />
                   <div>
                     <p className="text-foreground font-medium">{(t as any).restDayTitle || "Rest & Recovery"}</p>
                     <p className="text-muted-foreground text-xs mt-0.5">{(t as any).restDayTip || "Focus on mobility, nutrition, or light walks today."}</p>
@@ -258,7 +260,10 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                 })}
               </div>
               {done === total && total > 0 && (
-                <p className="text-primary text-xs text-center mt-3 mb-1">{(t as any).coachCompletedDay}</p>
+                <p className="text-primary text-xs text-center mt-3 mb-1 inline-flex items-center justify-center gap-1.5 w-full">
+                  <Zap className="w-4 h-4" style={{ color: "#ff6b00" }} aria-hidden />
+                  <span>{((t as any).coachCompletedDay || "").replace(/[💪😌🌿]/g, "").trim()}</span>
+                </p>
               )}
               <DailyProgressImage
                 dayLabel={day.day}
@@ -301,7 +306,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
             {/* Tips */}
             {selectedExercise?.cues && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-primary uppercase tracking-wide">💡 {(t as any).tipsLabel}</p>
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide inline-flex items-center gap-1.5">
+                  <Lightbulb className="w-3.5 h-3.5" /> {(t as any).tipsLabel}
+                </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">{selectedExercise.cues}</p>
               </div>
             )}
@@ -309,7 +316,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
             {/* Alternative */}
             {selectedExercise?.alternative && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-primary uppercase tracking-wide">↔ {(t as any).alternativeLabel}</p>
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide inline-flex items-center gap-1.5">
+                  <ArrowLeftRight className="w-3.5 h-3.5" /> {(t as any).alternativeLabel}
+                </p>
                 <p className="text-sm text-muted-foreground">{selectedExercise.alternative}</p>
               </div>
             )}
@@ -317,7 +326,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
             {/* Weight Recommendation */}
             {selectedExercise?.weight_kg && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-primary uppercase tracking-wide">🏋️ {(t as any).weightRecommendation}</p>
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide inline-flex items-center gap-1.5">
+                  <Dumbbell className="w-3.5 h-3.5" /> {(t as any).weightRecommendation}
+                </p>
                 <p className="text-sm text-muted-foreground">{selectedExercise.weight_kg}</p>
               </div>
             )}
@@ -325,7 +336,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
             {/* Notes */}
             {selectedExercise?.notes && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📝 {(t as any).notesLabel || "Notes"}</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide inline-flex items-center gap-1.5">
+                  <StickyNote className="w-3.5 h-3.5" /> {(t as any).notesLabel || "Notes"}
+                </p>
                 <p className="text-sm text-muted-foreground">{selectedExercise.notes}</p>
               </div>
             )}
