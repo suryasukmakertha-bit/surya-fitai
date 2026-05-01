@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Lock } from "lucide-react";
+import { X, Lock, Check, CreditCard } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,17 +25,17 @@ const TEXT = {
     contextExtendPlan: 'Extending to next month is an active subscriber feature.',
     trialExpired: 'Your free trial has ended.',
     benefits: [
-      '✅ 3x AI program generates per month',
-      '✅ Save up to 3 personalized plans',
-      '✅ Meal plans & grocery lists',
-      '✅ Progress tracking',
-      '✅ All future features included',
+      '3x AI program generates per month',
+      'Save up to 3 personalized plans',
+      'Meal plans & grocery lists',
+      'Progress tracking',
+      'All future features included',
     ],
     normalPrice: 'Rp 39,900',
     promoPrice: 'Rp 19,900',
     perMonth: '/ month',
     badge: 'Save 50% — Limited Offer!',
-    payBtn: '💳 Pay Now — Rp 19,900',
+    payBtn: 'Pay Now — Rp 19,900',
     laterBtn: 'Maybe later',
     loadingBtn: 'Opening payment...',
     errorMsg: 'Failed to open payment. Please try again.',
@@ -51,17 +51,17 @@ const TEXT = {
     contextExtendPlan: 'Extend program ke bulan berikutnya adalah fitur subscriber aktif.',
     trialExpired: 'Masa uji coba gratis kamu telah berakhir.',
     benefits: [
-      '✅ 3x generate program AI per bulan',
-      '✅ Simpan hingga 3 program personal',
-      '✅ Rencana makan & daftar belanja',
-      '✅ Pelacakan progres latihan',
-      '✅ Semua fitur baru termasuk',
+      '3x generate program AI per bulan',
+      'Simpan hingga 3 program personal',
+      'Rencana makan & daftar belanja',
+      'Pelacakan progres latihan',
+      'Semua fitur baru termasuk',
     ],
     normalPrice: 'Rp 39.900',
     promoPrice: 'Rp 19.900',
     perMonth: '/ bulan',
     badge: 'Hemat 50% — Penawaran Terbatas!',
-    payBtn: '💳 Bayar Sekarang — Rp 19.900',
+    payBtn: 'Bayar Sekarang — Rp 19.900',
     laterBtn: 'Nanti saja',
     loadingBtn: 'Membuka pembayaran...',
     errorMsg: 'Gagal membuka pembayaran. Coba lagi.',
@@ -77,17 +77,17 @@ const TEXT = {
     contextExtendPlan: '将计划延长到下个月是活跃订阅者的功能。',
     trialExpired: '您的免费试用期已结束。',
     benefits: [
-      '✅ 每月3次AI训练计划生成',
-      '✅ 保存最多3个个性化计划',
-      '✅ 饮食计划和购物清单',
-      '✅ 训练进度追踪',
-      '✅ 包含所有未来功能',
+      '每月3次AI训练计划生成',
+      '保存最多3个个性化计划',
+      '饮食计划和购物清单',
+      '训练进度追踪',
+      '包含所有未来功能',
     ],
     normalPrice: 'Rp 39,900',
     promoPrice: 'Rp 19,900',
     perMonth: '/ 月',
     badge: '节省50% — 限时优惠！',
-    payBtn: '💳 立即支付 — Rp 19,900',
+    payBtn: '立即支付 — Rp 19,900',
     laterBtn: '稍后再说',
     loadingBtn: '正在打开支付...',
     errorMsg: '打开支付失败，请重试。',
@@ -165,7 +165,7 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <Lock className="w-5 h-5 text-primary" />
+              <Lock className="w-5 h-5" style={{ color: '#ff6b00' }} />
               <h2 className="text-xl font-display font-bold text-foreground">{t.title}</h2>
             </div>
           </div>
@@ -174,7 +174,10 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
 
           {/* Context-specific message at top */}
           {contextMessage && (
-            <div className="rounded-xl border border-primary/30 bg-primary/10 px-3 py-2.5">
+            <div
+              className="rounded-xl px-3 py-2.5"
+              style={{ background: 'rgba(255,107,0,0.10)', border: '1px solid rgba(255,107,0,0.30)' }}
+            >
               <p className="text-xs text-foreground leading-relaxed">{contextMessage}</p>
             </div>
           )}
@@ -185,28 +188,42 @@ export default function SubscriptionPopup({ isOpen, onClose, trigger = 'save_pla
           )}
 
           {/* Benefits */}
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {t.benefits.map((b, i) => (
-              <li key={i} className="text-sm text-foreground">{b}</li>
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                <Check className="shrink-0 mt-0.5" style={{ color: '#ff6b00', width: 16, height: 16 }} />
+                <span>{b}</span>
+              </li>
             ))}
           </ul>
 
           {/* Pricing */}
           <div className="text-center space-y-1">
             <div className="flex items-center justify-center gap-3">
-              <span className="text-muted-foreground line-through text-lg">{t.normalPrice}</span>
-              <span className="text-3xl font-bold text-primary">{t.promoPrice}</span>
+              <span className="line-through text-lg" style={{ color: '#888' }}>{t.normalPrice}</span>
+              <span className="font-extrabold" style={{ color: '#ff6b00', fontSize: 36 }}>{t.promoPrice}</span>
               <span className="text-sm text-muted-foreground">{t.perMonth}</span>
             </div>
-            <span className="inline-block bg-primary/20 text-primary text-xs font-semibold px-3 py-1 rounded-full">{t.badge}</span>
+            <span
+              className="inline-block text-xs font-semibold px-3 py-1 rounded-full"
+              style={{
+                background: 'rgba(255,107,0,0.10)',
+                color: '#ff6b00',
+                border: '1px solid rgba(255,107,0,0.30)',
+              }}
+            >
+              {t.badge}
+            </span>
           </div>
 
           {/* Pay button */}
           <button
             onClick={handlePay}
             disabled={payLoading}
-            className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-[#ff6b00] to-[#ff3d7f] text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 active:scale-[0.97] transition-transform"
+            className="w-full py-3.5 rounded-2xl font-bold text-base text-white hover:opacity-90 transition-opacity disabled:opacity-50 active:scale-[0.97] transition-transform inline-flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(90deg, #ff6b00, #ff3d7f)' }}
           >
+            {!payLoading && <CreditCard className="w-4 h-4" style={{ color: '#fff' }} />}
             {payLoading ? t.loadingBtn : t.payBtn}
           </button>
 
