@@ -13,6 +13,12 @@ interface ProgressDownloadProps {
   progressPercent: number;
   weeklyAdherence?: number;
   monthNumber?: number;
+  /** Real completed workout days for this plan (single source of truth). */
+  completedDays?: number;
+  /** Real total workout days for this plan (totalWeeks * workoutsPerWeek). */
+  totalDays?: number;
+  /** Total weeks in the plan, used in PNG "DURASI" right-side label. */
+  totalWeeks?: number;
 }
 
 interface DownloadProgressData {
@@ -45,6 +51,7 @@ function downloadProgressReport(data: DownloadProgressData) {
     language,
     dateStr,
   } = data;
+  const _totalWeeks = (data as any).totalWeeks as number | undefined;
 
   // ── CONSTANTS ──────────────────────────────────────────
   const W = 390;
@@ -66,7 +73,7 @@ function downloadProgressReport(data: DownloadProgressData) {
       kcal:       'KCAL',
       durasi_lbl: 'DURASI',
       durasi_val: `${monthNumber} Bulan`,
-      durasi_r:   '4 Minggu',
+      durasi_r:   `${_totalWeeks ?? 4} Minggu`,
       comp:       'PENYELESAIAN WORKOUT',
       footer:     'surya-fitai.com · Coach Surya',
     },
@@ -80,7 +87,7 @@ function downloadProgressReport(data: DownloadProgressData) {
       kcal:       'KCAL',
       durasi_lbl: 'DURATION',
       durasi_val: `${monthNumber} Month`,
-      durasi_r:   '4 Weeks',
+      durasi_r:   `${_totalWeeks ?? 4} Weeks`,
       comp:       'WORKOUT COMPLETION',
       footer:     'surya-fitai.com · Coach Surya',
     },
@@ -94,7 +101,7 @@ function downloadProgressReport(data: DownloadProgressData) {
       kcal:       '卡路里',
       durasi_lbl: '时长',
       durasi_val: `${monthNumber}个月`,
-      durasi_r:   '4周',
+      durasi_r:   `${_totalWeeks ?? 4}周`,
       comp:       '训练完成度',
       footer:     'surya-fitai.com · Coach Surya',
     },
@@ -386,13 +393,23 @@ export default function ProgressDownloadCard({
   calorieTarget,
   progressPercent,
   monthNumber = 1,
+  completedDays: completedDaysProp,
+  totalDays: totalDaysProp,
+  totalWeeks: totalWeeksProp,
 }: ProgressDownloadProps) {
   const { t, lang } = useLanguage();
   const [showShare, setShowShare] = useState(false);
   const [captionCopied, setCaptionCopied] = useState(false);
-  const isComplete = progressPercent >= 100;
-
-  const pct = Math.min(progressPercent, 100);
+  // Prefer real completion data when provided; fall back to legacy progressPercent.
+  const realTotalDays = totalDaysProp && totalDaysProp > 0 ? totalDaysProp : 28;
+  const realCompletedDays = Math.max(0, Math.min(realTotalDays, completedDaysProp ?? 0));
+  const computedPct = totalDaysProp && totalDaysProp > 0
+    ? Math.round((realCompletedDays / realTotalDays) * 100)
+    : Math.max(0, Math.min(100, progressPercent));
+  const pct = computedPct;
+  const isComplete = totalDaysProp && totalDaysProp > 0
+    ? realCompletedDays >= realTotalDays && realTotalDays > 0
+    : pct >= 100;
   const motText = isComplete
     ? t.motCompleted.replace(/[^\w\s.,!?'"()-]/g, "").trim()
     : t.motInProgress.replace(/[^\w\s.,!?'"()-]/g, "").trim();
@@ -403,8 +420,10 @@ export default function ProgressDownloadCard({
 
   const buildData = (): DownloadProgressData => {
     const pctClamped = Math.max(0, Math.min(pct, 100));
-    const totalDays = 28;
-    const completedDays = Math.round((pctClamped / 100) * totalDays);
+    const totalDays = realTotalDays;
+    const completedDays = totalDaysProp && totalDaysProp > 0
+      ? realCompletedDays
+      : Math.round((pctClamped / 100) * totalDays);
     const now = new Date();
     const dateStr = `${String(now.getDate()).padStart(2, "0")}/${String(
       now.getMonth() + 1
@@ -417,12 +436,14 @@ export default function ProgressDownloadCard({
       weight,
       bmi: parseFloat(bmi) || 0,
       targetCalories: calorieTarget,
-      completionPct: Math.round(pctClamped),
+      completionPct: pctClamped,
       completedDays,
       totalDays,
       quote: motText,
       language: lang,
       dateStr,
+      // Pass through totalWeeks for the DURASI right label (consumed via cast).
+      ...(totalWeeksProp ? { totalWeeks: totalWeeksProp } as any : {}),
     };
   };
 
