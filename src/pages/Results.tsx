@@ -1491,7 +1491,10 @@ export default function Results() {
                     weight={lastWeight || 0}
                     bmi={bmi}
                     calorieTarget={plan.calorie_target || 2000}
-                    progressPercent={progressPercent}
+                    progressPercent={planProgress ? planProgress.percentage : 0}
+                    completedDays={planProgress?.completedDays}
+                    totalDays={planProgress?.totalDays}
+                    totalWeeks={planProgress?.totalWeeks}
                     weeklyAdherence={Math.min(100, Math.round((sorted.length / 12) * 100))}
                     monthNumber={planMonthNumber}
                   />
