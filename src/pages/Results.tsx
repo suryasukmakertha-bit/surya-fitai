@@ -401,6 +401,7 @@ export default function Results() {
 
   // Progress state (only for saved plans)
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [planProgress, setPlanProgress] = useState<PlanProgress | null>(null);
   const [progressWeight, setProgressWeight] = useState("");
   const [progressNote, setProgressNote] = useState("");
   const [progressDate, setProgressDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -432,6 +433,17 @@ export default function Results() {
       setSaveReminderShownForPlan(true);
     }
   }, [plan, planId, saved, restoredFromDraft, saveReminderShownForPlan]);
+
+  // Load plan-level progress for PNG download (single source of truth)
+  useEffect(() => {
+    if (!user || !planId) { setPlanProgress(null); return; }
+    let cancelled = false;
+    (async () => {
+      const p = await getPlanProgress(user.id, { id: planId, plan_data: plan });
+      if (!cancelled) setPlanProgress(p);
+    })();
+    return () => { cancelled = true; };
+  }, [user, planId, plan]);
 
   useEffect(() => {
     setCheckIns([]);
