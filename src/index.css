@@ -208,4 +208,72 @@
     50% { transform: scale(1.02); }
   }
   .animate-cta-pulse { animation: ctaPulse 2.5s ease-in-out infinite; }
+
+  /* === Landing & page backgrounds (no photo, design-only) === */
+  @keyframes orbFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .landing-bg {
+    position: relative;
+    background-color: #0f0f11;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,107,0,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,61,127,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 20% 70%, rgba(255,107,0,0.08) 0%, transparent 50%),
+      linear-gradient(rgba(255,107,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,107,0,0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  }
+  .light .landing-bg {
+    background-color: #faf8f5;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,107,0,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,61,127,0.07) 0%, transparent 50%),
+      linear-gradient(rgba(255,107,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,107,0,0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  }
+
+  .landing-orb-1, .landing-orb-2 {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .landing-orb-1 {
+    top: 10%;
+    right: 15%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,107,0,0.15), transparent 70%);
+    animation: orbFloat 6s ease-in-out infinite;
+  }
+  .landing-orb-2 {
+    bottom: 20%;
+    left: 10%;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(255,61,127,0.12), transparent 70%);
+    animation: orbFloat 8s ease-in-out infinite reverse;
+  }
+  .light .landing-orb-1 {
+    background: radial-gradient(circle, rgba(255,107,0,0.08), transparent 70%);
+  }
+  .light .landing-orb-2 {
+    background: radial-gradient(circle, rgba(255,61,127,0.06), transparent 70%);
+  }
+
+  /* Subtle background applied to all in-app pages */
+  .page-bg {
+    background-color: #0f0f11;
+    background-image:
+      radial-gradient(ellipse 100% 30% at 50% 0%, rgba(255,107,0,0.06) 0%, transparent 50%);
+  }
+  .light .page-bg {
+    background-color: #faf8f5;
+    background-image:
+      radial-gradient(ellipse 100% 30% at 50% 0%, rgba(255,107,0,0.04) 0%, transparent 50%);
+  }
 }

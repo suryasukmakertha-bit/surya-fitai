@@ -576,7 +576,7 @@ export default function Index() {
   // Logged-in users see their dashboard, not the marketing landing.
   if (!authLoading && user) {
     return (
-      <div className="min-h-screen bg-background noise-overlay">
+      <div className="min-h-screen page-bg noise-overlay">
         <AppHeader />
         <LoggedInDashboard
           onGenerate={() => navigate("/programs")}
@@ -598,7 +598,7 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative noise-overlay">
+    <div className="min-h-screen landing-bg relative noise-overlay">
       <AppHeader />
       <ScrollProgressBar />
 
@@ -606,37 +606,35 @@ export default function Index() {
       {/* Hero */}
       <section
         className="relative min-h-[92vh] flex items-center justify-center overflow-hidden"
-        style={{
-          backgroundImage:
-            "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 60%, #0f0f11 100%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=80')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
       >
+        {/* Floating decorative orbs (CSS only) */}
+        <div className="landing-orb-1" aria-hidden />
+        <div className="landing-orb-2" aria-hidden />
+
         <div className="relative z-10 max-w-3xl mx-auto px-4 text-center pt-16">
           {/* Floating badge row (lucide only) */}
           <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
             <span
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
               style={{
-                background: "rgba(255,107,0,0.15)",
-                border: "1px solid rgba(255,107,0,0.3)",
+                background: "rgba(255,107,0,0.10)",
+                border: "1px solid rgba(255,107,0,0.30)",
               }}
             >
-              <Brain className="w-3.5 h-3.5" style={{ color: "#ff9240" }} />
-              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff9240" }}>
+              <Brain className="w-3.5 h-3.5" style={{ color: "#ff6b00" }} />
+              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff6b00" }}>
                 {t.aiPowered}
               </span>
             </span>
             <span
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5"
               style={{
-                background: "rgba(255,107,0,0.15)",
-                border: "1px solid rgba(255,107,0,0.3)",
+                background: "rgba(255,107,0,0.10)",
+                border: "1px solid rgba(255,107,0,0.30)",
               }}
             >
-              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "#ff9240" }} />
-              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff9240" }}>
+              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "#ff6b00" }} />
+              <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#ff6b00" }}>
                 {lang === "id" ? "Certified Coach" : lang === "zh" ? "认证教练" : "Certified Coach"}
               </span>
             </span>
@@ -644,7 +642,7 @@ export default function Index() {
 
           {/* Headline */}
           <h1
-            className="font-display font-extrabold text-white leading-[1.05] mb-4"
+            className="font-display font-extrabold text-foreground leading-[1.05] mb-4"
             style={{ fontSize: "clamp(32px, 9vw, 56px)" }}
           >
             {t.heroTitle1}
@@ -662,8 +660,8 @@ export default function Index() {
           </h1>
 
           <p
-            className="max-w-md mx-auto mb-8"
-            style={{ color: "rgba(255,255,255,0.65)", fontSize: 14, lineHeight: 1.5 }}
+            className="max-w-md mx-auto mb-8 text-muted-foreground"
+            style={{ fontSize: 14, lineHeight: 1.5 }}
           >
             {t.heroDesc}
           </p>
@@ -700,10 +698,10 @@ export default function Index() {
                 <div key={it.label} className="flex items-center gap-3">
                   <span className="inline-flex items-center gap-1.5">
                     <I style={{ width: 12, height: 12, color: "#ff6b00" }} />
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{it.label}</span>
+                    <span className="text-muted-foreground" style={{ fontSize: 11 }}>{it.label}</span>
                   </span>
                   {i < arr.length - 1 && (
-                    <span style={{ width: 1, height: 12, background: "rgba(255,255,255,0.15)" }} />
+                    <span className="bg-border/30" style={{ width: 1, height: 12 }} />
                   )}
                 </div>
               );
