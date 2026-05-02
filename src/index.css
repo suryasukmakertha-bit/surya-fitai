@@ -265,17 +265,9 @@
     background: radial-gradient(circle, rgba(255,61,127,0.06), transparent 70%);
   }
 
-  /* Subtle background applied to all in-app pages */
-  .page-bg {
-    background-color: #0f0f11;
-    background-image:
-      radial-gradient(ellipse 100% 30% at 50% 0%, rgba(255,107,0,0.06) 0%, transparent 50%);
-  }
-  .light .page-bg {
-    background-color: #faf8f5;
-    background-image:
-      radial-gradient(ellipse 100% 30% at 50% 0%, rgba(255,107,0,0.04) 0%, transparent 50%);
-  }
+  /* Page wrappers stay transparent so the global body gradient + grid show through */
+  .page-bg { background-color: transparent; }
+  .light .page-bg { background-color: transparent; }
 }
 
 @layer base {
