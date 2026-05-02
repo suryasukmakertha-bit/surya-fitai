@@ -1,5 +1,3 @@
-import sfMark from "@/assets/sf-mark.png";
-
 interface BrandLogoProps {
   /** size of SF icon square in px */
   size?: number;
@@ -17,12 +15,11 @@ export default function BrandLogo({ size = 32, iconOnly = false, className = "" 
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <img
-        src={sfMark}
+        src="/logo-new.png"
         alt="Surya-FitAi"
-        width={size}
         height={size}
-        className="rounded-[8px] shrink-0"
-        style={{ width: size, height: size }}
+        className="shrink-0"
+        style={{ height: size, width: "auto", objectFit: "contain" }}
       />
       {!iconOnly && (
         <span className="font-display font-extrabold tracking-tight leading-none text-[18px] sm:text-[20px] flex items-baseline">
