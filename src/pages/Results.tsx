@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal, Lock, Moon, Lightbulb, ArrowLeftRight } from "lucide-react";
+import { Flame, Droplets, Dumbbell, Apple, ShoppingCart, TrendingUp, TrendingDown, Sparkles, Save, Loader2, Download, MessageCircle, Scale, Plus, Trash2, Clock, Shield, RefreshCw, Target, UserCheck, Eye, Footprints, Activity, SlidersHorizontal, Lock, Moon, Lightbulb, ArrowLeftRight, CalendarIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1510,15 +1513,15 @@ export default function Results() {
                       <AreaChart data={chartData}>
                         <defs>
                           <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(135, 100%, 60%)" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#ff6b00" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 15%, 18%)" />
-                        <XAxis dataKey="date" tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
-                        <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "hsl(220, 10%, 55%)", fontSize: 12 }} />
-                        <Tooltip contentStyle={{ backgroundColor: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 15%, 18%)", borderRadius: 8, color: "hsl(0, 0%, 95%)" }} labelStyle={{ color: "hsl(135, 100%, 60%)" }} />
-                        <Area type="monotone" dataKey="weight" stroke="hsl(135, 100%, 60%)" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "hsl(135, 100%, 60%)", r: 4 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="date" tick={{ fill: "#888888", fontSize: 12 }} />
+                      <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "#888888", fontSize: 12 }} />
+                      <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,107,0,0.3)", borderRadius: 8, color: "#ffffff" }} labelStyle={{ color: "#ff6b00", fontWeight: 600 }} itemStyle={{ color: "#ff6b00" }} />
+                      <Area type="monotone" dataKey="weight" stroke="#ff6b00" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "#ff6b00", stroke: "#ff3d7f", strokeWidth: 2, r: 4 }} activeDot={{ fill: "#ff6b00", stroke: "#ff3d7f", strokeWidth: 2, r: 6 }} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -1536,7 +1539,26 @@ export default function Results() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-2">
                     <Label>{t.date}</Label>
-                    <Input type="date" value={progressDate} onChange={(e) => setProgressDate(e.target.value)} className="bg-secondary border-border" />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn("w-full justify-start text-left font-normal bg-secondary border-border", !progressDate && "text-muted-foreground")}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {progressDate ? fnsFormat(new Date(progressDate + "T00:00:00"), "dd/MM/yyyy") : t.pickDate}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={progressDate ? new Date(progressDate + "T00:00:00") : undefined}
+                          onSelect={(d) => d && setProgressDate(fnsFormat(d, "yyyy-MM-dd"))}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="space-y-2">
                     <Label>{t.weightLabel}</Label>
