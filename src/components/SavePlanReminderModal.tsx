@@ -13,16 +13,16 @@ export default function SavePlanReminderModal({ open, saving, onSave, onViewFirs
   if (!open) return null;
 
   const title =
-    lang === "id" ? "Simpan Rencana Kamu! 💾"
-    : lang === "zh" ? "保存您的计划！💾"
-    : "Save Your Plan! 💾";
+    lang === "id" ? "Simpan Rencana Kamu!"
+    : lang === "zh" ? "保存您的计划！"
+    : "Save Your Plan!";
 
   const body =
     lang === "id"
-      ? "Rencana yang baru dibuat Coach Surya khusus untukmu ini perlu disimpan agar kamu bisa mulai latihan. Kamu bisa mengaksesnya kapan saja di ☰ → Rencana Saya."
+      ? "Rencana yang baru dibuat Coach Surya khusus untukmu ini perlu disimpan agar kamu bisa mulai latihan. Kamu bisa mengaksesnya kapan saja melalui menu Rencana di bagian bawah layar."
       : lang === "zh"
-      ? "Coach Surya专为您创建的计划需要保存，这样您才能开始训练。随时通过 ☰ → 我的计划访问。"
-      : "This plan Coach Surya just created specifically for you needs to be saved so you can start training. Access it anytime from ☰ → My Plans.";
+      ? "Coach Surya专为您创建的计划需要保存，这样您才能开始训练。随时通过底部的「计划」菜单访问。"
+      : "This plan Coach Surya just created specifically for you needs to be saved so you can start training. Access it anytime from the Plans tab in the bottom navigation.";
 
   const primary =
     lang === "id" ? "Simpan Rencana Sekarang"
@@ -54,10 +54,11 @@ export default function SavePlanReminderModal({ open, saving, onSave, onViewFirs
           <BookmarkPlus size={40} color="#ff6b00" />
         </div>
         <h2
-          className="text-center font-bold mb-3"
+          className="text-center font-bold mb-3 flex items-center justify-center gap-2"
           style={{ color: "#fff", fontSize: 20 }}
         >
-          {title}
+          <BookmarkPlus size={20} color="#ff6b00" />
+          <span>{title}</span>
         </h2>
         <p
           className="text-center mb-6"

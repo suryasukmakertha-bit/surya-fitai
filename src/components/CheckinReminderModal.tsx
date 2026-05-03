@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Flame } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
@@ -11,16 +11,41 @@ export default function CheckinReminderModal({ open, onClose }: Props) {
   if (!open) return null;
 
   const title =
-    lang === "id" ? "Rencana Tersimpan! Sekarang Mulai Latihan 🔥"
-    : lang === "zh" ? "计划已保存！现在开始训练 🔥"
-    : "Plan Saved! Now Start Training 🔥";
+    lang === "id" ? "Rencana Tersimpan! Sekarang Mulai Latihan"
+    : lang === "zh" ? "计划已保存！现在开始训练"
+    : "Plan Saved! Now Start Training";
 
-  const body =
+  const intro =
+    lang === "id" ? "Setiap kali selesai latihan, catat progressmu dengan langkah berikut:"
+    : lang === "zh" ? "每次完成训练后，按以下步骤记录进度："
+    : "Every time you finish a workout, record your progress with these steps:";
+
+  const steps =
     lang === "id"
-      ? "Setiap kali selesai latihan, catat progressmu dengan langkah berikut:\n\n1️⃣ Buka ☰ → Rencana Saya\n2️⃣ Pilih program yang ingin dijalankan\n3️⃣ Centang setiap exercise yang sudah diselesaikan\n4️⃣ Check-in di bagian Progress untuk melihat perkembanganmu\n\nKonsistensi check-in ini yang membantu Coach Surya memantau progressmu secara akurat."
+      ? [
+          "Buka menu Rencana di bagian bawah layar",
+          "Pilih program yang ingin dijalankan",
+          "Centang setiap exercise yang sudah diselesaikan",
+          "Check-in di bagian Progress untuk melihat perkembanganmu",
+        ]
       : lang === "zh"
-      ? "每次完成训练后，按以下步骤记录进度：\n\n1️⃣ 打开 ☰ → 我的计划\n2️⃣ 选择您刚完成的计划\n3️⃣ 勾选每个已完成的训练\n4️⃣ 请在进度栏查看您的进度\n\n坚持打卡帮助Coach Surya准确监控您的进度。"
-      : "Every time you finish a workout, record your progress with these steps:\n\n1️⃣ Open ☰ → My Plans\n2️⃣ Select the program you just ran\n3️⃣ Check off every exercise you completed\n4️⃣ Check-in in the Progress section to see your development\n\nConsistent check-ins help Coach Surya accurately monitor your progress.";
+      ? [
+          "打开屏幕底部的「计划」菜单",
+          "选择您刚完成的计划",
+          "勾选每个已完成的训练",
+          "请在进度栏查看您的进度",
+        ]
+      : [
+          "Open the Plans tab in the bottom navigation",
+          "Select the program you just ran",
+          "Check off every exercise you completed",
+          "Check-in in the Progress section to see your development",
+        ];
+
+  const outro =
+    lang === "id" ? "Konsistensi check-in ini yang membantu Coach Surya memantau progressmu secara akurat."
+    : lang === "zh" ? "坚持打卡帮助Coach Surya准确监控您的进度。"
+    : "Consistent check-ins help Coach Surya accurately monitor your progress.";
 
   const primary =
     lang === "id" ? "Mengerti!"
@@ -47,22 +72,42 @@ export default function CheckinReminderModal({ open, onClose }: Props) {
           <CheckCircle2 size={40} color="#ff6b00" />
         </div>
         <h2
-          className="text-center font-bold mb-3"
+          className="text-center font-bold mb-3 flex items-center justify-center gap-2 flex-wrap"
           style={{ color: "#fff", fontSize: 20, lineHeight: 1.3 }}
         >
-          {title}
+          <span>{title}</span>
+          <Flame size={20} color="#ff6b00" />
         </h2>
-        <p
-          className="mb-6"
-          style={{
-            color: "rgba(255,255,255,0.75)",
-            fontSize: 14,
-            lineHeight: 1.6,
-            whiteSpace: "pre-line",
-          }}
-        >
-          {body}
-        </p>
+        <div className="mb-6" style={{ color: "rgba(255,255,255,0.75)", fontSize: 14, lineHeight: 1.6 }}>
+          <p className="mb-3">{intro}</p>
+          <ul className="space-y-2 mb-3">
+            {steps.map((s, i) => (
+              <li key={i} className="flex items-start">
+                <span
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    background: "#ff6b00",
+                    color: "#ffffff",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    marginRight: 8,
+                    marginTop: 2,
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+          <p>{outro}</p>
+        </div>
         <button
           onClick={onClose}
           className="w-full"

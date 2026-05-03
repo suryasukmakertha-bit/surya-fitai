@@ -32,6 +32,33 @@ export type Database = {
         }
         Relationships: []
       }
+      app_legal_content: {
+        Row: {
+          content_text: string
+          content_type: string
+          id: string
+          lang: string
+          last_updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content_text: string
+          content_type: string
+          id?: string
+          lang?: string
+          last_updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content_text?: string
+          content_type?: string
+          id?: string
+          lang?: string
+          last_updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       exercise_gif_cache: {
         Row: {
           equipment: string | null
@@ -537,6 +564,7 @@ export type Database = {
         }
         Returns: number
       }
+      is_app_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
