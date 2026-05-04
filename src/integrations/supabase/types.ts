@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_png_downloads: {
+        Row: {
+          download_count: number | null
+          id: string
+          month_year: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          download_count?: number | null
+          id?: string
+          month_year: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          download_count?: number | null
+          id?: string
+          month_year?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      activity_sessions: {
+        Row: {
+          activity_type: string
+          avg_pace_seconds_per_km: number | null
+          avg_speed_kmh: number | null
+          calories: number | null
+          created_at: string | null
+          date: string
+          distance_km: number | null
+          duration_seconds: number | null
+          elevation_gain_m: number | null
+          id: string
+          max_speed_kmh: number | null
+          route_json: Json | null
+          splits_json: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          avg_pace_seconds_per_km?: number | null
+          avg_speed_kmh?: number | null
+          calories?: number | null
+          created_at?: string | null
+          date: string
+          distance_km?: number | null
+          duration_seconds?: number | null
+          elevation_gain_m?: number | null
+          id?: string
+          max_speed_kmh?: number | null
+          route_json?: Json | null
+          splits_json?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          avg_pace_seconds_per_km?: number | null
+          avg_speed_kmh?: number | null
+          calories?: number | null
+          created_at?: string | null
+          date?: string
+          distance_km?: number | null
+          duration_seconds?: number | null
+          elevation_gain_m?: number | null
+          id?: string
+          max_speed_kmh?: number | null
+          route_json?: Json | null
+          splits_json?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_config: {
         Row: {
           created_at: string | null
@@ -56,6 +131,36 @@ export type Database = {
           lang?: string
           last_updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      daily_challenges: {
+        Row: {
+          challenge_date: string
+          created_at: string | null
+          difficulty: string
+          exercise_name: string
+          id: string
+          target_reps: number
+          xp_reward: number
+        }
+        Insert: {
+          challenge_date: string
+          created_at?: string | null
+          difficulty: string
+          exercise_name: string
+          id?: string
+          target_reps: number
+          xp_reward?: number
+        }
+        Update: {
+          challenge_date?: string
+          created_at?: string | null
+          difficulty?: string
+          exercise_name?: string
+          id?: string
+          target_reps?: number
+          xp_reward?: number
         }
         Relationships: []
       }
@@ -378,6 +483,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_challenge_progress: {
+        Row: {
+          accepted_at: string | null
+          challenge_date: string
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          user_id: string
+          xp_earned: number | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          challenge_date: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          user_id: string
+          xp_earned?: number | null
+        }
+        Update: {
+          accepted_at?: string | null
+          challenge_date?: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          xp_earned?: number | null
+        }
+        Relationships: []
+      }
       user_consents: {
         Row: {
           created_at: string
@@ -398,6 +533,33 @@ export type Database = {
           id?: string
           terms_accepted_at?: string
           terms_version?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_featured_medal: {
+        Row: {
+          id: string
+          medal_id: string | null
+          medal_name: string | null
+          medal_tier: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          medal_id?: string | null
+          medal_name?: string | null
+          medal_tier?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          medal_id?: string | null
+          medal_name?: string | null
+          medal_tier?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -428,6 +590,57 @@ export type Database = {
           plan_goal?: string | null
           rating?: number | null
           user_email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_medals: {
+        Row: {
+          earned_at: string | null
+          id: string
+          medal_description: string | null
+          medal_id: string
+          medal_name: string
+          medal_tier: string
+          user_id: string
+        }
+        Insert: {
+          earned_at?: string | null
+          id?: string
+          medal_description?: string | null
+          medal_id: string
+          medal_name: string
+          medal_tier: string
+          user_id: string
+        }
+        Update: {
+          earned_at?: string | null
+          id?: string
+          medal_description?: string | null
+          medal_id?: string
+          medal_name?: string
+          medal_tier?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_xp: {
+        Row: {
+          id: string
+          total_xp: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          total_xp?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          total_xp?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
