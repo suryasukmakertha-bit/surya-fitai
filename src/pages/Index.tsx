@@ -13,6 +13,7 @@ import TierBadge, { type Tier } from "@/components/brand/TierBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getPlanProgress } from "@/lib/planProgress";
+import DailyChallengeCard from "@/components/DailyChallengeCard";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -421,41 +422,8 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
           )}
         </div>
 
-        {/* SECTION 4 — Last workout summary */}
-        {lastWorkout && activePlan && (
-          <div
-            className="mt-5 rounded-card p-4"
-            style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                {tx("Ringkasan Terakhir","Last Workout","最近训练")}
-              </span>
-              <span className="text-[10px] text-muted-foreground">
-                {new Date(lastWorkout.date).toLocaleDateString(lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-foreground truncate">
-                  {lastWorkout.day_label || tx("Sesi Latihan","Training Session","训练课")}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {lastWorkout.count} {tx("latihan selesai","exercises done","个练习完成")}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => onOpenPlan(activePlan.id, activePlan)}
-                variant="outline"
-                className="font-semibold"
-                style={{ borderColor: "rgba(255,107,0,0.4)", color: "#ff6b00" }}
-              >
-                {tx("Lihat Detail","View Details","查看详情")}
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* SECTION 4 — Daily Challenge */}
+        <DailyChallengeCard />
 
         {/* SECTION 5 — Quick access */}
         <div className="mt-5 grid grid-cols-2 gap-3">
