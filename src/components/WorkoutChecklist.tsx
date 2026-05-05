@@ -12,6 +12,9 @@ import { X, Moon, Zap, Lightbulb, ArrowLeftRight, Dumbbell, StickyNote } from "l
 import DailyProgressImage from "@/components/DailyProgressImage";
 import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
 import { usePreloadExerciseMedia } from "@/hooks/usePreloadExerciseMedia";
+import { checkWorkoutStreakMedals, checkProgramCompleteMedal } from "@/lib/dailyChallenge";
+import { emitMedalsEarned } from "@/lib/medalEvents";
+import { getPlanProgress } from "@/lib/planProgress";
 
 interface Exercise {
   name: string;
@@ -166,6 +169,16 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
         );
         if (allDone) playWorkoutComplete();
       }
+      // Award streak / program-complete medals (silent if already owned)
+      try {
+        const streakMedals = await checkWorkoutStreakMedals(user.id);
+        emitMedalsEarned(streakMedals);
+        if (planId) {
+          const p = await getPlanProgress(user.id, { id: planId, plan_data: { workout_plan: workoutPlan } });
+          const programMedals = await checkProgramCompleteMedal(user.id, p.completedDays, p.totalDays);
+          emitMedalsEarned(programMedals);
+        }
+      } catch (e) { /* swallow */ }
     }
   };
 

@@ -12,6 +12,8 @@ import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tool
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { checkCheckinMedals } from "@/lib/dailyChallenge";
+import { emitMedalsEarned } from "@/lib/medalEvents";
 import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
 import ProgressDownloadCard from "@/components/ProgressDownloadCard";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -78,6 +80,10 @@ export default function Progress() {
       setWeight("");
       setNote("");
       toast({ title: t.checkInLogged });
+      try {
+        const medals = await checkCheckinMedals(user!.id, w, null);
+        emitMedalsEarned(medals);
+      } catch {}
     }
     setAdding(false);
   };
