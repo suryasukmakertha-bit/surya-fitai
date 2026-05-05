@@ -986,6 +986,10 @@ export default function Results() {
       setSaved(true);
       localStorage.removeItem(DRAFT_KEY);
       localStorage.setItem("fitai-has-created-plan", "true");
+      try {
+        const fg = await checkFirstGenerateMedal(user.id);
+        emitMedalsEarned(fg);
+      } catch {}
       if (data) {
         setPlanId(data.id);
         navigate("/results", { state: { plan, userInfo, programType, planId: data.id }, replace: true });
