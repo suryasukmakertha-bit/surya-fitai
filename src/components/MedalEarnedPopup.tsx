@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Award } from "lucide-react";
-import { toast } from "sonner";
 import type { NewMedal } from "@/lib/dailyChallenge";
+import { downloadMedalPng } from "@/lib/medalImage";
 
 interface Props {
   medal: NewMedal;
@@ -81,7 +81,13 @@ export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
           +{xpReward} XP
         </p>
         <button
-          onClick={() => toast("Fitur segera hadir")}
+          onClick={() => downloadMedalPng({
+            medal_id: medal.medal_id,
+            medal_name: medal.medal_name,
+            medal_tier: medal.medal_tier,
+            medal_description: medal.medal_description,
+            earned_at: new Date().toISOString(),
+          })}
           className="w-full font-bold text-white"
           style={{
             background: "linear-gradient(90deg,#ff6b00,#ff3d7f)",

@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getPlanProgress } from "@/lib/planProgress";
 import DailyChallengeCard from "@/components/DailyChallengeCard";
+import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
+import FeaturedMedalChip from "@/components/medals/FeaturedMedalChip";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -51,6 +53,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const { lang } = useLanguage();
   const { user } = useAuth();
   const { info: limit } = useGenerateLimit();
+  const { featured } = useFeaturedMedal();
   const [activePlan, setActivePlan] = useState<any | null>(null);
   const [allPlans, setAllPlans] = useState<any[]>([]);
   const [planCount, setPlanCount] = useState<number>(0);
@@ -243,7 +246,10 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
               </h1>
             </div>
           </button>
-          <TierBadge tier={tier} />
+          <div className="flex items-center gap-1.5 shrink-0">
+            {featured && <FeaturedMedalChip medal={featured} />}
+            <TierBadge tier={tier} />
+          </div>
         </div>
 
         {/* Radial gradient glow accent behind active plan card */}

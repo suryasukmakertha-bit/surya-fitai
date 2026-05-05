@@ -13,11 +13,13 @@ import Auth from "./pages/Auth";
 import SavedPlans from "./pages/SavedPlans";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
+import Medals from "./pages/Medals";
 import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
 import PWAManager from "./components/pwa/PWAManager";
 import ConsentManager from "./components/legal/ConsentManager";
 import BottomNav from "./components/nav/BottomNav";
+import MedalToast from "./components/MedalToast";
 import { useTheme } from "./hooks/useTheme";
 
 const queryClient = new QueryClient();
@@ -49,12 +51,14 @@ const App = () => (
                   <Route path="/saved-plans" element={<SavedPlans />} />
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/medals" element={<Medals />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
               <BottomNav />
             </InactivityRedirect>
             <ConsentManager />
+            <MedalToast />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

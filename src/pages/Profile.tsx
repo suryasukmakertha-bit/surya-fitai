@@ -15,6 +15,7 @@ import { openLegalPopup } from "@/components/legal/legalEvents";
 import FeedbackModal from "@/components/FeedbackModal";
 import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
+import MedalsList from "@/components/medals/MedalsList";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -343,6 +344,9 @@ export default function Profile() {
             );
           })}
         </div>
+
+        {/* My Medals */}
+        <MedalsList />
 
         {/* Settings menu */}
         <div
