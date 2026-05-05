@@ -222,3 +222,112 @@ export async function checkAndAwardMedals(userId: string): Promise<NewMedal[]> {
   }
   return earned;
 }
+
+// ============== Generic medal awarding ==============
+
+async function awardIfNew(userId: string, medal: NewMedal): Promise<NewMedal | null> {
+  const sb = supabase as any;
+  const { data: existing } = await sb
+    .from("user_medals")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("medal_id", medal.medal_id)
+    .maybeSingle();
+  if (existing) return null;
+  const { error } = await sb.from("user_medals").insert({ user_id: userId, ...medal });
+  return error ? null : medal;
+}
+
+function consecutiveStreakEndingNow(dates: string[]): number {
+  const set = new Set(dates);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const cursor = new Date();
+  if (!set.has(fmt(cursor))) cursor.setDate(cursor.getDate() - 1);
+  let n = 0;
+  while (set.has(fmt(cursor))) {
+    n += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return n;
+}
+
+export async function checkWorkoutStreakMedals(userId: string): Promise<NewMedal[]> {
+  const sb = supabase as any;
+  const { data } = await sb
+    .from("workout_completions")
+    .select("workout_date")
+    .eq("user_id", userId)
+    .eq("completed", true)
+    .order("workout_date", { ascending: false })
+    .limit(500);
+  const streak = consecutiveStreakEndingNow((data || []).map((r: any) => r.workout_date));
+  const tiers: { min: number; medal: NewMedal }[] = [
+    { min: 3, medal: { medal_id: "STREAK_3", medal_name: "On Fire", medal_tier: "bronze", medal_description: "Latihan 3 hari berturut-turut" } },
+    { min: 7, medal: { medal_id: "STREAK_7", medal_name: "Minggu Penuh Api", medal_tier: "silver", medal_description: "Latihan 7 hari berturut-turut" } },
+    { min: 30, medal: { medal_id: "STREAK_30", medal_name: "Unstoppable", medal_tier: "gold", medal_description: "Latihan 30 hari berturut-turut" } },
+  ];
+  const earned: NewMedal[] = [];
+  for (const t of tiers) {
+    if (streak >= t.min) {
+      const m = await awardIfNew(userId, t.medal);
+      if (m) earned.push(m);
+    }
+  }
+  return earned;
+}
+
+export async function checkProgramCompleteMedal(userId: string, completedDays: number, totalDays: number): Promise<NewMedal[]> {
+  if (totalDays <= 0 || completedDays < totalDays) return [];
+  const m = await awardIfNew(userId, {
+    medal_id: "PROGRAM_COMPLETE",
+    medal_name: "Program Tamat",
+    medal_tier: "silver",
+    medal_description: "Menyelesaikan satu program penuh",
+  });
+  return m ? [m] : [];
+}
+
+export async function checkFirstGenerateMedal(userId: string): Promise<NewMedal[]> {
+  const m = await awardIfNew(userId, {
+    medal_id: "FIRST_GENERATE",
+    medal_name: "Langkah Pertama",
+    medal_tier: "bronze",
+    medal_description: "Membuat program pertama bersama Coach Surya",
+  });
+  return m ? [m] : [];
+}
+
+export async function checkCheckinMedals(userId: string, latestWeight: number, targetWeight?: number | null): Promise<NewMedal[]> {
+  const sb = supabase as any;
+  const earned: NewMedal[] = [];
+
+  // Weight goal: within 0.5 kg of target
+  if (targetWeight && Math.abs(latestWeight - targetWeight) <= 0.5) {
+    const m = await awardIfNew(userId, {
+      medal_id: "WEIGHT_GOAL",
+      medal_name: "Target Tercapai",
+      medal_tier: "gold",
+      medal_description: "Mencapai target berat badan",
+    });
+    if (m) earned.push(m);
+  }
+
+  // 14-day consecutive checkin streak
+  const { data } = await sb
+    .from("progress_checkins")
+    .select("date")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .limit(60);
+  const streak = consecutiveStreakEndingNow((data || []).map((r: any) => r.date));
+  if (streak >= 14) {
+    const m = await awardIfNew(userId, {
+      medal_id: "CHECKIN_14",
+      medal_name: "Konsisten",
+      medal_tier: "silver",
+      medal_description: "Check-in berat badan 14 hari berturut-turut",
+    });
+    if (m) earned.push(m);
+  }
+  return earned;
+}
