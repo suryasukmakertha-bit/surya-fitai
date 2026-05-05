@@ -28,6 +28,8 @@ import PlanExtendBanner from "@/components/PlanExtendBanner";
 import SavePlanReminderModal from "@/components/SavePlanReminderModal";
 import CheckinReminderModal from "@/components/CheckinReminderModal";
 import { getPlanProgress, type PlanProgress } from "@/lib/planProgress";
+import { checkCheckinMedals, checkFirstGenerateMedal } from "@/lib/dailyChallenge";
+import { emitMedalsEarned } from "@/lib/medalEvents";
 
 interface DayPlan {
   day: string;
@@ -489,6 +491,11 @@ export default function Results() {
       setProgressWeight("");
       setProgressNote("");
       toast({ title: t.checkInLogged });
+      try {
+        const target = (userInfo as any)?.targetWeight || (userInfo as any)?.target_weight || null;
+        const medals = await checkCheckinMedals(user.id, w, target ? Number(target) : null);
+        emitMedalsEarned(medals);
+      } catch {}
     }
     setAddingCheckIn(false);
   };
