@@ -9,6 +9,7 @@ import { ALL_MEDALS, TIER_COLOR, tierGradient } from "@/lib/medalCatalog";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import { downloadMedalPng } from "@/lib/medalImage";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserMedal {
   id: string;
@@ -22,6 +23,18 @@ interface UserMedal {
 export default function Medals() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t, lang } = useLanguage();
+  const tt = (k: string, vars?: Record<string, string | number>) => {
+    let s = (t as any)[k] || k;
+    if (vars) for (const [k2, v] of Object.entries(vars)) s = s.replace(`{{${k2}}}`, String(v));
+    return s;
+  };
+  const locale = lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US";
+  const localizeMedal = (m: { medal_id: string; medal_name: string; medal_description?: string | null; medal_tier: string }) => ({
+    name: (t as any)[`medal.${m.medal_id}.name`] || m.medal_name,
+    description: (t as any)[`medal.${m.medal_id}.description`] || m.medal_description || "",
+    tier: (t as any)[`medal.tier.${m.medal_tier}`] || m.medal_tier,
+  });
   const [tab, setTab] = useState<"earned" | "locked">("earned");
   const [medals, setMedals] = useState<UserMedal[]>([]);
   const [displayName, setDisplayName] = useState("");
@@ -58,14 +71,14 @@ export default function Medals() {
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
     await refreshFeatured();
-    toast.success("Medal dipasang di dashboard!");
+    toast.success(tt("featuredMedal.toastSet"));
   };
 
   const removeFeatured = async () => {
     const sb = supabase as any;
     await sb.from("user_featured_medal").delete().eq("user_id", user.id);
     await refreshFeatured();
-    toast("Medal dilepas dari dashboard");
+    toast(tt("featuredMedal.toastRemoved"));
   };
 
   return (
@@ -77,7 +90,7 @@ export default function Medals() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xl font-display font-bold text-foreground">Koleksi Medal</h1>
+            <h1 className="text-xl font-display font-bold text-foreground">{tt("medals.galleryTitle")}</h1>
             <p className="text-xs text-muted-foreground">({medals.length} medal)</p>
           </div>
         </div>
@@ -94,7 +107,7 @@ export default function Medals() {
                 border: tab === t ? "none" : "1px solid hsl(var(--border) / 0.12)",
               }}
             >
-              {t === "earned" ? `Diraih (${medals.length})` : `Terkunci (${locked.length})`}
+              {t === "earned" ? `${tt("medals.tabEarned")} (${medals.length})` : `${tt("medals.tabLocked")} (${locked.length})`}
             </button>
           ))}
         </div>
