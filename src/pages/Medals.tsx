@@ -96,18 +96,18 @@ export default function Medals() {
         </div>
 
         <div className="flex gap-2 mb-5">
-          {(["earned", "locked"] as const).map((t) => (
+          {(["earned", "locked"] as const).map((tk) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tk}
+              onClick={() => setTab(tk)}
               className="flex-1 py-2 rounded-lg font-bold text-sm"
               style={{
-                background: tab === t ? "linear-gradient(90deg,#ff6b00,#ff3d7f)" : "hsl(var(--surface))",
-                color: tab === t ? "#fff" : "hsl(var(--muted-foreground))",
-                border: tab === t ? "none" : "1px solid hsl(var(--border) / 0.12)",
+                background: tab === tk ? "linear-gradient(90deg,#ff6b00,#ff3d7f)" : "hsl(var(--surface))",
+                color: tab === tk ? "#fff" : "hsl(var(--muted-foreground))",
+                border: tab === tk ? "none" : "1px solid hsl(var(--border) / 0.12)",
               }}
             >
-              {t === "earned" ? `${tt("medals.tabEarned")} (${medals.length})` : `${tt("medals.tabLocked")} (${locked.length})`}
+              {tk === "earned" ? `${tt("medals.tabEarned")} (${medals.length})` : `${tt("medals.tabLocked")} (${locked.length})`}
             </button>
           ))}
         </div>
@@ -116,13 +116,14 @@ export default function Medals() {
           medals.length === 0 ? (
             <div className="text-center py-16">
               <Award size={48} color="#333" className="mx-auto mb-3" />
-              <p className="text-muted-foreground">Belum ada medal diraih</p>
+              <p className="text-muted-foreground">{tt("medals.empty")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {medals.map((m) => {
                 const color = TIER_COLOR[m.medal_tier] || "#ff6b00";
                 const isFeatured = featured?.medal_id === m.medal_id;
+                const loc = localizeMedal(m);
                 return (
                   <button
                     key={m.id}
@@ -137,14 +138,14 @@ export default function Medals() {
                   >
                     {isFeatured && (
                       <span className="absolute top-1.5 right-1.5" style={{ background: "#10b981", color: "#000", fontSize: 8, fontWeight: 800, padding: "1px 6px", borderRadius: 999 }}>
-                        TERPASANG
+                        {tt("medals.featured")}
                       </span>
                     )}
                     <Award size={36} color={color} style={{ filter: `drop-shadow(0 0 10px ${color})` }} />
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", textAlign: "center", lineHeight: 1.15 }}>{m.medal_name}</p>
-                    <span style={{ background: color, color: "#000", fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 999, textTransform: "uppercase", letterSpacing: "0.1em" }}>{m.medal_tier}</span>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", textAlign: "center", lineHeight: 1.15 }}>{loc.name}</p>
+                    <span style={{ background: color, color: "#000", fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 999, textTransform: "uppercase", letterSpacing: "0.1em" }}>{loc.tier}</span>
                     <p style={{ fontSize: 10, color: "#888" }}>
-                      {new Date(m.earned_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                      {new Date(m.earned_at).toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" })}
                     </p>
                   </button>
                 );
@@ -153,7 +154,9 @@ export default function Medals() {
           )
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {locked.map((m) => (
+            {locked.map((m) => {
+              const loc = localizeMedal(m);
+              return (
               <div key={m.medal_id} style={{
                 height: 140, borderRadius: 14, padding: 12,
                 background: "#1a1a1a",
@@ -165,13 +168,14 @@ export default function Medals() {
                   <Award size={36} color="#333" />
                   <Lock size={16} color="#555" style={{ position: "absolute", bottom: -2, right: -6 }} />
                 </div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: "#666", textAlign: "center", lineHeight: 1.15 }}>{m.medal_name}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "#666", textAlign: "center", lineHeight: 1.15 }}>{loc.name}</p>
                 <p style={{ fontSize: 10, color: "#555" }}>{m.progressHint?.label || "Terkunci"}</p>
                 <div style={{ width: "80%", height: 3, background: "#222", borderRadius: 999, overflow: "hidden" }}>
                   <div style={{ width: "0%", height: "100%", background: "rgba(255,107,0,0.4)" }} />
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -182,14 +186,15 @@ export default function Medals() {
           {selected && (() => {
             const color = TIER_COLOR[selected.medal_tier] || "#ff6b00";
             const isFeatured = featured?.medal_id === selected.medal_id;
+            const loc = localizeMedal(selected);
             return (
               <div className="text-center pb-4">
                 <Award size={64} color={color} style={{ filter: `drop-shadow(0 0 20px ${color})`, margin: "0 auto" }} />
-                <h2 className="text-xl font-extrabold text-foreground mt-3">{selected.medal_name}</h2>
-                <span style={{ background: color, color: "#000", fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, textTransform: "uppercase", letterSpacing: "0.1em", display: "inline-block", marginTop: 6 }}>{selected.medal_tier}</span>
-                <p className="text-sm text-muted-foreground mt-3">{selected.medal_description}</p>
+                <h2 className="text-xl font-extrabold text-foreground mt-3">{loc.name}</h2>
+                <span style={{ background: color, color: "#000", fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, textTransform: "uppercase", letterSpacing: "0.1em", display: "inline-block", marginTop: 6 }}>{loc.tier}</span>
+                <p className="text-sm text-muted-foreground mt-3">{loc.description}</p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Diraih: {new Date(selected.earned_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                  {tt("medals.dateEarned", { date: new Date(selected.earned_at).toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" }) })}
                 </p>
 
                 <div className="grid grid-cols-2 gap-2 mt-5">
@@ -206,7 +211,7 @@ export default function Medals() {
                       className="font-bold inline-flex items-center justify-center gap-2"
                       style={{ background: "transparent", border: "1px solid #f87171", color: "#f87171", borderRadius: 10, padding: 10 }}
                     >
-                      <PinOff size={14} /> Lepas
+                      <PinOff size={14} /> {tt("medals.removeFeatured")}
                     </button>
                   ) : (
                     <button
@@ -214,7 +219,7 @@ export default function Medals() {
                       className="font-bold inline-flex items-center justify-center gap-2"
                       style={{ background: "transparent", border: "1px solid #ff6b00", color: "#ff6b00", borderRadius: 10, padding: 10 }}
                     >
-                      <Pin size={14} /> Pasang di Profil
+                      <Pin size={14} /> {tt("medals.setFeatured")}
                     </button>
                   )}
                 </div>
