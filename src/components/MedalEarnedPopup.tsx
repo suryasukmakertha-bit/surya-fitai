@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Award } from "lucide-react";
 import type { NewMedal } from "@/lib/dailyChallenge";
 import { downloadMedalPng } from "@/lib/medalImage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   medal: NewMedal;
@@ -17,12 +18,16 @@ const TIER_COLORS: Record<string, string> = {
 };
 
 export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
+  const { t } = useLanguage();
   useEffect(() => {
     const t = setTimeout(onClose, 10000);
     return () => clearTimeout(t);
   }, [onClose]);
 
   const tierColor = TIER_COLORS[medal.medal_tier] || "#ff6b00";
+  const localizedName = (t as any)[`medal.${medal.medal_id}.name`] || medal.medal_name;
+  const localizedDesc = (t as any)[`medal.${medal.medal_id}.description`] || medal.medal_description;
+  const localizedTier = (t as any)[`medal.tier.${medal.medal_tier}`] || medal.medal_tier;
 
   return (
     <div
@@ -52,10 +57,10 @@ export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
           className="font-extrabold mb-2"
           style={{ color: "#ff6b00", fontSize: 10, letterSpacing: "0.15em" }}
         >
-          MEDAL BARU DIRAIH!
+          {(t as any)["medal.newEarned"]}
         </p>
         <h2 className="font-extrabold text-white mb-2" style={{ fontSize: 22 }}>
-          {medal.medal_name}
+          {localizedName}
         </h2>
         <div className="flex justify-center mb-3">
           <span
@@ -70,11 +75,11 @@ export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
               letterSpacing: "0.1em",
             }}
           >
-            {medal.medal_tier}
+            {localizedTier}
           </span>
         </div>
         <p className="mb-4" style={{ color: "#888", fontSize: 13 }}>
-          {medal.medal_description}
+          {localizedDesc}
         </p>
         <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "12px 0" }} />
         <p className="font-bold mb-4" style={{ color: "#ff6b00" }}>
@@ -95,7 +100,7 @@ export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
             padding: 10,
           }}
         >
-          Unduh & Bagikan
+          {(t as any)["medal.downloadShare"]}
         </button>
         <button
           onClick={onClose}
@@ -107,7 +112,7 @@ export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
             padding: 10,
           }}
         >
-          Tutup
+          {(t as any)["medal.close"]}
         </button>
       </div>
       <style>{`
