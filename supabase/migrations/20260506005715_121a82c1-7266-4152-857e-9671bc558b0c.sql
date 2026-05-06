@@ -1,0 +1,1 @@
+CREATE POLICY "featured_delete_own" ON public.user_featured_medal FOR DELETE USING (auth.uid() = user_id);
