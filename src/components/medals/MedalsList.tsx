@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TIER_COLOR, tierGradient } from "@/lib/medalCatalog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserMedal {
   id: string;
@@ -17,6 +18,9 @@ interface UserMedal {
 export default function MedalsList() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t, lang } = useLanguage();
+  const tt = (k: string) => (t as any)[k] || k;
+  const locale = lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US";
   const [medals, setMedals] = useState<UserMedal[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +49,7 @@ export default function MedalsList() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Award size={16} color="#ff6b00" />
-          <span style={{ fontSize: 14, fontWeight: 700 }} className="text-foreground">Medal Saya</span>
+          <span style={{ fontSize: 14, fontWeight: 700 }} className="text-foreground">{tt("medals.sectionTitle")}</span>
           {medals.length > 0 && (
             <span style={{
               background: "rgba(255,107,0,0.15)", color: "#ff6b00",
@@ -57,7 +61,7 @@ export default function MedalsList() {
           onClick={() => navigate("/medals")}
           style={{ fontSize: 12, color: "#ff6b00", fontWeight: 600 }}
         >
-          Lihat Semua ›
+          {tt("medals.viewAll")} ›
         </button>
       </div>
 
@@ -67,13 +71,14 @@ export default function MedalsList() {
           style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
         >
           <Award size={32} color="#333" className="mx-auto mb-2" />
-          <p style={{ fontSize: 12, color: "#555" }}>Belum ada medal</p>
-          <p style={{ fontSize: 11, color: "#444" }}>Selesaikan tantangan harian!</p>
+          <p style={{ fontSize: 12, color: "#555" }}>{tt("medals.empty")}</p>
+          <p style={{ fontSize: 11, color: "#444" }}>{tt("medals.emptySubtitle")}</p>
         </div>
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           {medals.map((m) => {
             const color = TIER_COLOR[m.medal_tier] || "#ff6b00";
+            const name = (t as any)[`medal.${m.medal_id}.name`] || m.medal_name;
             return (
               <button
                 key={m.id}
@@ -88,10 +93,10 @@ export default function MedalsList() {
               >
                 <Award size={24} color={color} />
                 <p style={{ fontSize: 9, fontWeight: 700, color: "#fff", textAlign: "center", lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                  {m.medal_name}
+                  {name}
                 </p>
                 <p style={{ fontSize: 8, color: "#888" }}>
-                  {new Date(m.earned_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short" })}
+                  {new Date(m.earned_at).toLocaleDateString(locale, { day: "2-digit", month: "short" })}
                 </p>
               </button>
             );
