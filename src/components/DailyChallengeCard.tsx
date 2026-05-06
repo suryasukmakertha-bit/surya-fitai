@@ -15,10 +15,10 @@ import {
 } from "@/lib/dailyChallenge";
 import MedalEarnedPopup from "./MedalEarnedPopup";
 
-const DIFF_STYLE: Record<string, { bg: string; color: string; label: { id: string; en: string; zh: string } }> = {
-  mudah: { bg: "rgba(16,185,129,0.15)", color: "#10b981", label: { id: "Mudah", en: "Easy", zh: "简单" } },
-  sedang: { bg: "rgba(255,107,0,0.15)", color: "#ff6b00", label: { id: "Sedang", en: "Medium", zh: "中等" } },
-  sulit: { bg: "rgba(239,68,68,0.15)", color: "#ef4444", label: { id: "Sulit", en: "Hard", zh: "困难" } },
+const DIFF_STYLE: Record<string, { bg: string; color: string }> = {
+  mudah: { bg: "rgba(16,185,129,0.15)", color: "#10b981" },
+  sedang: { bg: "rgba(255,107,0,0.15)", color: "#ff6b00" },
+  sulit: { bg: "rgba(239,68,68,0.15)", color: "#ef4444" },
 };
 
 function Skeleton() {
@@ -43,8 +43,12 @@ function Skeleton() {
 
 export default function DailyChallengeCard() {
   const { user } = useAuth();
-  const { lang } = useLanguage();
-  const tx = (id: string, en: string, zh: string) => (lang === "id" ? id : lang === "zh" ? zh : en);
+  const { lang, t } = useLanguage();
+  const tt = (k: string, vars?: Record<string, string | number>) => {
+    let s = (t as any)[k] || k;
+    if (vars) for (const [k2, v] of Object.entries(vars)) s = s.replace(`{{${k2}}}`, String(v));
+    return s;
+  };
   const [loading, setLoading] = useState(true);
   const [challenge, setChallenge] = useState<DailyChallenge | null>(null);
   const [progress, setProgress] = useState<ChallengeProgress | null>(null);
@@ -138,7 +142,7 @@ export default function DailyChallengeCard() {
           <span className="flex items-center gap-1.5">
             <Zap size={12} color="#ff6b00" />
             <span style={{ fontSize: 10, fontWeight: 700, color: "#ff6b00", letterSpacing: "0.1em" }}>
-              {tx("TANTANGAN HARIAN", "DAILY CHALLENGE", "每日挑战")}
+              {tt("dailyChallenge.label")}
             </span>
           </span>
           <span style={{ fontSize: 10, color: "#888" }}>{dateLabel}</span>
@@ -148,11 +152,7 @@ export default function DailyChallengeCard() {
           {exerciseLabel}
         </p>
         <p className="mb-3" style={{ fontSize: 13, color: "#888" }}>
-          {tx(
-            `Lakukan ${challenge.target_reps} ${exerciseLabel}`,
-            `Do ${challenge.target_reps} ${exerciseLabel}`,
-            `完成 ${challenge.target_reps} 次 ${exerciseLabel}`
-          )}
+          {tt("dailyChallenge.doX", { count: challenge.target_reps, exercise: exerciseLabel })}
         </p>
 
         <div className="flex items-center gap-2 mb-3">
@@ -166,7 +166,7 @@ export default function DailyChallengeCard() {
               fontWeight: 700,
             }}
           >
-            {tx(diff.label.id, diff.label.en, diff.label.zh)}
+            {tt(`dailyChallenge.difficulty.${challenge.difficulty}`)}
           </span>
           <span
             className="inline-flex items-center gap-1"
@@ -180,7 +180,7 @@ export default function DailyChallengeCard() {
             }}
           >
             <Star size={10} color="#ff6b00" />
-            {challenge.xp_reward} XP
+            {tt("dailyChallenge.xpReward", { xp: challenge.xp_reward })}
           </span>
         </div>
 
@@ -195,7 +195,7 @@ export default function DailyChallengeCard() {
               padding: 10,
             }}
           >
-            {tx("Ambil Tantangan", "Take Challenge", "接受挑战")}
+            {tt("dailyChallenge.cta.accept")}
           </button>
         )}
 
@@ -214,7 +214,7 @@ export default function DailyChallengeCard() {
             }}
           >
             <CheckCircle size={16} />
-            {tx("Tandai Selesai", "Mark Complete", "标记完成")}
+            {tt("dailyChallenge.cta.complete")}
             {showConfetti && <Confetti key={confettiKey} />}
           </button>
         )}
@@ -234,14 +234,10 @@ export default function DailyChallengeCard() {
               }}
             >
               <CheckCircle size={16} />
-              {tx("Selesai Hari Ini", "Done Today", "今日已完成")}
+              {tt("dailyChallenge.cta.done")}
             </button>
             <p className="text-center mt-1.5" style={{ color: "#10b981", fontSize: 10 }}>
-              {tx(
-                `+${progress?.xp_earned || challenge.xp_reward} XP didapat hari ini`,
-                `+${progress?.xp_earned || challenge.xp_reward} XP earned today`,
-                `今日获得 +${progress?.xp_earned || challenge.xp_reward} XP`
-              )}
+              {tt("dailyChallenge.xpEarned", { xp: progress?.xp_earned || challenge.xp_reward })}
             </p>
           </>
         )}
