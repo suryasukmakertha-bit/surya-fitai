@@ -39,7 +39,7 @@ export default function Medals() {
   const [medals, setMedals] = useState<UserMedal[]>([]);
   const [displayName, setDisplayName] = useState("");
   const [selected, setSelected] = useState<UserMedal | null>(null);
-  const { featured, refresh: refreshFeatured } = useFeaturedMedal();
+  const { featured, setFeaturedMedal: setFeaturedMedalHook, removeFeaturedMedal } = useFeaturedMedal();
 
   useEffect(() => { if (!authLoading && !user) navigate("/auth"); }, [authLoading, user, navigate]);
 
@@ -62,23 +62,19 @@ export default function Medals() {
   const locked = ALL_MEDALS.filter((m) => !earnedIds.has(m.medal_id));
 
   const setFeaturedMedal = async (m: UserMedal) => {
-    const sb = supabase as any;
-    await sb.from("user_featured_medal").upsert({
-      user_id: user.id,
-      medal_id: m.medal_id,
-      medal_name: m.medal_name,
-      medal_tier: m.medal_tier,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-    await refreshFeatured();
-    toast.success(tt("featuredMedal.toastSet"));
+    const ok = await setFeaturedMedalHook({ medal_id: m.medal_id, medal_name: m.medal_name, medal_tier: m.medal_tier });
+    if (ok) {
+      setSelected(null);
+      toast.success(tt("featuredMedal.toastSet"));
+    }
   };
 
   const removeFeatured = async () => {
-    const sb = supabase as any;
-    await sb.from("user_featured_medal").delete().eq("user_id", user.id);
-    await refreshFeatured();
-    toast(tt("featuredMedal.toastRemoved"));
+    const ok = await removeFeaturedMedal();
+    if (ok) {
+      setSelected(null);
+      toast(tt("featuredMedal.toastRemoved"));
+    }
   };
 
   return (

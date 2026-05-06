@@ -11,3 +11,16 @@ export function onMedalEarned(fn: Listener) {
 export function emitMedalsEarned(medals: NewMedal[]) {
   if (medals && medals.length) listener?.(medals);
 }
+
+// Featured medal change pubsub (cross-component reactivity)
+type FeaturedListener = () => void;
+const featuredListeners = new Set<FeaturedListener>();
+
+export function onFeaturedMedalChanged(fn: FeaturedListener) {
+  featuredListeners.add(fn);
+  return () => { featuredListeners.delete(fn); };
+}
+
+export function emitFeaturedMedalChanged() {
+  featuredListeners.forEach((fn) => fn());
+}
