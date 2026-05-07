@@ -454,24 +454,43 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
 
         {/* SECTION 5 — Quick access */}
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <button
-            onClick={onOpenPlans}
-            className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
-            style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
-          >
-            <FolderOpen className="w-5 h-5 mb-2" style={{ color: "#ff6b00" }} />
-            <p className="text-sm font-bold text-foreground">{tx("Semua Rencana","All Plans","所有计划")}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{viewPlansCta}</p>
-          </button>
-          <button
-            onClick={onOpenPrograms}
-            className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
-            style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
-          >
-            <Dumbbell className="w-5 h-5 mb-2" style={{ color: "#ff6b00" }} />
-            <p className="text-sm font-bold text-foreground">{tx("Pilih Program","Choose Program","选择计划")}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{tx("Jelajahi tipe program","Browse program types","浏览程序类型")}</p>
-          </button>
+          {([
+            { kind: "running" as const, icon: PersonStanding,
+              title: tx("Lari","Running","跑步"),
+              last: runStats.last, weekly: runStats.weekly,
+              lastTpl: tx("Lari terakhir: {{distance}} km","Last run: {{distance}} km","上次跑步: {{distance}} 公里"),
+              empty: tx("Mulai berlari pertamamu","Start your first run","开始你的第一次跑步"),
+              weeklyTpl: tx("Minggu ini: {{km}} km","This week: {{km}} km","本周: {{km}} 公里"),
+              cta: tx("Mulai Lari","Start Run","开始跑步"),
+              path: "/running" },
+            { kind: "cycling" as const, icon: Bike,
+              title: tx("Sepeda","Cycling","骑行"),
+              last: rideStats.last, weekly: rideStats.weekly,
+              lastTpl: tx("Ride terakhir: {{distance}} km","Last ride: {{distance}} km","上次骑行: {{distance}} 公里"),
+              empty: tx("Mulai bersepeda pertamamu","Start your first ride","开始你的第一次骑行"),
+              weeklyTpl: tx("Minggu ini: {{km}} km","This week: {{km}} km","本周: {{km}} 公里"),
+              cta: tx("Mulai Ride","Start Ride","开始骑行"),
+              path: "/cycling" },
+          ]).map((c) => {
+            const I = c.icon;
+            const lastText = c.last != null
+              ? c.lastTpl.replace("{{distance}}", c.last.toFixed(2))
+              : c.empty;
+            return (
+              <button
+                key={c.kind}
+                onClick={() => navigate(c.path)}
+                className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
+                style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
+              >
+                <I className="w-6 h-6 mb-2" style={{ color: "#ff6b00" }} />
+                <p className="text-sm font-bold text-foreground">{c.title}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{lastText}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{c.weeklyTpl.replace("{{km}}", c.weekly.toFixed(1))}</p>
+                <p className="text-[11px] font-bold mt-2" style={{ color: "#ff6b00" }}>{c.cta} →</p>
+              </button>
+            );
+          })}
         </div>
         </div>
       </div>
