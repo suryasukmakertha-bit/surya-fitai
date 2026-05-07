@@ -195,11 +195,28 @@ export default function Medals() {
 
                 <div className="grid grid-cols-2 gap-2 mt-5">
                   <button
-                    onClick={() => downloadMedalPng({ ...selected, user_name: displayName })}
+                    onClick={() => {
+                      const dateStr = new Date(selected.earned_at).toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
+                      const earnedTpl = ((t as any)["medals.dateEarned"] || "Earned: {{date}}").replace("{{date}}", dateStr);
+                      downloadMedalPng({
+                        ...selected,
+                        medal_description: selected.medal_description || "",
+                        user_name: displayName,
+                        i18n: {
+                          name: loc.name,
+                          description: loc.description,
+                          tier: loc.tier,
+                          header: (t as any)["medal.png.header"],
+                          tagline: (t as any)["medal.png.tagline"],
+                          earnedLabel: earnedTpl,
+                          locale,
+                        },
+                      });
+                    }}
                     className="font-bold text-white inline-flex items-center justify-center gap-2"
                     style={{ background: "linear-gradient(90deg,#ff6b00,#ff3d7f)", borderRadius: 10, padding: 10 }}
                   >
-                    <Download size={14} /> Unduh PNG
+                    <Download size={14} /> {tt("medal.downloadShare")}
                   </button>
                   {isFeatured ? (
                     <button
