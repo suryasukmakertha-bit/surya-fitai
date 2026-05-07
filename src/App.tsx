@@ -14,6 +14,9 @@ import SavedPlans from "./pages/SavedPlans";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import Medals from "./pages/Medals";
+import ActivityPre from "./pages/ActivityPre";
+import ActivityActive from "./pages/ActivityActive";
+import ActivitySummary from "./pages/ActivitySummary";
 import NotFound from "./pages/NotFound";
 import InactivityRedirect from "./components/InactivityRedirect";
 import PWAManager from "./components/pwa/PWAManager";
@@ -52,6 +55,12 @@ const App = () => (
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/medals" element={<Medals />} />
+                  <Route path="/running" element={<ActivityPre activity="running" />} />
+                  <Route path="/running/active" element={<ActivityActive activity="running" />} />
+                  <Route path="/running/summary" element={<ActivitySummary activity="running" />} />
+                  <Route path="/cycling" element={<ActivityPre activity="cycling" />} />
+                  <Route path="/cycling/active" element={<ActivityActive activity="cycling" />} />
+                  <Route path="/cycling/summary" element={<ActivitySummary activity="cycling" />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
