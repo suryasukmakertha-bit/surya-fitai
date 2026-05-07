@@ -8,13 +8,29 @@ interface MedalCardData {
   medal_description: string;
   earned_at?: string;
   user_name?: string;
+  /** Optional localized strings; if omitted, falls back to provided medal_* fields */
+  i18n?: {
+    name?: string;
+    description?: string;
+    tier?: string;
+    header?: string;
+    tagline?: string;
+    earnedLabel?: string; // e.g. "Earned: 06 May 2026"
+    locale?: string;
+  };
 }
 
 function buildCard(m: MedalCardData): HTMLDivElement {
   const tierColor = TIER_COLOR[m.medal_tier] || "#ff6b00";
-  const dateStr = m.earned_at
-    ? new Date(m.earned_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
-    : new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+  const locale = m.i18n?.locale || "en-US";
+  const dateStr = (m.earned_at ? new Date(m.earned_at) : new Date())
+    .toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
+  const earnedLabel = m.i18n?.earnedLabel || `Earned: ${dateStr}`;
+  const name = m.i18n?.name || m.medal_name;
+  const description = m.i18n?.description || m.medal_description;
+  const tierLabel = (m.i18n?.tier || m.medal_tier).toUpperCase();
+  const headerLabel = m.i18n?.header || "SURYA-FITAI · ACHIEVEMENT";
+  const taglineLabel = m.i18n?.tagline || "AI-POWERED. YOU. LIMITLESS.";
   // Tier color contrast
   const darkText = ["silver", "gold"].includes(m.medal_tier);
   const tierTextColor = darkText ? "#1a1a1a" : "#ffffff";
@@ -23,19 +39,19 @@ function buildCard(m: MedalCardData): HTMLDivElement {
   root.innerHTML = `
     <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);"></div>
     <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);"></div>
-    <div style="margin-top:24px;text-align:center;font-size:11px;letter-spacing:0.2em;color:#ff6b00;font-weight:700;">SURYA-FITAI · ACHIEVEMENT</div>
+    <div style="margin-top:24px;text-align:center;font-size:11px;letter-spacing:0.2em;color:#ff6b00;font-weight:700;">${escapeHtml(headerLabel)}</div>
     <div style="width:120px;height:120px;border-radius:60px;margin:20px auto 0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);filter:drop-shadow(0 0 20px ${tierColor});">
       <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="${tierColor}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
     </div>
     <div style="margin:16px auto 0;text-align:center;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 16px;border-radius:14px;background:${tierColor};color:${tierTextColor};font-size:11px;font-weight:800;letter-spacing:0.12em;line-height:1;text-transform:uppercase;box-sizing:border-box;">${m.medal_tier.toUpperCase()}</span>
+      <span style="display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 16px;border-radius:14px;background:${tierColor};color:${tierTextColor};font-size:11px;font-weight:800;letter-spacing:0.12em;line-height:1;text-transform:uppercase;box-sizing:border-box;">${escapeHtml(tierLabel)}</span>
     </div>
-    <div style="margin:16px 28px 0;font-size:28px;font-weight:800;text-align:center;line-height:1.2;">${escapeHtml(m.medal_name)}</div>
-    <div style="margin:8px 28px 0;font-size:13px;color:#888;text-align:center;line-height:1.4;">${escapeHtml(m.medal_description)}</div>
+    <div style="margin:16px 28px 0;font-size:28px;font-weight:800;text-align:center;line-height:1.2;">${escapeHtml(name)}</div>
+    <div style="margin:8px 28px 0;font-size:13px;color:#888;text-align:center;line-height:1.4;">${escapeHtml(description)}</div>
     <div style="margin:20px auto 0;width:80%;height:1px;background:rgba(255,255,255,0.1);"></div>
-    <div style="margin-top:16px;text-align:center;font-size:11px;color:#666;">Diraih: ${dateStr}</div>
+    <div style="margin-top:16px;text-align:center;font-size:11px;color:#666;">${escapeHtml(earnedLabel)}</div>
     <div style="margin-top:4px;text-align:center;font-size:11px;color:#888;">${escapeHtml(m.user_name || "")}</div>
-    <div style="position:absolute;bottom:20px;left:0;right:0;text-align:center;font-size:9px;letter-spacing:0.15em;color:#ff6b00;font-weight:700;">AI-POWERED. YOU. LIMITLESS.</div>
+    <div style="position:absolute;bottom:20px;left:0;right:0;text-align:center;font-size:9px;letter-spacing:0.15em;color:#ff6b00;font-weight:700;">${escapeHtml(taglineLabel)}</div>
   `;
   return root;
 }
