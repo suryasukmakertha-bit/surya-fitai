@@ -396,6 +396,16 @@ const translations = {
     "dailyChallenge.cta.complete": "Mark as Done",
     "dailyChallenge.cta.done": "Done for Today",
     "dailyChallenge.xpEarned": "+{{xp}} XP earned today",
+    "exerciseName.Push-up": "Push-up",
+    "exerciseName.Squat": "Squat",
+    "exerciseName.Plank": "Plank",
+    "exerciseName.Burpee": "Burpee",
+    "exerciseName.Jumping Jack": "Jumping Jack",
+    "exerciseName.Sit-up": "Sit-up",
+    "exerciseName.Lunge": "Lunge",
+    "exerciseName.Mountain Climber": "Mountain Climber",
+    "exerciseName.Jump Squat": "Jump Squat",
+    "exerciseName.Diamond Push-up": "Diamond Push-up",
 
     // Medal popup
     "medal.newEarned": "NEW MEDAL EARNED!",
