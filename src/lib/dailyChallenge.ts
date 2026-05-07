@@ -331,3 +331,57 @@ export async function checkCheckinMedals(userId: string, latestWeight: number, t
   }
   return earned;
 }
+export async function checkActivityMedals(
+  userId: string,
+  activityType: "running" | "cycling",
+  distanceKm: number,
+): Promise<NewMedal[]> {
+  const sb = supabase as any;
+  const earned: NewMedal[] = [];
+  const { count } = await sb
+    .from("activity_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("activity_type", activityType);
+  const sessionCount = count || 0;
+
+  if (activityType === "running") {
+    if (sessionCount <= 1) {
+      const m = await awardIfNew(userId, {
+        medal_id: "FIRST_RUN", medal_name: "Pelari Baru", medal_tier: "bronze",
+        medal_description: "Menyelesaikan sesi lari pertama",
+      });
+      if (m) earned.push(m);
+    }
+    if (distanceKm >= 5) {
+      const m = await awardIfNew(userId, {
+        medal_id: "RUN_5K", medal_name: "5K Finisher", medal_tier: "silver",
+        medal_description: "Menyelesaikan lari 5 km",
+      });
+      if (m) earned.push(m);
+    }
+    if (distanceKm >= 10) {
+      const m = await awardIfNew(userId, {
+        medal_id: "RUN_10K", medal_name: "10K Hero", medal_tier: "gold",
+        medal_description: "Menyelesaikan lari 10 km",
+      });
+      if (m) earned.push(m);
+    }
+  } else {
+    if (sessionCount <= 1) {
+      const m = await awardIfNew(userId, {
+        medal_id: "FIRST_RIDE", medal_name: "Pesepeda Baru", medal_tier: "bronze",
+        medal_description: "Menyelesaikan sesi sepeda pertama",
+      });
+      if (m) earned.push(m);
+    }
+    if (distanceKm >= 20) {
+      const m = await awardIfNew(userId, {
+        medal_id: "RIDE_20K", medal_name: "20K Rider", medal_tier: "silver",
+        medal_description: "Menyelesaikan ride 20 km",
+      });
+      if (m) earned.push(m);
+    }
+  }
+  return earned;
+}

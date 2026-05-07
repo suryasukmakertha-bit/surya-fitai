@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check, Calendar, TrendingUp, Zap, BarChart2 } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check, Calendar, TrendingUp, Zap, BarChart2, PersonStanding, Bike } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
@@ -16,6 +16,7 @@ import { getPlanProgress } from "@/lib/planProgress";
 import DailyChallengeCard from "@/components/DailyChallengeCard";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import FeaturedMedalChip from "@/components/medals/FeaturedMedalChip";
+import { getWeeklyTotalKm, loadSessions } from "@/lib/activityTracking";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -64,6 +65,8 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const [planStats, setPlanStats] = useState({ completedDays: 0, totalDays: 28, currentWeek: 1, totalWeeks: 4 });
   const [lastWorkout, setLastWorkout] = useState<{ date: string; day_label: string; count: number } | null>(null);
   const [planPickerOpen, setPlanPickerOpen] = useState(false);
+  const [runStats, setRunStats] = useState<{ weekly: number; last: number | null }>({ weekly: 0, last: null });
+  const [rideStats, setRideStats] = useState<{ weekly: number; last: number | null }>({ weekly: 0, last: null });
   const navigate = useNavigate();
 
   const activePlanStorageKey = user ? `surya:activePlanId:${user.id}` : "";
@@ -167,6 +170,24 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     })();
     return () => { cancelled = true; };
   }, [user, activePlan]);
+
+  // Load activity stats for dashboard cards
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const [rw, rl, cw, cl] = await Promise.all([
+        getWeeklyTotalKm(user.id, "running"),
+        loadSessions(user.id, "running", 1),
+        getWeeklyTotalKm(user.id, "cycling"),
+        loadSessions(user.id, "cycling", 1),
+      ]);
+      if (cancelled) return;
+      setRunStats({ weekly: rw, last: rl[0]?.distance_km ?? null });
+      setRideStats({ weekly: cw, last: cl[0]?.distance_km ?? null });
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const tier: Tier =
     limit.status === "admin" ? "ADMIN" :
@@ -433,24 +454,43 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
 
         {/* SECTION 5 — Quick access */}
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <button
-            onClick={onOpenPlans}
-            className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
-            style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
-          >
-            <FolderOpen className="w-5 h-5 mb-2" style={{ color: "#ff6b00" }} />
-            <p className="text-sm font-bold text-foreground">{tx("Semua Rencana","All Plans","所有计划")}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{viewPlansCta}</p>
-          </button>
-          <button
-            onClick={onOpenPrograms}
-            className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
-            style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
-          >
-            <Dumbbell className="w-5 h-5 mb-2" style={{ color: "#ff6b00" }} />
-            <p className="text-sm font-bold text-foreground">{tx("Pilih Program","Choose Program","选择计划")}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{tx("Jelajahi tipe program","Browse program types","浏览程序类型")}</p>
-          </button>
+          {([
+            { kind: "running" as const, icon: PersonStanding,
+              title: tx("Lari","Running","跑步"),
+              last: runStats.last, weekly: runStats.weekly,
+              lastTpl: tx("Lari terakhir: {{distance}} km","Last run: {{distance}} km","上次跑步: {{distance}} 公里"),
+              empty: tx("Mulai berlari pertamamu","Start your first run","开始你的第一次跑步"),
+              weeklyTpl: tx("Minggu ini: {{km}} km","This week: {{km}} km","本周: {{km}} 公里"),
+              cta: tx("Mulai Lari","Start Run","开始跑步"),
+              path: "/running" },
+            { kind: "cycling" as const, icon: Bike,
+              title: tx("Sepeda","Cycling","骑行"),
+              last: rideStats.last, weekly: rideStats.weekly,
+              lastTpl: tx("Ride terakhir: {{distance}} km","Last ride: {{distance}} km","上次骑行: {{distance}} 公里"),
+              empty: tx("Mulai bersepeda pertamamu","Start your first ride","开始你的第一次骑行"),
+              weeklyTpl: tx("Minggu ini: {{km}} km","This week: {{km}} km","本周: {{km}} 公里"),
+              cta: tx("Mulai Ride","Start Ride","开始骑行"),
+              path: "/cycling" },
+          ]).map((c) => {
+            const I = c.icon;
+            const lastText = c.last != null
+              ? c.lastTpl.replace("{{distance}}", c.last.toFixed(2))
+              : c.empty;
+            return (
+              <button
+                key={c.kind}
+                onClick={() => navigate(c.path)}
+                className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
+                style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
+              >
+                <I className="w-6 h-6 mb-2" style={{ color: "#ff6b00" }} />
+                <p className="text-sm font-bold text-foreground">{c.title}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{lastText}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{c.weeklyTpl.replace("{{km}}", c.weekly.toFixed(1))}</p>
+                <p className="text-[11px] font-bold mt-2" style={{ color: "#ff6b00" }}>{c.cta} →</p>
+              </button>
+            );
+          })}
         </div>
         </div>
       </div>
