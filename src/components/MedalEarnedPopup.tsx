@@ -18,7 +18,8 @@ const TIER_COLORS: Record<string, string> = {
 };
 
 export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const locale = lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US";
   useEffect(() => {
     const t = setTimeout(onClose, 10000);
     return () => clearTimeout(t);
@@ -86,13 +87,27 @@ export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
           +{xpReward} XP
         </p>
         <button
-          onClick={() => downloadMedalPng({
-            medal_id: medal.medal_id,
-            medal_name: medal.medal_name,
-            medal_tier: medal.medal_tier,
-            medal_description: medal.medal_description,
-            earned_at: new Date().toISOString(),
-          })}
+          onClick={() => {
+            const earnedAt = new Date().toISOString();
+            const dateStr = new Date(earnedAt).toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
+            const earnedTpl = ((t as any)["medals.dateEarned"] || "Earned: {{date}}").replace("{{date}}", dateStr);
+            downloadMedalPng({
+              medal_id: medal.medal_id,
+              medal_name: medal.medal_name,
+              medal_tier: medal.medal_tier,
+              medal_description: medal.medal_description,
+              earned_at: earnedAt,
+              i18n: {
+                name: localizedName,
+                description: localizedDesc,
+                tier: localizedTier,
+                header: (t as any)["medal.png.header"],
+                tagline: (t as any)["medal.png.tagline"],
+                earnedLabel: earnedTpl,
+                locale,
+              },
+            });
+          }}
           className="w-full font-bold text-white"
           style={{
             background: "linear-gradient(90deg,#ff6b00,#ff3d7f)",
