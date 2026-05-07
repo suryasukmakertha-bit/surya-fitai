@@ -65,6 +65,8 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const [planStats, setPlanStats] = useState({ completedDays: 0, totalDays: 28, currentWeek: 1, totalWeeks: 4 });
   const [lastWorkout, setLastWorkout] = useState<{ date: string; day_label: string; count: number } | null>(null);
   const [planPickerOpen, setPlanPickerOpen] = useState(false);
+  const [runStats, setRunStats] = useState<{ weekly: number; last: number | null }>({ weekly: 0, last: null });
+  const [rideStats, setRideStats] = useState<{ weekly: number; last: number | null }>({ weekly: 0, last: null });
   const navigate = useNavigate();
 
   const activePlanStorageKey = user ? `surya:activePlanId:${user.id}` : "";
@@ -168,6 +170,24 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     })();
     return () => { cancelled = true; };
   }, [user, activePlan]);
+
+  // Load activity stats for dashboard cards
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const [rw, rl, cw, cl] = await Promise.all([
+        getWeeklyTotalKm(user.id, "running"),
+        loadSessions(user.id, "running", 1),
+        getWeeklyTotalKm(user.id, "cycling"),
+        loadSessions(user.id, "cycling", 1),
+      ]);
+      if (cancelled) return;
+      setRunStats({ weekly: rw, last: rl[0]?.distance_km ?? null });
+      setRideStats({ weekly: cw, last: cl[0]?.distance_km ?? null });
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const tier: Tier =
     limit.status === "admin" ? "ADMIN" :
