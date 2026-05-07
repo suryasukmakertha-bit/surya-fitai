@@ -123,7 +123,7 @@ export default function DailyChallengeCard() {
     }
   };
 
-  const exerciseLabel = challenge.exercise_name;
+  const exerciseLabel = (t as any)[`exerciseName.${challenge.exercise_name}`] || challenge.exercise_name;
 
   return (
     <>
