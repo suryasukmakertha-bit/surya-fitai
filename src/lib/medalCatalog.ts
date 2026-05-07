@@ -16,6 +16,11 @@ export const ALL_MEDALS: MedalDef[] = [
   { medal_id: "PROGRAM_COMPLETE", medal_name: "Program Tamat", medal_tier: "silver", medal_description: "Menyelesaikan satu program penuh", progressHint: { label: "0/1 program", total: 1 } },
   { medal_id: "WEIGHT_GOAL", medal_name: "Target Tercapai", medal_tier: "gold", medal_description: "Mencapai target berat badan", progressHint: { label: "Belum tercapai", total: 1 } },
   { medal_id: "CHECKIN_14",  medal_name: "Konsisten",       medal_tier: "silver", medal_description: "Check-in berat badan 14 hari berturut-turut", progressHint: { label: "0/14 hari", total: 14 } },
+  { medal_id: "FIRST_RUN",   medal_name: "Pelari Baru",     medal_tier: "bronze", medal_description: "Menyelesaikan sesi lari pertama", progressHint: { label: "0/1 sesi", total: 1 } },
+  { medal_id: "RUN_5K",      medal_name: "5K Finisher",     medal_tier: "silver", medal_description: "Menyelesaikan lari 5 km", progressHint: { label: "0/5 km", total: 5 } },
+  { medal_id: "RUN_10K",     medal_name: "10K Hero",        medal_tier: "gold",   medal_description: "Menyelesaikan lari 10 km", progressHint: { label: "0/10 km", total: 10 } },
+  { medal_id: "FIRST_RIDE",  medal_name: "Pesepeda Baru",   medal_tier: "bronze", medal_description: "Menyelesaikan sesi sepeda pertama", progressHint: { label: "0/1 sesi", total: 1 } },
+  { medal_id: "RIDE_20K",    medal_name: "20K Rider",       medal_tier: "silver", medal_description: "Menyelesaikan ride 20 km", progressHint: { label: "0/20 km", total: 20 } },
 ];
 
 export const TIER_COLOR: Record<string, string> = {
