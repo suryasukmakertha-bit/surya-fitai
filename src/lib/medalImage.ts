@@ -43,8 +43,8 @@ function buildCard(m: MedalCardData): HTMLDivElement {
     <div style="width:120px;height:120px;border-radius:60px;margin:20px auto 0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);filter:drop-shadow(0 0 20px ${tierColor});">
       <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="${tierColor}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
     </div>
-    <div style="margin:16px auto 0;text-align:center;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 16px;border-radius:14px;background:${tierColor};color:${tierTextColor};font-size:11px;font-weight:800;letter-spacing:0.12em;line-height:1;text-transform:uppercase;box-sizing:border-box;">${escapeHtml(tierLabel)}</span>
+      <div style="margin:16px auto 0;text-align:center;">
+      <span class="medal-tier-badge" style="display:inline-flex;align-items:center;justify-content:center;height:28px;min-width:80px;padding:0 16px;border-radius:14px;background:${tierColor};color:${tierTextColor};font-size:12px;font-weight:800;letter-spacing:0.12em;line-height:1;text-transform:uppercase;box-sizing:border-box;vertical-align:middle;"><span style="display:block;line-height:1;margin:0;padding:0;vertical-align:middle;">${escapeHtml(tierLabel)}</span></span>
     </div>
     <div style="margin:16px 28px 0;font-size:28px;font-weight:800;text-align:center;line-height:1.2;">${escapeHtml(name)}</div>
     <div style="margin:8px 28px 0;font-size:13px;color:#888;text-align:center;line-height:1.4;">${escapeHtml(description)}</div>
@@ -64,7 +64,22 @@ export async function downloadMedalPng(m: MedalCardData) {
   const card = buildCard(m);
   document.body.appendChild(card);
   try {
-    const canvas = await html2canvas(card, { backgroundColor: null, scale: 2, useCORS: true, allowTaint: false, logging: false });
+    const canvas = await html2canvas(card, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      onclone: (clonedDoc: Document) => {
+        const badges = clonedDoc.querySelectorAll<HTMLElement>(".medal-tier-badge");
+        badges.forEach((b) => {
+          b.style.display = "inline-flex";
+          b.style.alignItems = "center";
+          b.style.justifyContent = "center";
+          b.style.lineHeight = "1";
+        });
+      },
+    });
     const blob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), "image/png"));
     const fileName = `medal-${m.medal_name.replace(/\s+/g, "_")}-${(m.earned_at || new Date().toISOString()).slice(0, 10)}.png`;
     const file = new File([blob], fileName, { type: "image/png" });
