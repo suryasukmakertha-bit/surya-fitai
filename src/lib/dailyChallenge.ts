@@ -161,6 +161,40 @@ export interface NewMedal {
   medal_name: string;
   medal_tier: "bronze" | "silver" | "gold" | "platinum";
   medal_description: string;
+  xp_earned?: number;
+}
+
+export const MEDAL_XP: Record<string, number> = {
+  DAILY_1: 50,
+  DAILY_7: 150,
+  DAILY_30: 500,
+  STREAK_3: 75,
+  STREAK_7: 200,
+  STREAK_30: 750,
+  PROGRAM_COMPLETE: 300,
+  FIRST_GENERATE: 30,
+  WEIGHT_GOAL: 250,
+  CHECKIN_14: 100,
+  FIRST_RUN: 50,
+  RUN_5K: 150,
+  RUN_10K: 300,
+  FIRST_RIDE: 50,
+  RIDE_20K: 200,
+};
+
+async function awardXp(userId: string, xp: number): Promise<void> {
+  if (!xp || xp <= 0) return;
+  const sb = supabase as any;
+  try {
+    const { error } = await sb.rpc("increment_user_xp", { p_user_id: userId, p_xp: xp });
+    if (!error) return;
+  } catch { /* fall through */ }
+  const { data: row } = await sb.from("user_xp").select("total_xp").eq("user_id", userId).maybeSingle();
+  const newTotal = (row?.total_xp || 0) + xp;
+  await sb.from("user_xp").upsert(
+    { user_id: userId, total_xp: newTotal, updated_at: new Date().toISOString() },
+    { onConflict: "user_id" },
+  );
 }
 
 const DAILY_MEDALS: { count: number; medal: NewMedal }[] = [
@@ -216,7 +250,11 @@ export async function checkAndAwardMedals(userId: string): Promise<NewMedal[]> {
           user_id: userId,
           ...tier.medal,
         });
-        if (!error) earned.push(tier.medal);
+        if (!error) {
+          const xp = MEDAL_XP[tier.medal.medal_id] || 0;
+          if (xp > 0) await awardXp(userId, xp);
+          earned.push({ ...tier.medal, xp_earned: xp });
+        }
       }
     }
   }
@@ -235,7 +273,10 @@ async function awardIfNew(userId: string, medal: NewMedal): Promise<NewMedal | n
     .maybeSingle();
   if (existing) return null;
   const { error } = await sb.from("user_medals").insert({ user_id: userId, ...medal });
-  return error ? null : medal;
+  if (error) return null;
+  const xp = MEDAL_XP[medal.medal_id] || 0;
+  if (xp > 0) await awardXp(userId, xp);
+  return { ...medal, xp_earned: xp };
 }
 
 function consecutiveStreakEndingNow(dates: string[]): number {

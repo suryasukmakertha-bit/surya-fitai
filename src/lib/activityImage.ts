@@ -31,7 +31,10 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
     <div style="width:400px;height:640px;position:relative;background:transparent;padding:32px 24px;box-sizing:border-box;display:flex;flex-direction:column;filter:drop-shadow(0 4px 24px rgba(0,0,0,0.4));">
       <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);"></div>
       <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);"></div>
-      <p style="margin:20px 0 0;font-size:10px;letter-spacing:0.18em;color:#ff6b00;font-weight:800;text-align:center;">SURYA-FITAI · ${i18n.title.toUpperCase()}</p>
+      <div style="margin:20px 0 0;display:flex;align-items:center;justify-content:center;gap:8px;">
+        ${session.activity_type === "running" ? `<svg viewBox="0 0 24 24" fill="none" stroke="#ff6b00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="13" cy="4" r="2"/><path d="M7.5 13.5L10 12l2 5 3-3 2 2"/><path d="M10 12l1-4 3 1 2-3"/><path d="M7 17l1.5 3M15 13l2 4"/></svg>` : ""}
+        <p style="margin:0;font-size:10px;letter-spacing:0.18em;color:#ff6b00;font-weight:800;text-align:center;">SURYA-FITAI · ${i18n.title.toUpperCase()}</p>
+      </div>
       <p style="margin:16px 0 0;font-size:56px;font-weight:800;color:#ff6b00;text-align:center;line-height:1;">${session.distance_km.toFixed(2)} <span style="font-size:18px;color:#888;">km</span></p>
       <div style="height:1px;background:rgba(255,255,255,0.1);width:80%;margin:20px auto 4px;"></div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px;margin-bottom:14px;">

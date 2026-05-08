@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check, Calendar, TrendingUp, Zap, BarChart2, PersonStanding, Bike } from "lucide-react";
+import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check, Calendar, TrendingUp, Zap, BarChart2, Bike } from "lucide-react";
+import RunningIcon from "@/components/icons/RunningIcon";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
@@ -455,7 +456,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         {/* SECTION 5 — Quick access */}
         <div className="mt-5 grid grid-cols-2 gap-3">
           {([
-            { kind: "running" as const, icon: PersonStanding,
+            { kind: "running" as const, icon: RunningIcon,
               title: tx("Lari","Running","跑步"),
               last: runStats.last, weekly: runStats.weekly,
               lastTpl: tx("Lari terakhir: {{distance}} km","Last run: {{distance}} km","上次跑步: {{distance}} 公里"),
@@ -483,7 +484,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
                 className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
                 style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
               >
-                <I className="w-6 h-6 mb-2" style={{ color: "#ff6b00" }} />
+                <I size={24} color="#ff6b00" style={{ marginBottom: 8 }} />
                 <p className="text-sm font-bold text-foreground">{c.title}</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{lastText}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">{c.weeklyTpl.replace("{{km}}", c.weekly.toFixed(1))}</p>

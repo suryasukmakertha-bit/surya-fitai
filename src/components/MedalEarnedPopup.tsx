@@ -82,10 +82,14 @@ export default function MedalEarnedPopup({ medal, xpReward, onClose }: Props) {
         <p className="mb-4" style={{ color: "#888", fontSize: 13 }}>
           {localizedDesc}
         </p>
-        <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "12px 0" }} />
-        <p className="font-bold mb-4" style={{ color: "#ff6b00" }}>
-          +{xpReward} XP
-        </p>
+        {xpReward > 0 && (
+          <>
+            <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "12px 0" }} />
+            <p className="font-bold mb-4" style={{ color: "#ff6b00" }}>
+              +{xpReward} XP
+            </p>
+          </>
+        )}
         <button
           onClick={() => {
             const earnedAt = new Date().toISOString();
