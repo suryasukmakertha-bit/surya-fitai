@@ -35,7 +35,7 @@ function buildCard(m: MedalCardData): HTMLDivElement {
   const darkText = ["silver", "gold"].includes(m.medal_tier);
   const tierTextColor = darkText ? "#1a1a1a" : "#ffffff";
   const root = document.createElement("div");
-  root.style.cssText = `position:fixed;left:-9999px;top:0;width:400px;height:500px;background:#0f0f11;color:#fff;font-family:'Space Grotesk',Inter,system-ui,sans-serif;box-sizing:border-box;overflow:hidden;`;
+  root.style.cssText = `position:fixed;left:-9999px;top:0;width:400px;height:500px;background:transparent;color:#fff;font-family:'Space Grotesk',Inter,system-ui,sans-serif;box-sizing:border-box;overflow:hidden;filter:drop-shadow(0 4px 24px rgba(0,0,0,0.4));`;
   root.innerHTML = `
     <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);"></div>
     <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);"></div>
@@ -64,7 +64,7 @@ export async function downloadMedalPng(m: MedalCardData) {
   const card = buildCard(m);
   document.body.appendChild(card);
   try {
-    const canvas = await html2canvas(card, { backgroundColor: "#0f0f11", scale: 2, useCORS: true, allowTaint: false, logging: false });
+    const canvas = await html2canvas(card, { backgroundColor: null, scale: 2, useCORS: true, allowTaint: false, logging: false });
     const blob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), "image/png"));
     const fileName = `medal-${m.medal_name.replace(/\s+/g, "_")}-${(m.earned_at || new Date().toISOString()).slice(0, 10)}.png`;
     const file = new File([blob], fileName, { type: "image/png" });

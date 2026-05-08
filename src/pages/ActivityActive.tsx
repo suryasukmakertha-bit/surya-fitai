@@ -188,7 +188,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
   const calories = calcCalories(activity, weightKg, elapsed / 3600);
 
   return (
-    <div className="min-h-screen page-bg pb-24">
+    <div className="min-h-screen page-bg" style={{ paddingBottom: "calc(160px + env(safe-area-inset-bottom, 16px))" }}>
       <header className="px-4 pt-4 pb-2 text-center">
         <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
           style={{ background: running ? "rgba(16,185,129,0.15)" : "rgba(255,107,0,0.15)", color: running ? "#10b981" : "#ff6b00" }}>
@@ -246,7 +246,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
         )}
       </div>
 
-      <div className="fixed bottom-4 left-0 right-0 px-4 z-30">
+      <div className="fixed left-0 right-0 px-4 z-30" style={{ bottom: "calc(65px + env(safe-area-inset-bottom, 16px) + 16px)" }}>
         <div className="max-w-3xl mx-auto flex items-center justify-center gap-4">
           {running ? (
             <button onClick={handlePauseToggle} aria-label={tt("activity.pause")}
