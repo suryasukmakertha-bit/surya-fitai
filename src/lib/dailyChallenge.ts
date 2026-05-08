@@ -250,7 +250,11 @@ export async function checkAndAwardMedals(userId: string): Promise<NewMedal[]> {
           user_id: userId,
           ...tier.medal,
         });
-        if (!error) earned.push(tier.medal);
+        if (!error) {
+          const xp = MEDAL_XP[tier.medal.medal_id] || 0;
+          if (xp > 0) await awardXp(userId, xp);
+          earned.push({ ...tier.medal, xp_earned: xp });
+        }
       }
     }
   }
@@ -269,7 +273,10 @@ async function awardIfNew(userId: string, medal: NewMedal): Promise<NewMedal | n
     .maybeSingle();
   if (existing) return null;
   const { error } = await sb.from("user_medals").insert({ user_id: userId, ...medal });
-  return error ? null : medal;
+  if (error) return null;
+  const xp = MEDAL_XP[medal.medal_id] || 0;
+  if (xp > 0) await awardXp(userId, xp);
+  return { ...medal, xp_earned: xp };
 }
 
 function consecutiveStreakEndingNow(dates: string[]): number {
