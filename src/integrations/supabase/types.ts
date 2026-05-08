@@ -777,6 +777,10 @@ export type Database = {
         }
         Returns: number
       }
+      increment_user_xp: {
+        Args: { p_user_id: string; p_xp: number }
+        Returns: undefined
+      }
       is_app_admin: { Args: never; Returns: boolean }
     }
     Enums: {
