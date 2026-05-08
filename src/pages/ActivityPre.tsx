@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, PersonStanding, Bike, Lock, Trophy } from "lucide-react";
+import { ArrowLeft, Bike, Lock, Trophy } from "lucide-react";
+import RunningIcon from "@/components/icons/RunningIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -26,7 +27,7 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
   const isFree = access.isFreeTier && !access.isUnlimited;
   const [sessions, setSessions] = useState<ActivitySession[]>([]);
   const [pb, setPb] = useState<ActivitySession | null>(null);
-  const Icon = activity === "running" ? PersonStanding : Bike;
+  const isRunning = activity === "running";
   const title = activity === "running" ? tt("running.title") : tt("cycling.title");
   const startCta = activity === "running" ? tt("running.start") : tt("cycling.start");
   const locale = lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US";
@@ -55,7 +56,11 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
       <div className="px-4 max-w-3xl mx-auto">
         <div className="flex justify-center my-6">
           <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,61,127,0.10))", border: "1px solid rgba(255,107,0,0.3)" }}>
-            <Icon className="w-16 h-16" style={{ color: "#ff6b00" }} />
+            {isRunning ? (
+              <RunningIcon size={64} color="#ff6b00" />
+            ) : (
+              <Bike className="w-16 h-16" style={{ color: "#ff6b00" }} />
+            )}
           </div>
         </div>
 
