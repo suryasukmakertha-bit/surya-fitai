@@ -132,16 +132,36 @@ export default function AppHeader() {
             </button>
           </div>
 
-          {/* Desktop nav */}
-          <div className="hidden sm:flex items-center gap-3">
-            <button
-              onClick={handleRefresh}
-              aria-label="Refresh"
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-              style={{ background: "hsl(var(--surface))", color: "hsl(var(--foreground))" }}
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
+          {/* Desktop / tablet nav */}
+          <div className="hidden sm:flex items-center gap-2 lg:gap-4">
+            {user && (
+              <div className="flex items-center gap-1 lg:gap-3 mr-2">
+                {[
+                  { key: "home", path: "/", label: t.home || (lang === "id" ? "Home" : lang === "zh" ? "主页" : "Home") },
+                  { key: "program", path: "/programs", label: lang === "id" ? "Program" : lang === "zh" ? "计划" : "Program" },
+                  { key: "plans", path: "/saved-plans", label: lang === "id" ? "Rencana" : lang === "zh" ? "我的计划" : "Plans", guard: () => guardSavedPlans() },
+                  { key: "profile", path: "/profile", label: lang === "id" ? "Profil" : lang === "zh" ? "个人" : "Profile" },
+                ].map((item) => {
+                  const active = location.pathname === item.path;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => {
+                        if (item.guard && !item.guard()) return;
+                        navigate(item.path);
+                      }}
+                      className="hidden lg:inline-flex px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                      style={{
+                        color: active ? "#ff6b00" : "hsl(var(--muted-foreground))",
+                        background: active ? "rgba(255,107,0,0.10)" : "transparent",
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"
@@ -150,76 +170,26 @@ export default function AppHeader() {
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            {/* Language dropdown */}
-            <div className="relative" ref={langRef}>
-              <button
-                data-tour="language-selector"
-                onClick={() => setLangOpen(!langOpen)}
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Globe className="w-4 h-4" /> {t.settingsLanguage}
-              </button>
-              {langOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                  {LANG_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => handleLangChange(opt.value)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/60 transition-colors text-left"
-                    >
-                      <span className="text-lg">{opt.flag}</span>
-                      <span className="flex-1 text-foreground">{opt.label}</span>
-                      {lang === opt.value && <Check className="w-4 h-4 text-primary" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <button
+              onClick={handleRefresh}
+              aria-label="Refresh"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "hsl(var(--surface))", color: "hsl(var(--foreground))" }}
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
             {user ? (
-              <>
-                <button onClick={() => { if (!guardSavedPlans()) return; navigate("/saved-plans"); }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <FolderOpen className="w-4 h-4" /> {t.myPlans}
-                </button>
-                <button onClick={() => {
-                  if (access.isSubscriptionActive || access.isUnlimited) {
-                    toast({ title: lang === "id" ? "Langganan Pro kamu aktif ✅" : lang === "zh" ? "您的Pro订阅已激活 ✅" : "Your Pro subscription is active ✅" });
-                  } else {
-                    openSubPopup('save_plan');
-                  }
-                }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <Crown className="w-4 h-4 text-primary" />
-                  {(PRICING_TEXT[lang as PricingLang] ?? PRICING_TEXT.en).planName}
-                </button>
-                <button onClick={() => setDownloadOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <Download className="w-4 h-4 text-primary" />
-                  {lang === "id" ? "Unduh Aplikasi" : lang === "zh" ? "下载应用" : "Download App"}
-                </button>
-                <button onClick={() => setNotifSettingsOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <Bell className="w-4 h-4 text-primary" />
-                  {lang === "id" ? "Notifikasi" : lang === "zh" ? "通知" : "Notifications"}
-                  {notifPermission === "granted" && <span className="w-2 h-2 rounded-full bg-primary inline-block" />}
-                  {notifPermission === "denied" && <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />}
-                </button>
-                <button onClick={() => openLegalPopup('terms')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <ScrollText className="w-4 h-4 text-primary" />
-                  {UI[lang as LangCode].menuItem}
-                </button>
-                <button onClick={() => setFeedbackOpen(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <MessageSquare className="w-4 h-4 text-primary" />
-                  {feedbackLabel}
-                </button>
-                {isAdmin && (
-                  <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                    <ShieldCheck className="w-4 h-4 text-primary" />
-                    {adminLabel}
-                  </button>
-                )}
-                <button onClick={() => signOut()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <LogOut className="w-4 h-4" /> {t.signOut}
-                </button>
-              </>
+              <button
+                onClick={() => setDrawerOpen(true)}
+                aria-label="Open menu"
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                style={{ background: "hsl(var(--surface))", color: "hsl(var(--foreground))" }}
+              >
+                <Menu className="w-4 h-4" />
+                {notifPermission === "denied" && <span className="absolute w-2 h-2 rounded-full bg-red-500 -mt-3 ml-3" />}
+              </button>
             ) : (
-              <button onClick={() => navigate("/auth")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <button onClick={() => navigate("/auth")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors px-3 py-1.5">
                 <LogIn className="w-4 h-4" /> {t.signIn}
               </button>
             )}
