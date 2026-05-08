@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Trophy, Flame, RefreshCw, Dumbbell } from "lucide-react";
+import { Loader2, Trophy, Flame, RefreshCw, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PlanCompletionModalProps {
@@ -71,17 +71,17 @@ export default function PlanCompletionModal({
           {/* Celebration icon */}
           <div className="flex justify-center" aria-hidden="true">
             <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center animate-bounce">
-              <Trophy className="w-10 h-10" style={{ color: "#10b981" }} strokeWidth={1.5} />
+              <Trophy size={48} style={{ color: "#ff6b00" }} strokeWidth={1.5} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <DialogTitle className="text-2xl font-display font-bold text-foreground leading-tight inline-flex items-center justify-center gap-2 flex-wrap">
-              <span>{title}</span>
-              <Dumbbell className="w-6 h-6 text-primary inline-block" strokeWidth={1.5} />
+            <DialogTitle className="text-2xl font-display font-bold text-foreground leading-tight">
+              {title}
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              {subtitle}
+            <DialogDescription className="text-sm text-muted-foreground inline-flex items-center justify-center gap-1.5 flex-wrap">
+              <Sparkles size={20} style={{ color: "#ff6b00" }} strokeWidth={1.5} />
+              <span>{subtitle}</span>
             </DialogDescription>
           </div>
 
