@@ -116,7 +116,7 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="text-lg font-display font-bold text-foreground flex items-center gap-2">
-          <Icon className="w-5 h-5" style={{ color: "#ff6b00" }} />
+          {isRunning ? <RunningIcon size={20} color="#ff6b00" /> : <Bike className="w-5 h-5" style={{ color: "#ff6b00" }} />}
           {title} · {tt("activity.summaryTitle")}
         </h1>
       </header>
