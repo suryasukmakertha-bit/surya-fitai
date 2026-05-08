@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, PersonStanding, Bike, Trophy, Lock } from "lucide-react";
+import { ArrowLeft, Bike, Trophy, Lock } from "lucide-react";
+import RunningIcon from "@/components/icons/RunningIcon";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -25,7 +26,7 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
   const { access } = useSubscription();
   const isFree = access.isFreeTier && !access.isUnlimited;
   const locale = lang === "id" ? "id-ID" : lang === "zh" ? "zh-CN" : "en-US";
-  const Icon = activity === "running" ? PersonStanding : Bike;
+  const isRunning = activity === "running";
   const title = activity === "running" ? tt("running.title") : tt("cycling.title");
 
   const session = useMemo<ActivitySession | null>(() => {
