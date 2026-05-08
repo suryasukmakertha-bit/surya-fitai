@@ -246,7 +246,7 @@ export default function DailyChallengeCard() {
       {medalQueue.length > 0 && (
         <MedalEarnedPopup
           medal={medalQueue[0]}
-          xpReward={challenge.xp_reward}
+          xpReward={medalQueue[0].xp_earned ?? 0}
           onClose={() => setMedalQueue((q) => q.slice(1))}
         />
       )}
