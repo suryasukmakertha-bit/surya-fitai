@@ -615,6 +615,29 @@ export default function Results() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planId, user, totalPlanExercises, planCompletedAt, planStartedAt]);
 
+  // Refresh completion stats every time the popup is opened so the
+  // numbers reflect the latest checked-off exercises.
+  useEffect(() => {
+    if (!showCompletionModal || !planId || !user) return;
+    let cancelled = false;
+    (async () => {
+      let q = supabase
+        .from("workout_completions")
+        .select("workout_date, completed, completed_at")
+        .eq("user_id", user.id)
+        .eq("plan_id", planId)
+        .eq("completed", true);
+      if (planStartedAt) q = q.gte("completed_at", planStartedAt);
+      const { data, error } = await q;
+      if (error || cancelled) return;
+      setCompletionStats({
+        totalWorkouts: data?.length || 0,
+        totalActiveDays: new Set((data || []).map((r) => r.workout_date)).size,
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [showCompletionModal, planId, user, planStartedAt]);
+
   const handleContinueToNextMonth = async () => {
     if (!user || !planId) return;
     setContinueLoading(true);
