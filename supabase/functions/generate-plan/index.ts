@@ -479,6 +479,7 @@ SCHEDULING:
 - Distribute muscle groups evenly with balanced rotation and recovery optimization
 - Plan duration: ${duration} — generate exactly ${totalWeeks} weeks of programming
 - Include REST DAY entries labeled as "Week X - Rest Day (DayName, Date)" with an empty exercises array
+- MANDATORY ARRAY SIZE: workout_plan MUST contain EXACTLY ${(parseInt(totalWeeks as any) || 4) * 7} entries (${totalWeeks} weeks × 7 days). Every single calendar day of every week MUST be represented as its own entry, in chronological order (Week 1 Day 1, Week 1 Day 2, ..., Week 1 Day 7, Week 2 Day 1, ...). Rest days are entries with exercises: []. Do NOT collapse, omit, or merge days. Do NOT output only one example entry — output every day.
 
 MEAL PLAN RULES:
 - Food style: "${foodStyle || 'local'}"
