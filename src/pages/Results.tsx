@@ -547,6 +547,10 @@ export default function Results() {
   // Subscribes to workout_completions changes for this plan.
   useEffect(() => {
     if (!planId || !user || totalPlanExercises === 0) return;
+    // Wait until the plan's start date is loaded. Without this guard the
+    // query below would have NO date filter and count completions from
+    // previous months, which would re-mark an extended plan as "completed".
+    if (!planStartedAt) return;
 
     let cancelled = false;
     const COMPLETION_THRESHOLD = 0.8;
@@ -557,11 +561,8 @@ export default function Results() {
         .select("workout_date, completed, completed_at")
         .eq("user_id", user.id)
         .eq("plan_id", planId)
-        .eq("completed", true);
-      if (planStartedAt) {
-        // Only count this month's progress
-        query = query.gte("completed_at", planStartedAt);
-      }
+        .eq("completed", true)
+        .gte("completed_at", planStartedAt);
       const { data, error } = await query;
       if (error || cancelled) return;
 
