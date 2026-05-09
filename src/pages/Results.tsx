@@ -922,10 +922,20 @@ export default function Results() {
             continue;
           }
 
-          const template = workoutTemplateByDay.get(dayIndex) ?? workoutTemplates[0];
+          const template = workoutTemplateByDay.get(dayIndex);
+          if (!template) {
+            // No dedicated template for this workout slot — render as rest
+            // rather than duplicating day[0] across multiple cards.
+            const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
+            days.push({
+              day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
+              exercises: [],
+            });
+            continue;
+          }
           days.push({
             day: `${prefixWeek} - ${dayName}, ${dateStr} (${workoutLabel})`,
-            exercises: template?.exercises ?? [],
+            exercises: template.exercises ?? [],
           });
         }
 
