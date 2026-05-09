@@ -922,10 +922,20 @@ export default function Results() {
             continue;
           }
 
-          const template = workoutTemplateByDay.get(dayIndex) ?? workoutTemplates[0];
+          const template = workoutTemplateByDay.get(dayIndex);
+          if (!template) {
+            // No dedicated template for this workout slot — render as rest
+            // rather than duplicating day[0] across multiple cards.
+            const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
+            days.push({
+              day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
+              exercises: [],
+            });
+            continue;
+          }
           days.push({
             day: `${prefixWeek} - ${dayName}, ${dateStr} (${workoutLabel})`,
-            exercises: template?.exercises ?? [],
+            exercises: template.exercises ?? [],
           });
         }
 
@@ -1009,6 +1019,18 @@ export default function Results() {
     setSaving(true);
     try {
       const planName = `${userInfo?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)}`;
+      // Use the user-selected training start date from the form as plan_started_at,
+      // so the week/day date calculation in /results uses Day 1 = chosen start date.
+      // Fall back to NOW() only if the value is missing for any reason.
+      const startDateRaw: string | undefined = (userInfo as any)?.startDate || (userInfo as any)?.trainingStartDate;
+      let planStartedAtIso: string;
+      if (startDateRaw && /^\d{4}-\d{2}-\d{2}/.test(startDateRaw)) {
+        const [yy, mm, dd] = startDateRaw.slice(0, 10).split("-").map((n) => parseInt(n, 10));
+        // Anchor at local noon to avoid TZ drift shifting the date by a day.
+        planStartedAtIso = new Date(yy, mm - 1, dd, 12, 0, 0, 0).toISOString();
+      } else {
+        planStartedAtIso = new Date().toISOString();
+      }
       const { data, error } = await supabase.from("saved_plans").insert({
         user_id: user.id,
         program_type: programType || "custom",
@@ -1016,6 +1038,7 @@ export default function Results() {
         plan_data: plan as any,
         plan_name: planName,
         client_generated_id: clientGeneratedId,
+        plan_started_at: planStartedAtIso,
       } as any).select("id").single();
       if (error) {
         if (error.code === '23505') {
