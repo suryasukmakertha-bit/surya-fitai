@@ -22,6 +22,7 @@ interface SavedPlan {
   plan_name: string | null;
   plan_month_number?: number;
   plan_completed_at?: string | null;
+  plan_started_at?: string | null;
 }
 
 function PlanProgressBar({ userId, plan }: { userId: string; plan: SavedPlan }) {
@@ -29,11 +30,11 @@ function PlanProgressBar({ userId, plan }: { userId: string; plan: SavedPlan }) 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const r = await getPlanProgress(userId, { id: plan.id, plan_data: plan.plan_data });
+      const r = await getPlanProgress(userId, { id: plan.id, plan_data: plan.plan_data, plan_started_at: plan.plan_started_at });
       if (!cancelled) setP(r);
     })();
     return () => { cancelled = true; };
-  }, [userId, plan.id]);
+  }, [userId, plan.id, plan.plan_started_at]);
   const pct = p?.percentage ?? 0;
   return (
     <div className="mt-2">
@@ -280,7 +281,7 @@ export default function SavedPlans() {
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <p className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(p.plan_started_at || p.created_at).toLocaleDateString()}</p>
                       {user && <PlanProgressBar userId={user.id} plan={p} />}
                     </>
                   )}
