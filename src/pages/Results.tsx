@@ -788,6 +788,57 @@ export default function Results() {
     const weekNum = selectedWeek + 1;
     const prefixWeek = lang === "zh" ? `${(t as any).weekLabel} ${weekNum} ${(t as any).weeksLabel}` : `${(t as any).weekLabel} ${weekNum}`;
 
+    const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
+
+    // Bounds check: weekIndex must be 0..totalWeeks-1
+    if (selectedWeek < 0 || selectedWeek >= totalWeeks) {
+      return [];
+    }
+
+    // PRIMARY PATH (single source of truth for ALL plans — new + extended,
+    // all programs, all equipment, all days_per_week values):
+    // Pure positional mapping. Day card at slot N → workout_plan[weekIndex*7 + N].
+    // The edge function guarantees workout_plan has exactly totalWeeks*7 entries
+    // in chronological order (rest days included as empty exercises arrays).
+    if (plan.workout_plan.length >= totalWeeks * 7) {
+      const days: DayPlan[] = [];
+      for (let d = 0; d < 7; d++) {
+        const dayDate = addDays(weekStartDate, d);
+        const dayName = fnsFormat(dayDate, "EEEE", { locale: dateLocale });
+        const dateStr = fnsFormat(dayDate, "yyyy-MM-dd");
+        const template = plan.workout_plan[selectedWeek * 7 + d];
+
+        // Defensive: missing slot → render error-safe rest day
+        if (!template) {
+          days.push({
+            day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
+            exercises: [],
+          });
+          continue;
+        }
+
+        const isRest = !Array.isArray(template.exercises) || template.exercises.length === 0;
+        if (isRest) {
+          days.push({
+            day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
+            exercises: [],
+          });
+          continue;
+        }
+
+        // Extract focus label from template.day (e.g. "Monday (Upper Body Push)" → "Upper Body Push")
+        const focusMatch = typeof template.day === "string" ? template.day.match(/\(([^)]+)\)/) : null;
+        const focus = focusMatch ? focusMatch[1] : (typeof template.day === "string" ? template.day : "Workout");
+        days.push({
+          day: `${prefixWeek} - ${dayName}, ${dateStr} (${focus})`,
+          exercises: template.exercises,
+        });
+      }
+      return days;
+    }
+
+    // LEGACY FALLBACK (only for old plans saved before chronological-array
+    // generation was enforced). Uses weeklySplit-based weekday mapping.
     const splitConfigured = Array.isArray(plan.weeklySplit) && plan.weeklySplit.length > 0;
 
     if (splitConfigured) {
@@ -896,16 +947,6 @@ export default function Results() {
           }
         }
 
-        // Positional mapping: when the AI emits one entry per calendar day in
-        // chronological order (totalWeeks * 7 entries), the template at
-        // selectedWeek*7 + d is the canonical source for card slot d. This
-        // prevents extended plans (where AI day-text labels can disagree with
-        // the actual plan_started_at weekday) from showing wrong exercises.
-        const positionalWeekTemplates: (DayPlan | undefined)[] | null =
-          plan.workout_plan.length >= (selectedWeek + 1) * 7
-            ? plan.workout_plan.slice(selectedWeek * 7, selectedWeek * 7 + 7)
-            : null;
-
         const days: DayPlan[] = [];
 
         for (let d = 0; d < 7; d++) {
@@ -924,7 +965,6 @@ export default function Results() {
           });
 
           if (!workoutLabel) {
-            const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
             days.push({
               day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
               exercises: [],
@@ -932,17 +972,8 @@ export default function Results() {
             continue;
           }
 
-          // Prefer positional mapping when available; fall back to weekday-text
-          // matching for legacy plans that only contain a 7-entry template.
-          const positionalTemplate = positionalWeekTemplates?.[d];
-          const template =
-            positionalTemplate && positionalTemplate.exercises?.length
-              ? positionalTemplate
-              : workoutTemplateByDay.get(dayIndex);
+          const template = workoutTemplateByDay.get(dayIndex);
           if (!template) {
-            // No dedicated template for this workout slot — render as rest
-            // rather than duplicating day[0] across multiple cards.
-            const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
             days.push({
               day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`,
               exercises: [],
@@ -975,7 +1006,6 @@ export default function Results() {
         const focus = focusMatch ? ` (${focusMatch[1]})` : "";
         days.push({ ...dayWorkout, day: `${prefixWeek} - ${dayName}, ${dateStr}${focus}` });
       } else {
-        const restLabel = lang === "id" ? "Istirahat" : lang === "zh" ? "休息日" : "Rest Day";
         days.push({ day: `${prefixWeek} - ${dayName}, ${dateStr} (${restLabel})`, exercises: [] });
       }
     }
@@ -985,6 +1015,7 @@ export default function Results() {
     plan?.workout_plan,
     plan?.weeklySplit,
     selectedWeek,
+    totalWeeks,
     trainingDaysPerWeek,
     trainingStartDate,
     lang,
