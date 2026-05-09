@@ -54,8 +54,8 @@ export default function LegalRenderer({ sections }: Props) {
 
           {s.contact && (
             <div className="text-sm text-gray-400 space-y-1">
-              <p>Email: <span className="text-primary">fitaisurya@gmail.com</span></p>
-              <p>Website: <span className="text-gray-300">surya-fitai.com</span></p>
+              <p>{s.contact.emailLabel}: <span className="text-primary">fitaisurya@gmail.com</span></p>
+              <p>{s.contact.websiteLabel}: <span className="text-gray-300">surya-fitai.com</span></p>
             </div>
           )}
         </section>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { FileText } from 'lucide-react';
 import { UI, TERMS, PRIVACY, LangCode } from './legalContent';
 import LegalRenderer from './LegalRenderer';
 import { useLanguage } from '@/contexts/LanguageContext';

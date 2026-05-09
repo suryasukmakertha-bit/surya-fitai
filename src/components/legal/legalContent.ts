@@ -52,56 +52,57 @@ export interface LegalSection {
   items?: { label: string; text: string; bullets?: string[] }[];
   bullets?: string[];
   highlight?: boolean;
-  contact?: boolean;
+  contact?: { emailLabel: string; websiteLabel: string };
 }
 
 // ─── Terms of Service ─────────────────────────────────────────
 
 export const TERMS: Record<LangCode, { title: string; lastUpdated: string; sections: LegalSection[] }> = {
   en: {
-    title: 'Terms of Service',
+    title: 'Terms & Conditions',
     lastUpdated: 'Last updated: May 9, 2026',
     sections: [
-      { heading: '1. Acceptance of Terms', body: 'By accessing or using Surya-FitAi at surya-fitai.com, you agree to be bound by these Terms of Service. If you do not agree, please do not use the App.' },
-      { heading: '2. Description of Service', body: 'Surya-FitAi is an AI-powered fitness application that generates personalized workout programs, meal plans, and grocery lists using Anthropic\'s Claude AI technology. The App also provides GPS tracking for running and cycling, daily challenges, a medal system, and progress tracking. The App is operated by Surya Sukmakertha.' },
-      { heading: '3. User Accounts', body: 'You must provide accurate information when registering. You are responsible for maintaining your account security. You must be at least 13 years old to use this App. One account per person is allowed.' },
+      { heading: '1. Acceptance of Terms', body: 'By accessing or using Surya-FitAi at surya-fitai.com, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use this Application.' },
+      { heading: '2. Service Description', body: 'Surya-FitAi is an AI-powered fitness application that generates personalized workout programs, meal plans, and grocery lists using Claude AI technology. The app also provides GPS tracking for running and cycling, daily challenges, a medal system, and workout progress tracking. The application is operated by Surya Sukmakertha.' },
+      { heading: '3. User Account', body: 'You must provide accurate information when registering. You are responsible for maintaining the security of your account. You must be at least 13 years old to use this Application. One account per person is allowed.' },
       { heading: '4. Subscription and Payments', items: [
-        { label: 'Free Tier Access', text: 'Users who are not subscribed can still use the service with the following limitations:', bullets: [
-          'Maximum 1 plan generation per calendar month',
-          'Maximum 1 saved plan',
-          'Access only to the most recent plan',
-          'Some features and tabs are locked (Meal Plan, Grocery List, Info & Safety, Progress)',
-          'GPS Tracker (Running & Cycling) remains free',
-          'Daily challenges and medal system remain free',
+        { label: 'Free Tier', text: '', bullets: [
+          'Maximum 1 program generation per calendar month',
+          'Maximum 1 saved program',
+          'Access to Workout Plan tab only',
+          'Meal Plan, Grocery List, Info & Safety, and Progress tabs are locked',
+          'GPS Tracker (Running and Cycling) is available for free',
+          'Daily Challenges and Medal System are available for free',
         ]},
-        { label: 'Free Trial (14 Days)', text: 'New users receive full access to all features for 14 days, including:', bullets: [
-          'Up to 3 AI plan generations',
-          'Up to 3 saved plans',
-          'Full access to all features and content',
+        { label: '14-Day Free Trial', text: '', bullets: [
+          'Up to 3 AI program generations per month',
+          'Up to 3 saved programs',
+          'Full access to all tabs and features',
           'All new features included',
         ]},
-        { label: 'Pro Subscription (Paid) — Rp 19,900/month', text: 'After the trial ends, full access requires a Pro subscription, which includes:', bullets: [
-          'Up to 3 AI plan generations per subscription period',
-          'Up to 3 saved plans',
+        { label: 'Pro Subscription - Rp 19,900 per month', text: '', bullets: [
+          'Up to 3 AI program generations per subscription period',
+          'Up to 3 saved programs',
           'Full access to all tabs: Workout Plan, Meal Plan, Grocery List, Info & Safety, Progress',
+          'Extend program to next month with progressive overload',
           'Complete workout progress tracking',
-          'Extend program to the next month',
           'All new features included',
         ]},
-        { label: 'Expired Status', text: 'When a trial or subscription ends, the account reverts to the Free Tier:', bullets: [
-          'Only the most recent plan is accessible',
-          'Other plans are locked',
+        { label: 'Expired Status', text: '', bullets: [
+          'Reverts to Free Tier limitations',
+          'Only the most recent program is accessible',
+          'Other programs will be locked',
         ]},
-        { label: 'Payments', text: 'Payments are processed via Midtrans and support QRIS, GoPay, ShopeePay, Virtual Account, and other methods.' },
-        { label: 'Refund Policy', text: 'Due to the digital nature of the service, all payments are non-refundable.' },
+        { label: 'Payments', text: 'Payments are processed through Midtrans and support QRIS, GoPay, ShopeePay, Virtual Account, and other methods.' },
+        { label: 'Refund Policy', text: 'Due to the digital nature of this service, completed payments are non-refundable.' },
         { label: 'Cancellation', text: 'Users may cancel their subscription at any time. Access remains active until the end of the billing period.' },
       ]},
-      { heading: '5. Acceptable Use', body: 'You agree not to use the App for unlawful purposes, reverse engineer it, share account credentials, or use it in ways that could harm others.' },
-      { heading: '6. Health Disclaimer', highlight: true, body: 'The workout and nutrition plans generated by Surya-FitAi are for general informational purposes only and are NOT a substitute for professional medical advice. Always consult a qualified healthcare professional before starting any new exercise or diet program. Stop exercising and consult a doctor if you experience pain or discomfort. Surya-FitAi is not responsible for any injury or health issues resulting from following the generated plans.' },
-      { heading: '7. Intellectual Property', body: 'All content and designs within the App are owned by Surya-FitAi. Generated plans are for your personal use only and may not be resold.' },
-      { heading: '8. Limitation of Liability', body: 'Surya-FitAi shall not be liable for indirect or consequential damages. Total liability shall not exceed the amount paid in the past 30 days.' },
-      { heading: '9. Governing Law', body: 'These Terms are governed by the laws of the Republic of Indonesia.' },
-      { heading: '10. Contact', contact: true },
+      { heading: '5. Acceptable Use', body: 'You agree not to use the Application for unlawful purposes, reverse engineering, sharing account credentials, or in any way that could harm others.' },
+      { heading: '6. Health Disclaimer', highlight: true, body: 'Workout and nutrition programs generated by Surya-FitAi are for general informational purposes only and are NOT a substitute for professional medical advice. Always consult a healthcare professional before starting a new exercise or diet program. Stop exercising and consult a doctor if you experience pain or discomfort. Surya-FitAi is not responsible for injuries or health issues resulting from following the generated programs.' },
+      { heading: '7. Intellectual Property', body: 'All content and designs in the Application are owned by Surya-FitAi. Generated programs are for your personal use only and may not be resold.' },
+      { heading: '8. Limitation of Liability', body: 'Surya-FitAi is not liable for indirect or consequential damages. Total liability will not exceed the amount paid in the last 30 days.' },
+      { heading: '9. Governing Law', body: 'These terms are governed by the laws of the Republic of Indonesia.' },
+      { heading: '10. Contact', contact: { emailLabel: 'Email', websiteLabel: 'Website' } },
     ],
   },
   id: {
@@ -109,32 +110,33 @@ export const TERMS: Record<LangCode, { title: string; lastUpdated: string; secti
     lastUpdated: 'Terakhir diperbarui: 9 Mei 2026',
     sections: [
       { heading: '1. Penerimaan Syarat', body: 'Dengan mengakses atau menggunakan Surya-FitAi di surya-fitai.com, Anda setuju untuk terikat oleh Syarat & Ketentuan ini. Jika Anda tidak setuju, mohon untuk tidak menggunakan Aplikasi ini.' },
-      { heading: '2. Deskripsi Layanan', body: 'Surya-FitAi adalah aplikasi fitness berbasis AI yang menghasilkan program latihan, rencana makan, dan daftar belanja yang dipersonalisasi menggunakan teknologi Claude AI dari Anthropic. Aplikasi ini juga menyediakan fitur pelacakan lari dan bersepeda (GPS tracker), tantangan harian, sistem medali, dan pelacakan progres. Aplikasi dioperasikan oleh Surya Sukmakertha.' },
+      { heading: '2. Deskripsi Layanan', body: 'Surya-FitAi adalah aplikasi fitness berbasis AI yang menghasilkan program latihan, rencana makan, dan daftar belanja yang dipersonalisasi menggunakan teknologi Claude AI. Aplikasi ini juga menyediakan fitur pelacakan GPS untuk lari dan bersepeda, tantangan harian, sistem medali, dan pelacakan progres latihan. Aplikasi dioperasikan oleh Surya Sukmakertha.' },
       { heading: '3. Akun Pengguna', body: 'Anda harus memberikan informasi yang akurat saat mendaftar. Anda bertanggung jawab menjaga keamanan akun Anda. Anda harus berusia minimal 13 tahun untuk menggunakan Aplikasi ini. Satu akun per orang diperbolehkan.' },
       { heading: '4. Langganan dan Pembayaran', items: [
-        { label: 'Akses Gratis (Free Tier)', text: 'Pengguna yang belum berlangganan tetap dapat menggunakan layanan dengan batasan berikut:', bullets: [
+        { label: 'Akses Gratis (Free Tier)', text: '', bullets: [
           'Maksimal 1 generate program per bulan kalender',
           'Maksimal 1 program tersimpan',
-          'Hanya dapat mengakses 1 program terbaru',
-          'Beberapa fitur dan tab dikunci (Rencana Makan, Daftar Belanja, Info & Keamanan, Progress)',
-          'Fitur GPS Tracker (Lari & Bersepeda) tetap tersedia gratis',
-          'Tantangan harian dan sistem medali tersedia gratis',
+          'Hanya dapat mengakses tab Rencana Latihan',
+          'Tab Rencana Makan, Daftar Belanja, Info & Keamanan, dan Progress dikunci',
+          'Fitur GPS Tracker (Lari dan Bersepeda) tersedia gratis',
+          'Tantangan Harian dan Sistem Medali tersedia gratis',
         ]},
-        { label: 'Uji Coba Gratis (14 Hari)', text: 'Pengguna baru mendapatkan akses penuh ke seluruh fitur selama 14 hari, termasuk:', bullets: [
-          'Hingga 3 generate program AI',
+        { label: 'Uji Coba Gratis 14 Hari', text: '', bullets: [
+          'Hingga 3 generate program AI per bulan',
           'Hingga 3 program tersimpan',
-          'Akses penuh ke seluruh fitur dan konten',
+          'Akses penuh ke seluruh tab dan fitur',
           'Semua fitur baru termasuk',
         ]},
-        { label: 'Langganan Pro (Berbayar) — Rp 19.900/bulan', text: 'Setelah masa trial berakhir, akses penuh memerlukan langganan Pro, dengan manfaat:', bullets: [
+        { label: 'Langganan Pro - Rp 19.900 per bulan', text: '', bullets: [
           'Hingga 3 generate program AI per periode langganan',
           'Hingga 3 program tersimpan',
           'Akses penuh ke semua tab: Rencana Latihan, Rencana Makan, Daftar Belanja, Info & Keamanan, Progress',
+          'Extend program ke bulan berikutnya dengan progressive overload',
           'Pelacakan progres latihan lengkap',
-          'Extend program ke bulan berikutnya',
           'Semua fitur baru termasuk',
         ]},
-        { label: 'Status Berakhir (Expired)', text: 'Jika trial atau langganan berakhir, akun akan kembali ke akses gratis:', bullets: [
+        { label: 'Status Berakhir (Expired)', text: '', bullets: [
+          'Kembali ke batasan Free Tier',
           'Hanya 1 program terbaru yang dapat diakses',
           'Program lainnya akan terkunci',
         ]},
@@ -147,53 +149,54 @@ export const TERMS: Record<LangCode, { title: string; lastUpdated: string; secti
       { heading: '7. Kekayaan Intelektual', body: 'Semua konten dan desain dalam Aplikasi dimiliki oleh Surya-FitAi. Program yang dihasilkan hanya untuk penggunaan pribadi Anda dan tidak boleh dijual kembali.' },
       { heading: '8. Batasan Tanggung Jawab', body: 'Surya-FitAi tidak bertanggung jawab atas kerugian tidak langsung atau konsekuensial. Total tanggung jawab tidak akan melebihi jumlah yang dibayarkan dalam 30 hari terakhir.' },
       { heading: '9. Hukum yang Berlaku', body: 'Syarat ini diatur oleh hukum Republik Indonesia.' },
-      { heading: '10. Kontak', contact: true },
+      { heading: '10. Kontak', contact: { emailLabel: 'Email', websiteLabel: 'Website' } },
     ],
   },
   zh: {
     title: '服务条款',
     lastUpdated: '最后更新：2026年5月9日',
     sections: [
-      { heading: '1. 接受条款', body: '通过访问或使用surya-fitai.com上的Surya-FitAi，即表示您同意受本服务条款的约束。如果您不同意，请勿使用本应用程序。' },
-      { heading: '2. 服务描述', body: 'Surya-FitAi是一款AI驱动的健身应用程序，使用Anthropic的Claude AI技术生成个性化的训练计划、饮食计划和购物清单。本应用程序还提供跑步和骑行的GPS追踪、每日挑战、奖牌系统和进度追踪功能。本应用程序由Surya Sukmakertha运营。' },
-      { heading: '3. 用户账户', body: '注册时您必须提供准确信息。您负责维护账户安全。您必须年满13岁才能使用本应用程序。每人限一个账户。' },
+      { heading: '1. 条款接受', body: '通过访问或使用 surya-fitai.com 上的 Surya-FitAi，您同意受这些条款与条件的约束。如果您不同意，请勿使用本应用程序。' },
+      { heading: '2. 服务描述', body: 'Surya-FitAi 是一款基于AI的健身应用程序，使用 Claude AI 技术生成个性化的训练计划、饮食方案和购物清单。本应用还提供跑步和骑行的GPS追踪功能、每日挑战、勋章系统和训练进度追踪。本应用由 Surya Sukmakertha 运营。' },
+      { heading: '3. 用户账户', body: '注册时您必须提供准确信息。您有责任维护账户安全。您必须年满13岁才能使用本应用。每人限一个账户。' },
       { heading: '4. 订阅与付款', items: [
-        { label: '免费账户（Free Tier）', text: '未订阅用户仍可使用服务，但有以下限制：', bullets: [
-          '每月最多生成1次计划',
+        { label: '免费版', text: '', bullets: [
+          '每个日历月最多生成1个训练计划',
           '最多保存1个计划',
-          '仅可访问最新的计划',
-          '部分功能和页面将被锁定（饮食计划、购物清单、信息与安全、进度）',
-          'GPS追踪功能（跑步和骑行）仍然免费',
-          '每日挑战和奖牌系统仍然免费',
+          '仅可访问训练计划标签',
+          '饮食方案、购物清单、安全信息和进度标签已锁定',
+          'GPS追踪（跑步和骑行）免费提供',
+          '每日挑战和勋章系统免费提供',
         ]},
-        { label: '免费试用（14天）', text: '新用户可享受14天完整功能体验，包括：', bullets: [
-          '最多3次AI计划生成',
+        { label: '14天免费试用', text: '', bullets: [
+          '每月最多生成3个AI训练计划',
           '最多保存3个计划',
-          '完整访问所有功能与内容',
+          '完整访问所有标签和功能',
           '包含所有新功能',
         ]},
-        { label: '付费订阅（Pro）— 每月Rp 19,900', text: '试用结束后，需订阅Pro版本以获得完整功能：', bullets: [
-          '每个订阅周期最多3次AI计划生成',
+        { label: 'Pro订阅 - 每月 Rp 19,900', text: '', bullets: [
+          '每个订阅周期最多生成3个AI训练计划',
           '最多保存3个计划',
-          '完整访问所有页面：训练计划、饮食计划、购物清单、信息与安全、进度',
-          '完整的训练进度追踪',
-          '延长计划至下个月',
+          '完整访问所有标签：训练计划、饮食方案、购物清单、安全信息、进度',
+          '将计划延续到下个月（渐进超负荷）',
+          '完整训练进度追踪',
           '包含所有新功能',
         ]},
-        { label: '过期状态（Expired）', text: '当试用或订阅结束后，账户将恢复为免费账户：', bullets: [
-          '仅可访问最新的计划',
+        { label: '过期状态', text: '', bullets: [
+          '恢复为免费版限制',
+          '只能访问最新的一个计划',
           '其他计划将被锁定',
         ]},
-        { label: '支付方式', text: '支付通过Midtrans处理，支持QRIS、GoPay、ShopeePay、虚拟账户等方式。' },
-        { label: '退款政策', text: '由于本服务为数字产品，所有已支付费用不予退款。' },
-        { label: '取消订阅', text: '用户可随时取消订阅，权限将持续至当前计费周期结束。' },
+        { label: '付款', text: '付款通过 Midtrans 处理，支持 QRIS、GoPay、ShopeePay、虚拟账户等方式。' },
+        { label: '退款政策', text: '由于本服务的数字性质，已完成的付款不予退还。' },
+        { label: '取消', text: '用户可随时取消订阅。访问权限在计费周期结束前保持有效。' },
       ]},
-      { heading: '5. 可接受的使用', body: '您同意不将本应用程序用于违法目的、进行逆向工程、共享账户凭据或以可能损害他人的方式使用。' },
-      { heading: '6. 健康免责声明', highlight: true, body: 'Surya-FitAi生成的训练和营养计划仅供一般参考，并非专业医疗建议的替代品。在开始任何新的运动或饮食计划之前，请务必咨询合格的医疗专业人员。如果您感到疼痛或不适，请立即停止运动并就医。Surya-FitAi不对因遵循所生成计划而导致的任何伤害或健康问题承担责任。' },
-      { heading: '7. 知识产权', body: '应用程序内所有内容和设计归Surya-FitAi所有。生成的计划仅供您个人使用，不得转售。' },
-      { heading: '8. 责任限制', body: 'Surya-FitAi不对间接或后果性损害承担责任。总责任不超过过去30天内支付的金额。' },
-      { heading: '9. 适用法律', body: '本条款受印度尼西亚共和国法律管辖。' },
-      { heading: '10. 联系我们', contact: true },
+      { heading: '5. 可接受使用', body: '您同意不将本应用用于违法目的、逆向工程、共享账户凭据或任何可能伤害他人的方式。' },
+      { heading: '6. 健康免责声明', highlight: true, body: 'Surya-FitAi 生成的训练和营养计划仅供一般参考，不能替代专业医疗建议。在开始新的锻炼或饮食计划前，请务必咨询医疗专业人员。如感到疼痛或不适，请停止锻炼并就医。Surya-FitAi 对因遵循生成计划而导致的伤害或健康问题不承担责任。' },
+      { heading: '7. 知识产权', body: '应用程序中的所有内容和设计均归 Surya-FitAi 所有。生成的计划仅供个人使用，不得转售。' },
+      { heading: '8. 责任限制', body: 'Surya-FitAi 不对间接或后果性损害负责。总责任不超过过去30天内支付的金额。' },
+      { heading: '9. 适用法律', body: '这些条款受印度尼西亚共和国法律管辖。' },
+      { heading: '10. 联系方式', contact: { emailLabel: '电子邮件', websiteLabel: '网站' } },
     ],
   },
 };
@@ -224,7 +227,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
       { heading: '7. Your Rights', body: 'You have the right to access, correct, and delete your personal data. Contact us at fitaisurya@gmail.com to exercise these rights.' },
       { heading: "8. Children's Privacy", body: 'Our App is not intended for users under 13 years old. We do not knowingly collect data from children.' },
       { heading: '9. Changes to This Policy', body: 'We may update this policy periodically. We will notify you of significant changes through the App or via email.' },
-      { heading: '10. Contact Us', contact: true },
+      { heading: '10. Contact Us', contact: { emailLabel: 'Email', websiteLabel: 'Website' } },
     ],
   },
   id: {
@@ -250,7 +253,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
       { heading: '7. Hak Anda', body: 'Anda berhak mengakses, mengoreksi, dan menghapus data pribadi Anda. Hubungi kami di fitaisurya@gmail.com untuk menggunakan hak-hak ini.' },
       { heading: '8. Privasi Anak', body: 'Aplikasi kami tidak ditujukan untuk pengguna di bawah 13 tahun. Kami tidak secara sengaja mengumpulkan data dari anak-anak.' },
       { heading: '9. Perubahan Kebijakan', body: 'Kami dapat memperbarui kebijakan ini secara berkala. Kami akan memberi tahu Anda tentang perubahan signifikan melalui Aplikasi atau email.' },
-      { heading: '10. Hubungi Kami', contact: true },
+      { heading: '10. Hubungi Kami', contact: { emailLabel: 'Email', websiteLabel: 'Website' } },
     ],
   },
   zh: {
@@ -276,7 +279,7 @@ export const PRIVACY: Record<LangCode, { title: string; lastUpdated: string; sec
       { heading: '7. 您的权利', body: '您有权访问、更正和删除您的个人数据。请联系fitaisurya@gmail.com行使这些权利。' },
       { heading: '8. 儿童隐私', body: '我们的应用程序不适用于13岁以下的用户。我们不会故意收集儿童的数据。' },
       { heading: '9. 政策变更', body: '我们可能会定期更新本政策。我们将通过应用程序或电子邮件通知您重大变更。' },
-      { heading: '10. 联系我们', contact: true },
+      { heading: '10. 联系我们', contact: { emailLabel: '电子邮件', websiteLabel: '网站' } },
     ],
   },
 };
