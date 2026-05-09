@@ -1,5 +1,5 @@
-// Surya-FitAi Service Worker v5
-const CACHE_NAME = 'surya-fitai-v5';
+// Surya-FitAi Service Worker v6
+const CACHE_NAME = 'surya-fitai-v6';
 const DB_NAME = 'surya-fitai-sw';
 const STORE_NAME = 'reminders';
 
