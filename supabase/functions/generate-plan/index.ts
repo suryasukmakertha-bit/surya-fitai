@@ -297,7 +297,7 @@ OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
   "warmUp": "string (5 min warm-up routine)",
   "workout_plan": [
     {
-      "day": "string (e.g. Week 1 - Monday, 2025-03-10)",
+      "day": "string (e.g. Week 1 - Monday, 2025-03-10) — INCLUDE ALL 7 DAYS PER WEEK, REST DAYS INCLUDED",
       "exercises": [
         {
           "name": "string",
