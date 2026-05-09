@@ -418,6 +418,7 @@ export default function Results() {
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionStats, setCompletionStats] = useState<{ totalWorkouts: number; totalActiveDays: number }>({ totalWorkouts: 0, totalActiveDays: 0 });
+  const [completionStatsLoading, setCompletionStatsLoading] = useState(false);
   const [continueLoading, setContinueLoading] = useState(false);
 
   // Reminder popups (Save plan -> then Check-in instructions)
