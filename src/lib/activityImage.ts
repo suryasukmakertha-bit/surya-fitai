@@ -1,5 +1,4 @@
-import html2canvas from "html2canvas";
-import { formatDuration, formatPace, type ActivitySession, type ActivityType } from "./activityTracking";
+import { formatDuration, formatPace, haversineKm, type ActivitySession } from "./activityTracking";
 
 interface PngOpts {
   session: ActivitySession;
@@ -19,65 +18,284 @@ interface PngOpts {
   };
 }
 
+// ---------- helpers ----------
+function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+function cleanRoute(route: ActivitySession["route_json"]): { lat: number; lng: number; t: number }[] {
+  if (!Array.isArray(route)) return [];
+  const valid = route.filter(
+    (p) => p && typeof p.lat === "number" && typeof p.lng === "number" && Number.isFinite(p.lat) && Number.isFinite(p.lng),
+  ) as { lat: number; lng: number; t: number }[];
+  // GPS noise filter: drop point if speed from previous > 50 km/h
+  const out: { lat: number; lng: number; t: number }[] = [];
+  for (const p of valid) {
+    const prev = out[out.length - 1];
+    if (!prev) { out.push(p); continue; }
+    const km = haversineKm(prev, p);
+    const dtH = Math.max(1e-6, (p.t - prev.t) / 3_600_000);
+    const speed = km / dtH;
+    if (speed > 50) continue;
+    out.push(p);
+  }
+  return out;
+}
+
+function drawRouteMap(
+  ctx: CanvasRenderingContext2D,
+  pts: { lat: number; lng: number }[],
+  x: number, y: number, w: number, h: number,
+  noRouteText: string,
+  indoorText: string,
+) {
+  // Map background
+  roundRect(ctx, x, y, w, h, 14);
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fill();
+
+  if (pts.length === 0) {
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "600 13px Inter, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(noRouteText, x + w / 2, y + h / 2);
+    return;
+  }
+
+  const lats = pts.map((p) => p.lat);
+  const lngs = pts.map((p) => p.lng);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  const dLat = maxLat - minLat;
+  const dLng = maxLng - minLng;
+
+  if (dLat < 1e-7 && dLng < 1e-7) {
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "600 13px Inter, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(indoorText, x + w / 2, y + h / 2);
+    return;
+  }
+
+  const pad = 20;
+  const innerW = w - pad * 2;
+  const innerH = h - pad * 2;
+  const sx = (lng: number) => x + pad + (dLng > 0 ? ((lng - minLng) / dLng) * innerW : innerW / 2);
+  // Y inverted: higher latitude → smaller y
+  const sy = (lat: number) => y + pad + (dLat > 0 ? (1 - (lat - minLat) / dLat) * innerH : innerH / 2);
+
+  if (pts.length >= 3) {
+    ctx.strokeStyle = "#FF6B00";
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+      const px = sx(p.lng), py = sy(p.lat);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+  } else {
+    // dots only
+    ctx.fillStyle = "#FF6B00";
+    pts.forEach((p) => {
+      ctx.beginPath();
+      ctx.arc(sx(p.lng), sy(p.lat), 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  const start = pts[0], end = pts[pts.length - 1];
+  ctx.fillStyle = "#00ff78";
+  ctx.beginPath(); ctx.arc(sx(start.lng), sy(start.lat), 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#ff4444";
+  ctx.beginPath(); ctx.arc(sx(end.lng), sy(end.lat), 6, 0, Math.PI * 2); ctx.fill();
+}
+
 export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   const { session, userName, i18n } = opts;
-  const splits = (session.splits_json || []).slice(0, 6);
   const dateStr = new Date(session.created_at || new Date()).toLocaleDateString(i18n.locale, {
     day: "2-digit", month: "short", year: "numeric",
   });
-  const root = document.createElement("div");
-  root.style.cssText = `position:fixed;left:-9999px;top:0;width:400px;background:transparent;color:#fff;font-family:Inter,system-ui,sans-serif;`;
-  root.innerHTML = `
-    <div style="width:400px;height:660px;position:relative;background:rgba(0,0,0,0.75);border-radius:24px;border:1.5px solid rgba(255,107,0,0.3);padding:28px 20px;box-sizing:border-box;display:flex;flex-direction:column;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow:hidden;">
-      <div style="position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);border-radius:24px 24px 0 0;"></div>
-      <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#ff6b00,#ff3d7f);border-radius:0 0 24px 24px;"></div>
-      <img src="${window.location.origin}/logo-new.png" crossorigin="anonymous" alt="" style="height:32px;width:auto;object-fit:contain;display:block;margin:8px auto 8px;" />
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        ${session.activity_type === "running" ? `<svg viewBox="0 0 24 24" fill="none" stroke="#ff6b00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M4 16v-2.38c0-.83.13-1.66.4-2.45l.32-.94C5.4 8.6 7.13 7.5 9 7.5c.83 0 1.5.67 1.5 1.5v3.5"/><path d="M4 16c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-1.5"/><path d="M14 13.5V11c0-.83.67-1.5 1.5-1.5 1.87 0 3.6 1.1 4.28 2.73l.32.94c.27.79.4 1.62.4 2.45V18"/><path d="M14 18a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1.5"/></svg>` : ""}
-        <p style="margin:0;font-size:13px;letter-spacing:0.15em;color:#ff6b00;font-weight:800;text-align:center;text-shadow:0 0 20px rgba(255,107,0,0.4);">SURYA-FITAI · ${i18n.title.toUpperCase()}</p>
-      </div>
-      <p style="margin:18px 0 24px;font-size:64px;font-weight:900;color:#ff6b00;text-align:center;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,0.8), 0 0 40px rgba(255,107,0,0.3);">${session.distance_km.toFixed(2)} <span style="font-size:20px;color:rgba(255,255,255,0.6);font-weight:700;">km</span></p>
-      <div style="height:1px;background:rgba(255,255,255,0.15);width:85%;margin:0 auto 4px;"></div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;margin-bottom:14px;">
-        ${[
-          [i18n.time, formatDuration(session.duration_seconds)],
-          [i18n.pace, formatPace(session.avg_pace_seconds_per_km) + " /km"],
-          [i18n.calories, `${session.calories} kcal`],
-          [i18n.speed, `${Number(session.avg_speed_kmh).toFixed(1)} km/h`],
-          [i18n.maxSpeed, `${Number(session.max_speed_kmh).toFixed(1)} km/h`],
-          [i18n.elevation, `${Math.round(Number(session.elevation_gain_m))} m`],
-        ].map(([l, v]) => `
-          <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,107,0,0.18);border-radius:10px;padding:10px;">
-            <p style="margin:0;font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.1em;text-shadow:0 1px 3px rgba(0,0,0,0.8);">${l}</p>
-            <p style="margin:6px 0 0;font-size:18px;font-weight:800;color:#ffffff;text-shadow:0 1px 4px rgba(0,0,0,0.8);">${v}</p>
-          </div>
-        `).join("")}
-      </div>
-      ${splits.length ? `
-        <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:8px 12px;margin-bottom:auto;">
-          <p style="margin:0 0 6px;font-size:10px;color:#ff6b00;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;">${i18n.splits}</p>
-          ${splits.map(s => `<div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;padding:2px 0;text-shadow:0 1px 3px rgba(0,0,0,0.8);"><span>KM ${s.km}</span><span>${formatPace(s.pace_seconds)} /km</span></div>`).join("")}
-        </div>
-      ` : `<div style="flex:1;"></div>`}
-      <div style="margin-top:20px;text-align:center;">
-        <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.75);font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,0.8);">${userName} · ${dateStr}</p>
-        <p style="margin:8px 0 18px;font-size:10px;color:#ff6b00;letter-spacing:0.15em;font-weight:800;text-shadow:0 0 15px rgba(255,107,0,0.5);">${i18n.tagline}</p>
-      </div>
-    </div>`;
-  document.body.appendChild(root);
-  try {
-    const canvas = await html2canvas(root.firstElementChild as HTMLElement, {
-      scale: 2, backgroundColor: null, useCORS: true, logging: false,
-    });
-    const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, "image/png"));
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `surya-fitai-${session.activity_type}-${session.date}.png`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } finally {
-    document.body.removeChild(root);
+
+  // ---- Card layout (logical px, then upscaled by DPR=2) ----
+  const W = 400;
+  const H = 660;
+  const DPR = 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(DPR, DPR);
+  ctx.textBaseline = "alphabetic";
+
+  // Transparent area outside card
+  ctx.clearRect(0, 0, W, H);
+
+  // Card background — dark gradient #0f0f0f → #1a1a1a
+  const cardX = 0, cardY = 0, cardW = W, cardH = H, radius = 24;
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "#0f0f0f");
+  grad.addColorStop(1, "#1a1a1a");
+  roundRect(ctx, cardX, cardY, cardW, cardH, radius);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Top + bottom orange→pink accent bars
+  const drawAccent = (yy: number, top: boolean) => {
+    ctx.save();
+    roundRect(ctx, 0, yy, W, 5, 0);
+    const g = ctx.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, "#ff6b00");
+    g.addColorStop(1, "#ff3d7f");
+    // Clip to card rounded rect so accent bars match corner radius
+    ctx.restore();
+    ctx.save();
+    roundRect(ctx, cardX, cardY, cardW, cardH, radius);
+    ctx.clip();
+    ctx.fillStyle = g;
+    ctx.fillRect(0, top ? 0 : H - 5, W, 5);
+    ctx.restore();
+  };
+  drawAccent(0, true);
+  drawAccent(H - 5, false);
+
+  // ---- Header: logo + activity label ----
+  const logo = await loadImage(`${window.location.origin}/logo-new.png`);
+  let cursorY = 22;
+  if (logo) {
+    const lh = 28;
+    const lw = (logo.width / logo.height) * lh;
+    ctx.drawImage(logo, (W - lw) / 2, cursorY, lw, lh);
+    cursorY += lh + 8;
+  } else {
+    cursorY += 12;
   }
+
+  ctx.fillStyle = "#ff6b00";
+  ctx.font = "800 13px Inter, system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.shadowColor = "rgba(255,107,0,0.45)";
+  ctx.shadowBlur = 12;
+  ctx.fillText(`SURYA-FITAI · ${i18n.title.toUpperCase()}`, W / 2, cursorY + 14);
+  ctx.shadowBlur = 0;
+  cursorY += 26;
+
+  // ---- Route map (40% of card height) ----
+  const mapH = Math.round(H * 0.4);
+  const mapPadX = 20;
+  const mapY = cursorY + 6;
+  const cleanedPts = cleanRoute(session.route_json);
+  drawRouteMap(
+    ctx,
+    cleanedPts,
+    mapPadX,
+    mapY,
+    W - mapPadX * 2,
+    mapH,
+    "No Route Data",
+    "Indoor / Treadmill",
+  );
+  cursorY = mapY + mapH + 14;
+
+  // ---- Distance (large, orange, centered) ----
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#ff6b00";
+  ctx.shadowColor = "rgba(255,107,0,0.35)";
+  ctx.shadowBlur = 16;
+  ctx.font = "900 44px Inter, system-ui, sans-serif";
+  const distText = session.distance_km.toFixed(2);
+  const distMetrics = ctx.measureText(distText);
+  const unitFont = "700 16px Inter, system-ui, sans-serif";
+  ctx.font = unitFont;
+  const unitMetrics = ctx.measureText(" km");
+  const totalW = distMetrics.width + unitMetrics.width + 4;
+  const startX = (W - totalW) / 2;
+  ctx.font = "900 44px Inter, system-ui, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(distText, startX, cursorY + 36);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  ctx.font = unitFont;
+  ctx.fillText(" km", startX + distMetrics.width + 4, cursorY + 36);
+  cursorY += 50;
+
+  // ---- Stats grid: 3 cols × 2 rows ----
+  const stats: [string, string][] = [
+    [i18n.time, formatDuration(session.duration_seconds)],
+    [i18n.pace, formatPace(session.avg_pace_seconds_per_km) + " /km"],
+    [i18n.calories, `${session.calories} kcal`],
+    [i18n.speed, `${Number(session.avg_speed_kmh).toFixed(1)} km/h`],
+    [i18n.maxSpeed, `${Number(session.max_speed_kmh).toFixed(1)} km/h`],
+    [i18n.elevation, `${Math.round(Number(session.elevation_gain_m))} m`],
+  ];
+  const gridX = 16;
+  const gridGap = 8;
+  const cellW = (W - gridX * 2 - gridGap * 2) / 3;
+  const cellH = 54;
+  for (let i = 0; i < stats.length; i++) {
+    const r = Math.floor(i / 3), c = i % 3;
+    const cx = gridX + c * (cellW + gridGap);
+    const cy = cursorY + r * (cellH + gridGap);
+    roundRect(ctx, cx, cy, cellW, cellH, 10);
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255,107,0,0.18)";
+    ctx.stroke();
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "700 9px Inter, system-ui, sans-serif";
+    ctx.fillText(stats[i][0].toUpperCase(), cx + 10, cy + 16);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 16px Inter, system-ui, sans-serif";
+    ctx.fillText(stats[i][1], cx + 10, cy + 38);
+  }
+  cursorY += cellH * 2 + gridGap + 16;
+
+  // ---- Footer: name+date (left) / tagline (right) ----
+  const footerY = H - 26;
+  ctx.fillStyle = "rgba(255,255,255,0.78)";
+  ctx.font = "600 11px Inter, system-ui, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(`${userName} · ${dateStr}`, 20, footerY);
+
+  ctx.fillStyle = "#ff6b00";
+  ctx.font = "800 9px Inter, system-ui, sans-serif";
+  ctx.textAlign = "right";
+  ctx.shadowColor = "rgba(255,107,0,0.5)";
+  ctx.shadowBlur = 10;
+  ctx.fillText(i18n.tagline, W - 20, footerY);
+  ctx.shadowBlur = 0;
+
+  // ---- Export ----
+  const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, "image/png"));
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `surya-fitai-${session.activity_type}-${session.date}.png`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
