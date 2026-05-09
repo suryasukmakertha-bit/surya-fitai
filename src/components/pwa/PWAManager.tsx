@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import InstallBanner from "./InstallBanner";
 import InstallModal from "./InstallModal";
 import IOSInstallGuide from "./IOSInstallGuide";
 import NotificationPrompt from "./NotificationPrompt";
@@ -75,9 +74,6 @@ export default function PWAManager() {
 
   return (
     <>
-      {!isInstalled && !isStandalone && (
-        <InstallBanner onInstallClick={handleInstallClick} />
-      )}
       <InstallModal open={showModal} onOpenChange={handleModalClose} onInstall={handleInstall} />
       <IOSInstallGuide open={showIOSModal} onOpenChange={setShowIOSModal} />
       <NotificationPrompt open={showNotifPrompt} onOpenChange={handleNotifClose} onEnable={handleNotifEnable} />
