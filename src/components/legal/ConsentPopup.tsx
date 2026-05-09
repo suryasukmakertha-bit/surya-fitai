@@ -58,7 +58,7 @@ export default function ConsentPopup({ isOpen, onAccept }: ConsentPopupProps) {
         {/* Header */}
         <div className="px-5 pt-6 pb-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">📋</span>
+            <FileText size={20} className="text-primary" />
             <h2 className="text-white font-bold text-lg">{ui.popupTitle}</h2>
           </div>
           <p className="text-gray-400 text-sm">{ui.popupSubtitle}</p>
