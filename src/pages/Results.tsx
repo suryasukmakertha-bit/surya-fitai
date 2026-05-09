@@ -418,6 +418,7 @@ export default function Results() {
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionStats, setCompletionStats] = useState<{ totalWorkouts: number; totalActiveDays: number }>({ totalWorkouts: 0, totalActiveDays: 0 });
+  const [completionStatsLoading, setCompletionStatsLoading] = useState(false);
   const [continueLoading, setContinueLoading] = useState(false);
 
   // Reminder popups (Save plan -> then Check-in instructions)
@@ -620,23 +621,28 @@ export default function Results() {
   useEffect(() => {
     if (!showCompletionModal || !planId || !user) return;
     let cancelled = false;
+    setCompletionStatsLoading(true);
     (async () => {
-      let q = supabase
+      // Always re-query fresh from Supabase. Do NOT use cached/snapshot values.
+      // Count ALL completed exercises for this plan (no date filter) so progress
+      // reflects everything the user has done, not a subset.
+      const q = supabase
         .from("workout_completions")
-        .select("workout_date, completed, completed_at")
+        .select("workout_date")
         .eq("user_id", user.id)
         .eq("plan_id", planId)
         .eq("completed", true);
-      if (planStartedAt) q = q.gte("completed_at", planStartedAt);
       const { data, error } = await q;
-      if (error || cancelled) return;
+      if (cancelled) return;
+      if (error) { setCompletionStatsLoading(false); return; }
       setCompletionStats({
         totalWorkouts: data?.length || 0,
         totalActiveDays: new Set((data || []).map((r) => r.workout_date)).size,
       });
+      setCompletionStatsLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [showCompletionModal, planId, user, planStartedAt]);
+  }, [showCompletionModal, planId, user]);
 
   const handleContinueToNextMonth = async () => {
     if (!user || !planId) return;
@@ -1652,6 +1658,7 @@ export default function Results() {
         monthNumber={planMonthNumber}
         totalWorkouts={completionStats.totalWorkouts}
         totalActiveDays={completionStats.totalActiveDays}
+        statsLoading={completionStatsLoading}
         onContinue={handleContinueToNextMonth}
         onStartFresh={handleStartFreshProgram}
         loading={continueLoading}

@@ -12,6 +12,7 @@ interface PlanCompletionModalProps {
   onContinue: () => void;
   onStartFresh: () => void;
   loading?: boolean;
+  statsLoading?: boolean;
 }
 
 export default function PlanCompletionModal({
@@ -23,6 +24,7 @@ export default function PlanCompletionModal({
   onContinue,
   onStartFresh,
   loading = false,
+  statsLoading = false,
 }: PlanCompletionModalProps) {
   const { lang, t } = useLanguage();
 
@@ -88,11 +90,19 @@ export default function PlanCompletionModal({
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg bg-primary/10 border border-primary/20 px-4 py-3">
-              <p className="text-3xl font-bold text-primary">{totalWorkouts}</p>
+              {statsLoading ? (
+                <div className="h-8 w-12 mx-auto rounded bg-primary/20 animate-pulse" aria-hidden />
+              ) : (
+                <p className="text-3xl font-bold text-primary">{totalWorkouts}</p>
+              )}
               <p className="text-[11px] text-muted-foreground mt-1 leading-tight">{totalWorkoutsLabel}</p>
             </div>
             <div className="rounded-lg bg-primary/10 border border-primary/20 px-4 py-3">
-              <p className="text-3xl font-bold text-primary">{totalActiveDays}</p>
+              {statsLoading ? (
+                <div className="h-8 w-12 mx-auto rounded bg-primary/20 animate-pulse" aria-hidden />
+              ) : (
+                <p className="text-3xl font-bold text-primary">{totalActiveDays}</p>
+              )}
               <p className="text-[11px] text-muted-foreground mt-1 leading-tight">{totalActiveDaysLabel}</p>
             </div>
           </div>
