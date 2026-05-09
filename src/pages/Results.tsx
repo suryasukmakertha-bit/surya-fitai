@@ -686,7 +686,7 @@ export default function Results() {
       // This keeps user_info unchanged but swaps plan_data and bumps the month counter.
       const newPlanName = `${ui?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)} (Month ${nextMonth})`;
 
-      const { error: updErr } = await supabase
+      const { data: fresh, error: updErr } = await supabase
         .from("saved_plans")
         .update({
           plan_data: newPlan as any,
@@ -696,21 +696,19 @@ export default function Results() {
           plan_completed_at: null,
         } as any)
         .eq("id", planId)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .select("plan_month_number, plan_started_at, plan_completed_at")
+        .single();
 
       if (updErr) throw updErr;
 
-      // 3. Force-refetch the canonical saved_plans row so local state mirrors
-      //    the DB exactly (no optimistic/cached values). workout_completions rows are intentionally
+      // 3. The update returns the canonical saved_plans row so local state mirrors
+      //    the DB exactly (no optimistic/cached values). Then broadcast a saved-plan
+      //    list refresh for any mounted /saved-plans view. workout_completions rows are intentionally
       // preserved in the DB for history; the completion-watcher filters
       // them by completed_at >= plan_started_at, so the new month starts
       // visually fresh while the underlying history stays intact.
-      const { data: fresh } = await supabase
-        .from("saved_plans")
-        .select("plan_month_number, plan_started_at, plan_completed_at")
-        .eq("id", planId)
-        .eq("user_id", user.id)
-        .maybeSingle();
+      window.dispatchEvent(new Event("surya-fitai:saved-plans-refetch"));
 
       setShowCompletionModal(false);
       setPlanCompletedAt(((fresh as any)?.plan_completed_at) ?? null);
