@@ -14,6 +14,7 @@ import {
 import { downloadActivityPng } from "@/lib/activityImage";
 import { checkActivityMedals } from "@/lib/dailyChallenge";
 import { emitMedalsEarned } from "@/lib/medalEvents";
+import { supabase } from "@/integrations/supabase/client";
 
 const FREE_SAVE_LIMIT = 10;
 const FREE_DOWNLOAD_LIMIT = 3;
@@ -86,9 +87,24 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
         const c = await getPngDownloadCount(user.id);
         if (c >= FREE_DOWNLOAD_LIMIT) { toast.error(tt("activity.downloadLimit")); setDownloading(false); return; }
       }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const rawName =
+        (profile?.display_name && profile.display_name.trim()) ||
+        user.email?.split("@")[0] ||
+        "Athlete";
+      const userName = rawName
+        .replace(/[._-]+/g, " ")
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
       await downloadActivityPng({
         session: { ...session, created_at: new Date().toISOString() },
-        userName: user.email?.split("@")[0] || "Athlete",
+        userName,
         i18n: {
           title, distance: tt("activity.distance"), time: tt("activity.time"),
           pace: tt("activity.avgPace"), calories: tt("activity.calories"),
