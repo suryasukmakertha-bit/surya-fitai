@@ -1,5 +1,5 @@
-// Surya-FitAi Service Worker v6
-const CACHE_NAME = 'surya-fitai-v6';
+// Surya-FitAi Service Worker v7
+const CACHE_NAME = 'surya-fitai-v7';
 const DB_NAME = 'surya-fitai-sw';
 const STORE_NAME = 'reminders';
 
@@ -74,8 +74,8 @@ async function checkAndShowReminders() {
       const msg = morningMessages[lang];
       await self.registration.showNotification(msg.title, {
         body: msg.body,
-        icon: '/icons/icon-192.png?v=2',
-        badge: '/icons/icon-192.png?v=2',
+        icon: '/icons/icon-192.png?v=8',
+        badge: '/icons/icon-192.png?v=8',
         vibrate: [100, 50, 100],
         data: { url: '/saved-plans' },
         tag: 'morning-reminder',
@@ -93,8 +93,8 @@ async function checkAndShowReminders() {
       const msg = afternoonMessages[lang];
       await self.registration.showNotification(msg.title, {
         body: msg.body,
-        icon: '/icons/icon-192.png?v=2',
-        badge: '/icons/icon-192.png?v=2',
+        icon: '/icons/icon-192.png?v=8',
+        badge: '/icons/icon-192.png?v=8',
         vibrate: [100, 50, 100],
         data: { url: '/saved-plans' },
         tag: 'afternoon-reminder',
@@ -112,8 +112,8 @@ async function checkAndShowReminders() {
       const msg = eveningMessages[lang];
       await self.registration.showNotification(msg.title, {
         body: msg.body,
-        icon: '/icons/icon-192.png?v=2',
-        badge: '/icons/icon-192.png?v=2',
+        icon: '/icons/icon-192.png?v=8',
+        badge: '/icons/icon-192.png?v=8',
         vibrate: [100, 50, 100],
         data: { url: '/saved-plans' },
         tag: 'evening-reminder',
@@ -163,8 +163,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: data.icon || '/icons/icon-192.png?v=2',
-      badge: data.badge || '/icons/icon-192.png?v=2',
+      icon: data.icon || '/icons/icon-192.png?v=8',
+      badge: data.badge || '/icons/icon-192.png?v=8',
       vibrate: [100, 50, 100],
       data: { url: data.url || '/saved-plans' },
       tag: data.tag || 'daily-workout',
@@ -202,8 +202,8 @@ self.addEventListener('message', (event) => {
     setTimeout(() => {
       self.registration.showNotification(title || 'Your workout is waiting 💪', {
         body: body || "Your AI trainer is ready. Let's complete today's workout.",
-        icon: '/icons/icon-192.png?v=2',
-        badge: '/icons/icon-192.png?v=2',
+        icon: '/icons/icon-192.png?v=8',
+        badge: '/icons/icon-192.png?v=8',
         vibrate: [100, 50, 100],
         data: { url: '/saved-plans' },
         tag: tag || 'daily-workout',
