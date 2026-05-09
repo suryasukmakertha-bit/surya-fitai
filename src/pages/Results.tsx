@@ -896,6 +896,16 @@ export default function Results() {
           }
         }
 
+        // Positional mapping: when the AI emits one entry per calendar day in
+        // chronological order (totalWeeks * 7 entries), the template at
+        // selectedWeek*7 + d is the canonical source for card slot d. This
+        // prevents extended plans (where AI day-text labels can disagree with
+        // the actual plan_started_at weekday) from showing wrong exercises.
+        const positionalWeekTemplates: (DayPlan | undefined)[] | null =
+          plan.workout_plan.length >= (selectedWeek + 1) * 7
+            ? plan.workout_plan.slice(selectedWeek * 7, selectedWeek * 7 + 7)
+            : null;
+
         const days: DayPlan[] = [];
 
         for (let d = 0; d < 7; d++) {
@@ -922,7 +932,13 @@ export default function Results() {
             continue;
           }
 
-          const template = workoutTemplateByDay.get(dayIndex);
+          // Prefer positional mapping when available; fall back to weekday-text
+          // matching for legacy plans that only contain a 7-entry template.
+          const positionalTemplate = positionalWeekTemplates?.[d];
+          const template =
+            positionalTemplate && positionalTemplate.exercises?.length
+              ? positionalTemplate
+              : workoutTemplateByDay.get(dayIndex);
           if (!template) {
             // No dedicated template for this workout slot — render as rest
             // rather than duplicating day[0] across multiple cards.
