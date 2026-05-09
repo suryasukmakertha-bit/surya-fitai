@@ -20,10 +20,10 @@ export default function RunningIcon({ size = 24, color = "#ff6b00", className, s
       style={style}
       aria-hidden="true"
     >
-      <circle cx="13" cy="4" r="2" />
-      <path d="M7.5 13.5L10 12l2 5 3-3 2 2" />
-      <path d="M10 12l1-4 3 1 2-3" />
-      <path d="M7 17l1.5 3M15 13l2 4" />
+      <path d="M4 16v-2.38c0-.83.13-1.66.4-2.45l.32-.94C5.4 8.6 7.13 7.5 9 7.5c.83 0 1.5.67 1.5 1.5v3.5" />
+      <path d="M4 16c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-1.5" />
+      <path d="M14 13.5V11c0-.83.67-1.5 1.5-1.5 1.87 0 3.6 1.1 4.28 2.73l.32.94c.27.79.4 1.62.4 2.45V18" />
+      <path d="M14 18a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1.5" />
     </svg>
   );
 }
