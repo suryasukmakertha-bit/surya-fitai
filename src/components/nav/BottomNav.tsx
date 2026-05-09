@@ -41,6 +41,10 @@ export default function BottomNav() {
       window.dispatchEvent(new CustomEvent(OPEN_PROFILE_DRAWER_EVENT));
       return;
     }
+    if ((window as any).__suryaRecording) {
+      window.dispatchEvent(new CustomEvent("surya:nav-attempt", { detail: { path } }));
+      return;
+    }
     nav(path);
   };
 

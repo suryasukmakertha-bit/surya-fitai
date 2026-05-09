@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useBlocker } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Pause, Play, Square, Lock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -227,10 +227,21 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
     };
   }, [started]);
 
-  // In-app navigation block
-  const blocker = useBlocker(({ currentLocation, nextLocation }) =>
-    started && currentLocation.pathname !== nextLocation.pathname,
-  );
+  // In-app navigation block (custom event from BottomNav)
+  const [pendingNav, setPendingNav] = useState<string | null>(null);
+  useEffect(() => {
+    if (!started) return;
+    (window as any).__suryaRecording = true;
+    const onAttempt = (e: Event) => {
+      const path = (e as CustomEvent).detail?.path;
+      if (path) setPendingNav(path);
+    };
+    window.addEventListener("surya:nav-attempt", onAttempt as EventListener);
+    return () => {
+      (window as any).__suryaRecording = false;
+      window.removeEventListener("surya:nav-attempt", onAttempt as EventListener);
+    };
+  }, [started]);
 
   // Draw map
   useEffect(() => {
@@ -482,21 +493,24 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
       )}
 
       {/* In-app navigation block */}
-      <AlertDialog open={blocker.state === "blocked"} onOpenChange={(o) => { if (!o && blocker.state === "blocked") blocker.reset?.(); }}>
+      <AlertDialog open={!!pendingNav} onOpenChange={(o) => { if (!o) setPendingNav(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{L("leaveTitle")}</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => blocker.reset?.()}>{L("stay")}</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setPendingNav(null)}>{L("stay")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 recordingRef.current = false;
+                (window as any).__suryaRecording = false;
                 if (wakeLockRef.current) {
                   try { wakeLockRef.current.release?.(); } catch { /* ignore */ }
                   wakeLockRef.current = null;
                 }
-                blocker.proceed?.();
+                const target = pendingNav!;
+                setPendingNav(null);
+                nav(target);
               }}
               style={{ background: "#ef4444" }}
             >
