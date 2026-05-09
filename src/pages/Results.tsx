@@ -700,14 +700,22 @@ export default function Results() {
 
       if (updErr) throw updErr;
 
-      // 3. Reset local state. workout_completions rows are intentionally
+      // 3. Force-refetch the canonical saved_plans row so local state mirrors
+      //    the DB exactly (no optimistic/cached values). workout_completions rows are intentionally
       // preserved in the DB for history; the completion-watcher filters
       // them by completed_at >= plan_started_at, so the new month starts
       // visually fresh while the underlying history stays intact.
+      const { data: fresh } = await supabase
+        .from("saved_plans")
+        .select("plan_month_number, plan_started_at, plan_completed_at")
+        .eq("id", planId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       setShowCompletionModal(false);
-      setPlanMonthNumber(nextMonth);
-      setPlanStartedAt(nowIso);
-      setPlanCompletedAt(null);
+      setPlanCompletedAt(((fresh as any)?.plan_completed_at) ?? null);
+      setPlanStartedAt(((fresh as any)?.plan_started_at) ?? nowIso);
+      setPlanMonthNumber(((fresh as any)?.plan_month_number) ?? nextMonth);
       setCompletionStats({ totalWorkouts: 0, totalActiveDays: 0 });
       toast({ title: t.planSaved });
 
