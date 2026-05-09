@@ -800,7 +800,14 @@ export default function Results() {
     // Pure positional mapping. Day card at slot N → workout_plan[weekIndex*7 + N].
     // The edge function guarantees workout_plan has exactly totalWeeks*7 entries
     // in chronological order (rest days included as empty exercises arrays).
-    if (plan.workout_plan.length >= totalWeeks * 7) {
+    //
+    // Extended plans (planMonthNumber > 1) ALWAYS use positional mapping even
+    // if the AI returned fewer entries than totalWeeks*7, because their
+    // template.day weekday labels are anchored to the ORIGINAL month's start
+    // day, not the new plan_started_at — falling back to weekday-text mapping
+    // mismatches title and exercises. Positional mapping pairs each card with
+    // the correct template by index, identical to how new plans render.
+    if (plan.workout_plan.length >= totalWeeks * 7 || planMonthNumber > 1) {
       const days: DayPlan[] = [];
       for (let d = 0; d < 7; d++) {
         const dayDate = addDays(weekStartDate, d);
@@ -1021,6 +1028,7 @@ export default function Results() {
     lang,
     t,
     dateLocale,
+    planMonthNumber,
   ]);
 
   useEffect(() => {
