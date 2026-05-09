@@ -49,7 +49,7 @@ export function getTotalWeeks(planData: any): number {
  */
 export async function getPlanProgress(
   userId: string,
-  plan: { id: string; plan_data?: any } | null | undefined
+  plan: { id: string; plan_data?: any; plan_started_at?: string | null } | null | undefined
 ): Promise<PlanProgress> {
   const planData = plan?.plan_data || {};
   const totalWeeks = getTotalWeeks(planData);
@@ -60,12 +60,16 @@ export async function getPlanProgress(
     return { completedDays: 0, totalDays, currentWeek: 1, totalWeeks, percentage: 0, workoutsPerWeek };
   }
 
-  const { data } = await supabase
+  let q = supabase
     .from("workout_completions")
-    .select("workout_date")
+    .select("workout_date, completed_at")
     .eq("user_id", userId)
     .eq("plan_id", plan.id)
     .eq("completed", true);
+  if (plan.plan_started_at) {
+    q = q.gte("completed_at", plan.plan_started_at);
+  }
+  const { data } = await q;
 
   const completedDays = new Set((data || []).map((r: any) => r.workout_date)).size;
   const cappedCompleted = Math.min(completedDays, totalDays);
