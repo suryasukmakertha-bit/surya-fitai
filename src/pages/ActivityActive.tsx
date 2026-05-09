@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Pause, Play, Square, Lock } from "lucide-react";
+import { useNavigate, useBlocker } from "react-router-dom";
+import { Pause, Play, Square, Lock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,14 +20,53 @@ import {
 
 interface Point { lat: number; lng: number; t: number; alt?: number | null; speed?: number | null }
 
+const isIOS = () =>
+  typeof navigator !== "undefined" &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    ((navigator as any).platform === "MacIntel" && (navigator as any).maxTouchPoints > 1));
+
+const wakeLockSupported = () =>
+  typeof navigator !== "undefined" && "wakeLock" in navigator && !isIOS();
+
+const TXT = {
+  warnTitle: { id: "Jaga Layar Tetap Aktif", en: "Keep Screen Active", zh: "保持屏幕开启" },
+  warnBody: {
+    id: "Untuk hasil terbaik selama perekaman:\n• Jangan tutup atau minimize app\n• Jangan matikan layar\n• Jangan pindah ke aplikasi lain\n\nApp akan mencoba menjaga layar tetap aktif secara otomatis.",
+    en: "For best results during recording:\n• Do not close or minimize the app\n• Do not turn off the screen\n• Do not switch to other apps\n\nThe app will try to keep the screen active automatically.",
+    zh: "录制期间为获得最佳效果：\n• 不要关闭或最小化应用\n• 不要关闭屏幕\n• 不要切换到其他应用\n\n应用将自动尝试保持屏幕常亮。",
+  },
+  warnIos: {
+    id: "Perangkat kamu tidak mendukung mode layar aktif otomatis. Pastikan layar tetap menyala secara manual.",
+    en: "Your device does not support automatic screen lock prevention. Please keep the screen on manually.",
+    zh: "您的设备不支持自动防锁屏。请手动保持屏幕常亮。",
+  },
+  warnCta: { id: "Mengerti, Mulai", en: "Got it, Start", zh: "明白，开始" },
+  warnDontShow: { id: "Jangan tampilkan lagi", en: "Don't show again", zh: "不再显示" },
+  screenOn: { id: "Layar aktif", en: "Screen on", zh: "屏幕常亮" },
+  leaveTitle: {
+    id: "Rekaman sedang berjalan. Keluar akan menghentikan rekaman. Lanjutkan?",
+    en: "Recording in progress. Leaving will stop the recording. Continue?",
+    zh: "录制进行中。离开将停止录制。是否继续？",
+  },
+  stay: { id: "Tetap di sini", en: "Stay", zh: "留在这里" },
+  leave: { id: "Keluar", en: "Leave", zh: "离开" },
+};
+
 export default function ActivityActive({ activity }: { activity: ActivityType }) {
   const nav = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const tt = (k: string) => (t as any)[k] || k;
+  const L = (k: keyof typeof TXT) => TXT[k][lang as "id" | "en" | "zh"] || TXT[k].en;
   const { access } = useSubscription();
   const isFree = access.isFreeTier && !access.isUnlimited;
 
+  const [showWarning, setShowWarning] = useState<boolean>(
+    () => typeof window !== "undefined" && localStorage.getItem("hideTrackingWarning") !== "true",
+  );
+  const [started, setStarted] = useState<boolean>(
+    () => typeof window !== "undefined" && localStorage.getItem("hideTrackingWarning") === "true",
+  );
   const [running, setRunning] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const [distance, setDistance] = useState(0);
@@ -42,6 +81,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
   const [gpsLocked, setGpsLocked] = useState(false);
   const [allowWithoutLock, setAllowWithoutLock] = useState(false);
   const [weakGpsOpen, setWeakGpsOpen] = useState(false);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
 
   const startedAtRef = useRef(Date.now());
   const accumPausedRef = useRef(0);
@@ -54,22 +94,26 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
   const gpsLockedRef = useRef(false);
   const allowWithoutLockRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wakeLockRef = useRef<any>(null);
+  const recordingRef = useRef(false);
 
   // Load weight
   useEffect(() => { if (user) getUserWeightKg(user.id).then(setWeightKg); }, [user]);
 
   // Timer
   useEffect(() => {
+    if (!started) return;
     const id = setInterval(() => {
       if (!running) return;
       const sec = Math.floor((Date.now() - startedAtRef.current - accumPausedRef.current) / 1000);
       setElapsed(sec);
     }, 1000);
     return () => clearInterval(id);
-  }, [running]);
+  }, [running, started]);
 
   // Geolocation
   useEffect(() => {
+    if (!started) return;
     if (!navigator.geolocation) { setHasGeo(false); return; }
     const id = navigator.geolocation.watchPosition(
       (pos) => {
@@ -144,7 +188,49 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
       window.clearTimeout(timeoutId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [started]);
+
+  // Wake Lock + beforeunload while recording
+  useEffect(() => {
+    if (!started) return;
+    recordingRef.current = true;
+    const acquireWakeLock = async () => {
+      if (!wakeLockSupported()) return;
+      try {
+        const wl = await (navigator as any).wakeLock.request("screen");
+        wakeLockRef.current = wl;
+        setWakeLockActive(true);
+        wl.addEventListener?.("release", () => setWakeLockActive(false));
+      } catch {
+        /* silent */
+      }
+    };
+    acquireWakeLock();
+    const onVis = () => {
+      if (document.visibilityState === "visible" && recordingRef.current) acquireWakeLock();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => {
+      recordingRef.current = false;
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      if (wakeLockRef.current) {
+        try { wakeLockRef.current.release?.(); } catch { /* ignore */ }
+        wakeLockRef.current = null;
+      }
+      setWakeLockActive(false);
+    };
+  }, [started]);
+
+  // In-app navigation block
+  const blocker = useBlocker(({ currentLocation, nextLocation }) =>
+    started && currentLocation.pathname !== nextLocation.pathname,
+  );
 
   // Draw map
   useEffect(() => {
@@ -192,6 +278,11 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
 
   const confirmStop = () => {
     setStopOpen(false);
+    recordingRef.current = false;
+    if (wakeLockRef.current) {
+      try { wakeLockRef.current.release?.(); } catch { /* ignore */ }
+      wakeLockRef.current = null;
+    }
     const distanceFinal = distanceRef.current;
     const durationSec = Math.floor((Date.now() - startedAtRef.current - accumPausedRef.current) / 1000);
     const avgPace = distanceFinal > 0.001 ? Math.round(durationSec / distanceFinal) : 0;
@@ -214,6 +305,16 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
     nav(`/${activity}/summary`);
   };
 
+  const beginRecording = (rememberHide: boolean) => {
+    if (rememberHide) {
+      try { localStorage.setItem("hideTrackingWarning", "true"); } catch { /* ignore */ }
+    }
+    startedAtRef.current = Date.now();
+    accumPausedRef.current = 0;
+    setShowWarning(false);
+    setStarted(true);
+  };
+
   const searchingGps = !gpsLocked && !allowWithoutLock;
   const pace = !searchingGps && distance >= 0.1 ? Math.round(elapsed / distance) : 0;
   const calories = calcCalories(activity, weightKg, elapsed / 3600);
@@ -221,10 +322,18 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
   return (
     <div className="min-h-screen page-bg" style={{ paddingBottom: "calc(160px + env(safe-area-inset-bottom, 16px))" }}>
       <header className="px-4 pt-4 pb-2 text-center">
-        <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
-          style={{ background: running ? "rgba(16,185,129,0.15)" : "rgba(255,107,0,0.15)", color: running ? "#10b981" : "#ff6b00" }}>
-          {running ? tt("activity.recording") : tt("activity.paused")}
-        </span>
+        <div className="inline-flex items-center gap-2">
+          <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
+            style={{ background: running ? "rgba(16,185,129,0.15)" : "rgba(255,107,0,0.15)", color: running ? "#10b981" : "#ff6b00" }}>
+            {running ? tt("activity.recording") : tt("activity.paused")}
+          </span>
+          {wakeLockActive && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold" style={{ color: "#10b981" }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
+              {L("screenOn")}
+            </span>
+          )}
+        </div>
         {searchingGps && (
           <p className="mt-2 text-xs font-semibold" style={{ color: "#ff6b00" }}>
             {tt("activity.gpsSearching")}
@@ -338,6 +447,60 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
               style={{ background: "#ff6b00" }}
             >
               {tt("activity.gpsContinue")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Pre-recording warning */}
+      {showWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.2)" }}>
+            <div className="flex justify-center mb-3">
+              <AlertTriangle size={40} color="#ff6b00" />
+            </div>
+            <h2 className="text-center text-lg font-extrabold text-foreground mb-3">{L("warnTitle")}</h2>
+            <p className="text-sm text-muted-foreground whitespace-pre-line mb-2">{L("warnBody")}</p>
+            {!wakeLockSupported() && (
+              <p className="text-xs font-semibold mt-2 mb-2" style={{ color: "#ff6b00" }}>{L("warnIos")}</p>
+            )}
+            <button
+              onClick={() => beginRecording(false)}
+              className="mt-4 w-full h-12 rounded-btn font-extrabold text-white"
+              style={{ background: "linear-gradient(90deg,#ff6b00,#ff3d7f)", boxShadow: "0 4px 20px rgba(255,107,0,0.4)" }}
+            >
+              {L("warnCta")}
+            </button>
+            <button
+              onClick={() => beginRecording(true)}
+              className="mt-3 w-full text-xs font-semibold text-muted-foreground underline"
+            >
+              {L("warnDontShow")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* In-app navigation block */}
+      <AlertDialog open={blocker.state === "blocked"} onOpenChange={(o) => { if (!o && blocker.state === "blocked") blocker.reset?.(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{L("leaveTitle")}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => blocker.reset?.()}>{L("stay")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                recordingRef.current = false;
+                if (wakeLockRef.current) {
+                  try { wakeLockRef.current.release?.(); } catch { /* ignore */ }
+                  wakeLockRef.current = null;
+                }
+                blocker.proceed?.();
+              }}
+              style={{ background: "#ef4444" }}
+            >
+              {L("leave")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
