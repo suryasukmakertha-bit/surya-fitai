@@ -734,6 +734,15 @@ export default function Results() {
 
   // Resolve the EXACT training start date from user profile
   const trainingStartDate = useMemo(() => {
+    // Prefer planStartedAt so that when a plan is extended (which updates
+    // plan_started_at to NOW()), the week selector recalculates from the
+    // new start date instead of the original questionnaire date.
+    if (planStartedAt) {
+      const d = new Date(planStartedAt);
+      if (!isNaN(d.getTime())) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0);
+      }
+    }
     const startDateStr = userInfo?.startDate || userInfo?.trainingStartDate;
     if (!startDateStr) {
       const now = new Date();
@@ -748,7 +757,7 @@ export default function Results() {
 
     const parsed = new Date(startDateStr);
     return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12, 0, 0, 0);
-  }, [userInfo]);
+  }, [userInfo, planStartedAt]);
 
   const dateLocale = lang === "id" ? idLocale : lang === "zh" ? zhCN : undefined;
 
