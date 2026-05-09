@@ -515,6 +515,10 @@ const translations = {
     "activity.pause": "Pause",
     "activity.resume": "Resume",
     "activity.summaryTitle": "Summary",
+    "activity.gpsSearching": "Finding GPS signal...",
+    "activity.gpsWeakTitle": "Weak GPS signal, continue recording anyway?",
+    "activity.gpsContinue": "Continue",
+    "activity.gpsCancel": "Cancel",
   },
   id: {
     // Common
@@ -1022,6 +1026,10 @@ const translations = {
     "activity.pause": "Jeda",
     "activity.resume": "Lanjut",
     "activity.summaryTitle": "Ringkasan",
+    "activity.gpsSearching": "Mencari sinyal GPS...",
+    "activity.gpsWeakTitle": "Sinyal GPS lemah, lanjutkan tetap merekam?",
+    "activity.gpsContinue": "Lanjutkan",
+    "activity.gpsCancel": "Batal",
   },
   zh: {
     // Common
@@ -1529,6 +1537,10 @@ const translations = {
     "activity.pause": "暂停",
     "activity.resume": "继续",
     "activity.summaryTitle": "摘要",
+    "activity.gpsSearching": "正在搜索GPS信号...",
+    "activity.gpsWeakTitle": "GPS信号弱，是否继续录制？",
+    "activity.gpsContinue": "继续",
+    "activity.gpsCancel": "取消",
   },
 };
 
