@@ -445,11 +445,11 @@ export default function Results() {
     if (!user || !planId) { setPlanProgress(null); return; }
     let cancelled = false;
     (async () => {
-      const p = await getPlanProgress(user.id, { id: planId, plan_data: plan });
+      const p = await getPlanProgress(user.id, { id: planId, plan_data: plan, plan_started_at: planStartedAt });
       if (!cancelled) setPlanProgress(p);
     })();
     return () => { cancelled = true; };
-  }, [user, planId, plan]);
+  }, [user, planId, plan, planStartedAt]);
 
   useEffect(() => {
     setCheckIns([]);
