@@ -87,16 +87,20 @@ export default function SavedPlans() {
     }
     fetchPlans();
 
-    // Refetch when tab/window regains focus so badges reflect latest DB state
+    // Refetch when tab/window regains focus or an extended plan broadcasts a refresh
+    // so badges reflect the latest DB state only.
     const onFocus = () => fetchPlans();
     const onVisibility = () => {
       if (document.visibilityState === "visible") fetchPlans();
     };
+    const onSavedPlansRefetch = () => fetchPlans();
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("surya-fitai:saved-plans-refetch", onSavedPlansRefetch);
     return () => {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("surya-fitai:saved-plans-refetch", onSavedPlansRefetch);
     };
   }, [user, authLoading]);
 
