@@ -297,7 +297,7 @@ OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
   "warmUp": "string (5 min warm-up routine)",
   "workout_plan": [
     {
-      "day": "string (e.g. Week 1 - Monday, 2025-03-10)",
+      "day": "string (e.g. Week 1 - Monday, 2025-03-10) — INCLUDE ALL 7 DAYS PER WEEK, REST DAYS INCLUDED",
       "exercises": [
         {
           "name": "string",
@@ -479,6 +479,7 @@ SCHEDULING:
 - Distribute muscle groups evenly with balanced rotation and recovery optimization
 - Plan duration: ${duration} — generate exactly ${totalWeeks} weeks of programming
 - Include REST DAY entries labeled as "Week X - Rest Day (DayName, Date)" with an empty exercises array
+- MANDATORY ARRAY SIZE: workout_plan MUST contain EXACTLY ${totalWeeks * 7} entries (${totalWeeks} weeks × 7 days). Every single calendar day of every week MUST be represented as its own entry, in chronological order (Week 1 Day 1, Week 1 Day 2, ..., Week 1 Day 7, Week 2 Day 1, ...). Rest days are entries with exercises: []. Do NOT collapse, omit, or merge days. Do NOT output only one example entry — output every day.
 
 MEAL PLAN RULES:
 - Food style: "${foodStyle || 'local'}"
