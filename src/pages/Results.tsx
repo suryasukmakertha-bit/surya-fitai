@@ -1658,6 +1658,7 @@ export default function Results() {
         monthNumber={planMonthNumber}
         totalWorkouts={completionStats.totalWorkouts}
         totalActiveDays={completionStats.totalActiveDays}
+        statsLoading={completionStatsLoading}
         onContinue={handleContinueToNextMonth}
         onStartFresh={handleStartFreshProgram}
         loading={continueLoading}
