@@ -547,6 +547,10 @@ export default function Results() {
   // Subscribes to workout_completions changes for this plan.
   useEffect(() => {
     if (!planId || !user || totalPlanExercises === 0) return;
+    // Wait until the plan's start date is loaded. Without this guard the
+    // query below would have NO date filter and count completions from
+    // previous months, which would re-mark an extended plan as "completed".
+    if (!planStartedAt) return;
 
     let cancelled = false;
     const COMPLETION_THRESHOLD = 0.8;
@@ -557,11 +561,8 @@ export default function Results() {
         .select("workout_date, completed, completed_at")
         .eq("user_id", user.id)
         .eq("plan_id", planId)
-        .eq("completed", true);
-      if (planStartedAt) {
-        // Only count this month's progress
-        query = query.gte("completed_at", planStartedAt);
-      }
+        .eq("completed", true)
+        .gte("completed_at", planStartedAt);
       const { data, error } = await query;
       if (error || cancelled) return;
 
@@ -699,14 +700,22 @@ export default function Results() {
 
       if (updErr) throw updErr;
 
-      // 3. Reset local state. workout_completions rows are intentionally
+      // 3. Force-refetch the canonical saved_plans row so local state mirrors
+      //    the DB exactly (no optimistic/cached values). workout_completions rows are intentionally
       // preserved in the DB for history; the completion-watcher filters
       // them by completed_at >= plan_started_at, so the new month starts
       // visually fresh while the underlying history stays intact.
+      const { data: fresh } = await supabase
+        .from("saved_plans")
+        .select("plan_month_number, plan_started_at, plan_completed_at")
+        .eq("id", planId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       setShowCompletionModal(false);
-      setPlanMonthNumber(nextMonth);
-      setPlanStartedAt(nowIso);
-      setPlanCompletedAt(null);
+      setPlanCompletedAt(((fresh as any)?.plan_completed_at) ?? null);
+      setPlanStartedAt(((fresh as any)?.plan_started_at) ?? nowIso);
+      setPlanMonthNumber(((fresh as any)?.plan_month_number) ?? nextMonth);
       setCompletionStats({ totalWorkouts: 0, totalActiveDays: 0 });
       toast({ title: t.planSaved });
 
