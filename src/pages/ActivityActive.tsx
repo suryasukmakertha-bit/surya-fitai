@@ -39,6 +39,9 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
   const [stopOpen, setStopOpen] = useState(false);
   const [weightKg, setWeightKg] = useState(70);
   const [hasGeo, setHasGeo] = useState<boolean | null>(null);
+  const [gpsLocked, setGpsLocked] = useState(false);
+  const [allowWithoutLock, setAllowWithoutLock] = useState(false);
+  const [weakGpsOpen, setWeakGpsOpen] = useState(false);
 
   const startedAtRef = useRef(Date.now());
   const accumPausedRef = useRef(0);
@@ -48,6 +51,8 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
   const distanceRef = useRef(0);
   const lastSplitKmRef = useRef(0);
   const lastAltRef = useRef<number | null>(null);
+  const gpsLockedRef = useRef(false);
+  const allowWithoutLockRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Load weight
@@ -70,6 +75,16 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
       (pos) => {
         setHasGeo(true);
         if (!running) return;
+        const acc = pos.coords.accuracy ?? 9999;
+        // GPS lock gate: require accuracy ≤ 20m (or user opted to continue with weak signal)
+        if (!gpsLockedRef.current && acc <= 20) {
+          gpsLockedRef.current = true;
+          setGpsLocked(true);
+        }
+        if (!gpsLockedRef.current && !allowWithoutLockRef.current) {
+          // Still searching — do not record points/distance yet
+          return;
+        }
         const p: Point = {
           lat: pos.coords.latitude, lng: pos.coords.longitude,
           t: Date.now(), alt: pos.coords.altitude, speed: pos.coords.speed,
@@ -77,7 +92,10 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
         const prev = pointsRef.current[pointsRef.current.length - 1];
         if (prev) {
           const d = haversineKm(prev, p);
-          if (d > 0 && d < 0.2) { // ignore jumps
+          const dtSec = Math.max(0.001, (p.t - prev.t) / 1000);
+          const speedKmh = (d / dtSec) * 3600;
+          // Noise filter: ignore <3m moves (stationary jitter) and >50 km/h jumps
+          if (d * 1000 >= 3 && speedKmh <= 50 && d < 0.2) {
             distanceRef.current += d;
             setDistance(distanceRef.current);
             // splits per 1km
@@ -89,6 +107,9 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
               setSplits((arr) => [...arr, { km: fullKm, pace_seconds: dur, duration_seconds: dur }]);
               lastSplitKmRef.current = fullKm;
             }
+          } else {
+            // Skip: noise or jump artifact — do not append point either
+            return;
           }
         }
         pointsRef.current = [...pointsRef.current, p];
@@ -112,7 +133,16 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
       { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
     );
     watchIdRef.current = id;
-    return () => { if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current); };
+    // 30s timeout: if no GPS lock yet, ask user whether to continue without lock
+    const timeoutId = window.setTimeout(() => {
+      if (!gpsLockedRef.current && !allowWithoutLockRef.current) {
+        setWeakGpsOpen(true);
+      }
+    }, 30000);
+    return () => {
+      if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current);
+      window.clearTimeout(timeoutId);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -184,7 +214,8 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
     nav(`/${activity}/summary`);
   };
 
-  const pace = distance >= 0.1 ? Math.round(elapsed / distance) : 0;
+  const searchingGps = !gpsLocked && !allowWithoutLock;
+  const pace = !searchingGps && distance >= 0.1 ? Math.round(elapsed / distance) : 0;
   const calories = calcCalories(activity, weightKg, elapsed / 3600);
 
   return (
@@ -194,14 +225,19 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
           style={{ background: running ? "rgba(16,185,129,0.15)" : "rgba(255,107,0,0.15)", color: running ? "#10b981" : "#ff6b00" }}>
           {running ? tt("activity.recording") : tt("activity.paused")}
         </span>
+        {searchingGps && (
+          <p className="mt-2 text-xs font-semibold" style={{ color: "#ff6b00" }}>
+            {tt("activity.gpsSearching")}
+          </p>
+        )}
       </header>
 
       <div className="px-4 max-w-3xl mx-auto">
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: tt("activity.distance"), value: distance.toFixed(2), unit: "km", color: "#ff6b00" },
+            { label: tt("activity.distance"), value: searchingGps ? "0.00" : distance.toFixed(2), unit: "km", color: "#ff6b00" },
             { label: tt("activity.time"), value: formatDuration(elapsed), unit: "", color: "hsl(var(--foreground))" },
-            { label: tt("activity.pace"), value: pace > 0 ? formatPace(pace) : "--:--", unit: "/km", color: "hsl(var(--foreground))" },
+            { label: tt("activity.pace"), value: !searchingGps && pace > 0 ? formatPace(pace) : "--:--", unit: "/km", color: "hsl(var(--foreground))" },
             { label: tt("activity.calories"), value: String(calories), unit: "kcal", color: "hsl(var(--foreground))" },
           ].map((c) => (
             <div key={c.label} className="rounded-card p-4" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}>
@@ -280,6 +316,29 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
           <AlertDialogFooter>
             <AlertDialogCancel>{tt("activity.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmStop} style={{ background: "#ef4444" }}>{tt("activity.confirm")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={weakGpsOpen} onOpenChange={setWeakGpsOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tt("activity.gpsWeakTitle")}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setWeakGpsOpen(false); nav("/"); }}>
+              {tt("activity.gpsCancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                allowWithoutLockRef.current = true;
+                setAllowWithoutLock(true);
+                setWeakGpsOpen(false);
+              }}
+              style={{ background: "#ff6b00" }}
+            >
+              {tt("activity.gpsContinue")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
