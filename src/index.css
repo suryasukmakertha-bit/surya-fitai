@@ -409,17 +409,18 @@
 /* Mascot companion animations */
 @keyframes mascot-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-6px); }
 }
 @keyframes mascot-glow-pulse {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.08); }
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
 }
-@keyframes mascot-blink {
-  0%, 92%, 96%, 100% { filter: none; }
-  94% { filter: brightness(0.78) saturate(1.1); }
+@keyframes mascot-ring-pulse {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.85; }
+  50% { transform: translateX(-50%) scale(1.15); opacity: 0.5; }
 }
-.mascot-float { animation: mascot-float 4s ease-in-out infinite; }
-.mascot-glow-pulse { animation: mascot-glow-pulse 3.2s ease-in-out infinite; }
-.mascot-blink { animation: mascot-blink 5.5s ease-in-out infinite; }
-:root.light .mascot-blink { filter: drop-shadow(0 6px 14px rgba(0,0,0,0.12)); }
+.mascot-float { animation: mascot-float 3s ease-in-out infinite; transition: transform 0.3s ease; }
+.mascot-float-wrap:hover .mascot-float { transform: rotate(-5deg); }
+.mascot-glow-pulse { animation: mascot-glow-pulse 2s ease-in-out infinite; }
+.mascot-ring-pulse { animation: mascot-ring-pulse 2s ease-in-out infinite; }
+:root.light .mascot-glow-pulse { opacity: 0.5 !important; }
