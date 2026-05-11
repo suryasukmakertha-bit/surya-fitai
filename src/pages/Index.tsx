@@ -6,6 +6,7 @@ import RunningIcon from "@/components/icons/RunningIcon";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AppHeader from "@/components/AppHeader";
+import MascotCompanion from "@/components/MascotCompanion";
 import PricingCard from "@/components/pricing/PricingCard";
 import { PRICING_TEXT, type PricingLang } from "@/components/pricing/pricingContent";
 import { useGenerateLimit } from "@/hooks/useGenerateLimit";
@@ -243,6 +244,11 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   return (
     <section className="px-4 pt-20 pb-24 relative">
       <div className="max-w-3xl mx-auto relative">
+        {/* AI mascot companion */}
+        <MascotCompanion
+          streak={stats.streak}
+          hasActivePlan={!!activePlan}
+        />
         {/* Greeting (avatar + name) + tier */}
         <div className="flex items-center justify-between mb-5 gap-3">
           <button
