@@ -103,7 +103,7 @@ export default function AppHeader() {
 
   return (
     <>
-      <nav className={`${isHome ? "absolute" : "sticky"} top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm`} style={{ borderBottom: "1px solid hsl(var(--border) / 0.07)" }}>
+      <nav className="sticky top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm" style={{ borderBottom: "1px solid hsl(var(--border) / 0.07)" }}>
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <button onClick={() => navigate("/")} className="transition-opacity hover:opacity-90" aria-label="Surya-FitAi home">
             <BrandLogo size={32} />
