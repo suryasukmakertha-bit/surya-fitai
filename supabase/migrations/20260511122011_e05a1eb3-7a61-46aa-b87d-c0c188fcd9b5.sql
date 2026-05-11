@@ -1,0 +1,1 @@
+CREATE POLICY "authenticated_insert_daily_challenges" ON public.daily_challenges FOR INSERT TO authenticated WITH CHECK (true);
