@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { X, Moon, Zap, Lightbulb, ArrowLeftRight, Dumbbell, StickyNote } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
 import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
+import DailyCelebrationPopup from "@/components/DailyCelebrationPopup";
 import { usePreloadExerciseMedia } from "@/hooks/usePreloadExerciseMedia";
 import { checkWorkoutStreakMedals, checkProgramCompleteMedal } from "@/lib/dailyChallenge";
 import { emitMedalsEarned } from "@/lib/medalEvents";
@@ -55,6 +56,13 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [celebration, setCelebration] = useState<{
+    dayLabel: string;
+    exercises: Exercise[];
+    completedExercises: string[];
+    totalExercises: number;
+    dayNumber: number;
+  } | null>(null);
 
   // Preload all exercise demo images in background
   const allExerciseNames = useMemo(() => {
@@ -168,6 +176,23 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
           (ex) => updatedState[buildKey(dayLabel, ex.name)] === true
         );
         if (allDone) playWorkoutComplete();
+        if (allDone) {
+          const dateKey = workoutDate;
+          const storageKey = `celebrationShown_${planId}_${dateKey}`;
+          if (typeof window !== "undefined" && !window.localStorage.getItem(storageKey)) {
+            window.localStorage.setItem(storageKey, "1");
+            const dayIndex = workoutPlan?.findIndex((d) => d.day === dayLabel) ?? -1;
+            setCelebration({
+              dayLabel,
+              exercises: dayPlan.exercises,
+              completedExercises: dayPlan.exercises
+                .filter((ex) => updatedState[buildKey(dayLabel, ex.name)] === true)
+                .map((ex) => ex.name),
+              totalExercises: dayPlan.exercises.length,
+              dayNumber: dayIndex >= 0 ? dayIndex + 1 : 1,
+            });
+          }
+        }
       }
       // Award streak / program-complete medals (silent if already owned)
       try {
@@ -358,6 +383,19 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
           </div>
         </DialogContent>
       </Dialog>
+
+      {celebration && (
+        <DailyCelebrationPopup
+          open={!!celebration}
+          onClose={() => setCelebration(null)}
+          dayLabel={celebration.dayLabel}
+          exercises={celebration.exercises}
+          completedExercises={celebration.completedExercises}
+          totalExercises={celebration.totalExercises}
+          planMonthNumber={planMonthNumber}
+          dayNumber={celebration.dayNumber}
+        />
+      )}
     </>
   );
 }
