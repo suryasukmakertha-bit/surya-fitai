@@ -642,13 +642,13 @@ export default function Index() {
 
       {/* Hero */}
       <section
-        className="relative min-h-[92vh] flex items-center justify-center overflow-hidden"
+        className="relative flex items-start justify-center overflow-hidden"
       >
         {/* Floating decorative orbs (CSS only) */}
         <div className="landing-orb-1" aria-hidden />
         <div className="landing-orb-2" aria-hidden />
 
-        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center pt-16">
+        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center pt-2">
           {/* Floating badge row (lucide only) */}
           <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
             <span
