@@ -624,6 +624,22 @@ export default function Index() {
       <ScrollProgressBar />
 
 
+      {/* SUNY mascot greeting (landing) */}
+      <div className="relative z-10 px-4 pt-3 flex justify-center">
+        <div className="w-full max-w-3xl">
+          <MascotCompanion
+            mood="excited"
+            message={
+              lang === "id"
+                ? "Siap ubah hidupmu? 🚀"
+                : lang === "zh"
+                ? "准备好改变了吗？🚀"
+                : "Ready to transform? 🚀"
+            }
+          />
+        </div>
+      </div>
+
       {/* Hero */}
       <section
         className="relative min-h-[92vh] flex items-center justify-center overflow-hidden"
