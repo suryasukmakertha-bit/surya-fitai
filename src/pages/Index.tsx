@@ -242,7 +242,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const showUpgrade = tier === "FREE" && Number.isFinite(limit.max) && limit.used >= (limit.max as number);
 
   return (
-    <section className="px-4 pt-20 pb-24 relative">
+    <section className="px-4 pt-4 pb-24 relative">
       <div className="max-w-3xl mx-auto relative">
         {/* AI mascot companion */}
         <MascotCompanion
