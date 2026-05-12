@@ -10,6 +10,7 @@ interface Props {
   dailyChallengeCompleted?: boolean;
   daysSinceLastWorkout?: number;
   mood?: Mood;
+  message?: string;
 }
 
 function resolveMood(p: Props): Mood {
@@ -191,9 +192,10 @@ export default function MascotCompanion(props: Props) {
   // Rotate messages every 5s — for now we have a single message per mood,
   // but we cycle a small variety pool so it feels alive.
   const pool = useMemo(() => {
+    if (props.message) return [{ m: mood, text: props.message }];
     const moods: Mood[] = [mood, "happy", mood === "determined" ? "excited" : "determined"];
     return Array.from(new Set(moods)).map((m) => ({ m, text: getMessage(lang, m, streak) }));
-  }, [mood, lang, streak]);
+  }, [mood, lang, streak, props.message]);
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     setIdx(0);
