@@ -134,12 +134,8 @@ function MascotSvg({ mood, blink }: { mood: Mood; blink: boolean }) {
 
       {/* Body */}
       <rect x="50" y="118" width="60" height="44" rx="14" fill="url(#body)" stroke="#0a0a0a" strokeWidth="1.2" />
-      {/* SF logo F */}
-      <g fill="#FF6A00">
-        <rect x="73" y="128" width="14" height="3.5" rx="1" />
-        <rect x="73" y="128" width="3.5" height="22" rx="1" />
-        <rect x="73" y="137" width="10" height="3" rx="1" />
-      </g>
+      {/* SUNY logo S */}
+      <text x="80" y="148" textAnchor="middle" fontFamily="Plus Jakarta Sans, sans-serif" fontWeight="800" fontSize="20" fill="#FF6A00">S</text>
       {/* Arms */}
       <ellipse cx="46" cy="132" rx="6" ry="9" fill="#1a1a1a" />
       <ellipse cx="114" cy="132" rx="6" ry="9" fill="#1a1a1a" />
