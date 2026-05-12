@@ -642,7 +642,7 @@ export default function Index() {
 
       {/* Hero */}
       <section
-        className="relative min-h-[92vh] flex items-center justify-center overflow-hidden"
+        className="relative flex items-start justify-center overflow-hidden"
       >
         {/* Floating decorative orbs (CSS only) */}
         <div className="landing-orb-1" aria-hidden />
