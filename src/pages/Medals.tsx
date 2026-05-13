@@ -10,6 +10,7 @@ import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import { downloadMedalPng } from "@/lib/medalImage";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getPlanProgress } from "@/lib/planProgress";
 
 interface UserMedal {
   id: string;
@@ -40,6 +41,7 @@ export default function Medals() {
   const [displayName, setDisplayName] = useState("");
   const [selected, setSelected] = useState<UserMedal | null>(null);
   const { featured, setFeaturedMedal: setFeaturedMedalHook, removeFeaturedMedal } = useFeaturedMedal();
+  const [lockedProgress, setLockedProgress] = useState<Record<string, { current: number; total: number; label: string }>>({});
 
   useEffect(() => { if (!authLoading && !user) navigate("/auth"); }, [authLoading, user, navigate]);
 
@@ -55,6 +57,59 @@ export default function Medals() {
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Load real progress data for locked medals
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const sb = supabase as any;
+      const [challenges, workouts, runAgg, rideAgg, rideCount, plans] = await Promise.all([
+        sb.from("user_challenge_progress").select("id", { count: "exact", head: true }).eq("user_id", user.id).not("completed_at", "is", null),
+        sb.from("workout_completions").select("workout_date").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(500),
+        sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "running"),
+        sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "cycling"),
+        sb.from("activity_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("activity_type", "cycling"),
+        sb.from("saved_plans").select("id, plan_data, plan_started_at, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+      ]);
+
+      const challengeCount = challenges.count || 0;
+
+      // Streak calc
+      const dates: string[] = (workouts.data || []).map((r: any) => r.workout_date);
+      const dateSet = new Set(dates);
+      const fmt = (d: Date) => d.toISOString().slice(0, 10);
+      const cursor = new Date();
+      if (!dateSet.has(fmt(cursor))) cursor.setDate(cursor.getDate() - 1);
+      let streak = 0;
+      while (dateSet.has(fmt(cursor))) { streak++; cursor.setDate(cursor.getDate() - 1); }
+
+      const totalRunKm = (runAgg.data || []).reduce((s: number, r: any) => s + Number(r.distance_km || 0), 0);
+      const totalRideKm = (rideAgg.data || []).reduce((s: number, r: any) => s + Number(r.distance_km || 0), 0);
+      const cyclingSessions = rideCount.count || 0;
+
+      // Active plan progress
+      const activePlan = (plans.data || []).find((p: any) => !p.plan_completed_at) || (plans.data || [])[0];
+      let planPct = 0;
+      if (activePlan) {
+        const pp = await getPlanProgress(user.id, activePlan);
+        planPct = pp.percentage || 0;
+      }
+
+      const sesiWord = lang === "id" ? "sesi" : lang === "zh" ? "次" : "session";
+      const tantanganWord = lang === "id" ? "tantangan" : lang === "zh" ? "挑战" : "challenges";
+      const streakWord = lang === "id" ? "hari streak" : lang === "zh" ? "天连击" : "day streak";
+      const completeWord = lang === "id" ? "selesai" : lang === "zh" ? "完成" : "complete";
+
+      setLockedProgress({
+        DAILY_30:    { current: challengeCount, total: 30, label: `${Math.min(challengeCount, 30)}/30 ${tantanganWord}` },
+        STREAK_30:   { current: streak,         total: 30, label: `${Math.min(streak, 30)}/30 ${streakWord}` },
+        WEIGHT_GOAL: { current: planPct,        total: 100, label: `${planPct}% ${completeWord}` },
+        RUN_10K:     { current: totalRunKm,     total: 10, label: `${totalRunKm.toFixed(1)}/10 km` },
+        FIRST_RIDE:  { current: Math.min(cyclingSessions, 1), total: 1, label: `${Math.min(cyclingSessions, 1)}/1 ${sesiWord}` },
+        RIDE_20K:    { current: totalRideKm,    total: 20, label: `${totalRideKm.toFixed(1)}/20 km` },
+      });
+    })().catch(() => {});
+  }, [user, lang]);
 
   if (!user) return null;
 
@@ -152,6 +207,11 @@ export default function Medals() {
           <div className="grid grid-cols-2 gap-3">
             {locked.map((m) => {
               const loc = localizeMedal(m);
+              const prog = lockedProgress[m.medal_id];
+              const total = prog?.total ?? m.progressHint?.total ?? 1;
+              const current = prog?.current ?? 0;
+              const pct = Math.max(0, Math.min(100, (current / total) * 100));
+              const labelText = prog?.label ?? m.progressHint?.label ?? "Terkunci";
               return (
               <div key={m.medal_id} style={{
                 height: 140, borderRadius: 14, padding: 12,
@@ -165,9 +225,9 @@ export default function Medals() {
                   <Lock size={16} color="#555" style={{ position: "absolute", bottom: -2, right: -6 }} />
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 500, color: "#666", textAlign: "center", lineHeight: 1.15 }}>{loc.name}</p>
-                <p style={{ fontSize: 10, color: "#555" }}>{m.progressHint?.label || "Terkunci"}</p>
-                <div style={{ width: "80%", height: 3, background: "#222", borderRadius: 999, overflow: "hidden" }}>
-                  <div style={{ width: "0%", height: "100%", background: "rgba(255,107,0,0.4)" }} />
+                <p style={{ fontSize: 10, color: "#888" }}>{labelText}</p>
+                <div style={{ width: "80%", height: 4, background: "#2a2a2a", borderRadius: 999, overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg, #FF6A00, #FFB300)", borderRadius: 999, transition: "width 0.3s ease" }} />
                 </div>
               </div>
               );
