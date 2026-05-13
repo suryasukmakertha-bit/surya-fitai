@@ -63,13 +63,14 @@ export default function Medals() {
     if (!user) return;
     (async () => {
       const sb = supabase as any;
-      const [challenges, workouts, runAgg, rideAgg, rideCount, plans] = await Promise.all([
+      const [challenges, workouts, runAgg, rideAgg, rideCount, plans, checkins] = await Promise.all([
         sb.from("user_challenge_progress").select("id", { count: "exact", head: true }).eq("user_id", user.id).not("completed_at", "is", null),
         sb.from("workout_completions").select("workout_date").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(500),
         sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "running"),
         sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "cycling"),
         sb.from("activity_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("activity_type", "cycling"),
-        sb.from("saved_plans").select("id, plan_data, plan_started_at, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+        sb.from("saved_plans").select("id, plan_data, user_info, plan_started_at, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+        sb.from("progress_checkins").select("weight, date").eq("user_id", user.id).order("date", { ascending: true }),
       ]);
 
       const challengeCount = challenges.count || 0;
@@ -87,23 +88,40 @@ export default function Medals() {
       const totalRideKm = (rideAgg.data || []).reduce((s: number, r: any) => s + Number(r.distance_km || 0), 0);
       const cyclingSessions = rideCount.count || 0;
 
-      // Active plan progress
+      // Weight goal progress: from start weight -> current weight -> target weight
       const activePlan = (plans.data || []).find((p: any) => !p.plan_completed_at) || (plans.data || [])[0];
-      let planPct = 0;
-      if (activePlan) {
-        const pp = await getPlanProgress(user.id, activePlan);
-        planPct = pp.percentage || 0;
+      const ui = activePlan?.user_info || activePlan?.plan_data?.userInfo || {};
+      const targetWeight = Number(
+        ui.targetWeight ?? ui.target_weight ?? ui.weightTarget ?? ui.goalWeight ?? ui.target ?? 0
+      );
+      const startWeightForm = Number(ui.weight ?? ui.currentWeight ?? ui.startWeight ?? 0);
+      const checkinList = (checkins.data || []) as Array<{ weight: number; date: string }>;
+      const startWeight = checkinList.length > 0 ? Number(checkinList[0].weight) : startWeightForm;
+      const currentWeight = checkinList.length > 0 ? Number(checkinList[checkinList.length - 1].weight) : startWeightForm;
+      let weightPct = 0;
+      let weightLabelKg = "";
+      if (targetWeight > 0 && startWeight > 0) {
+        const totalDelta = Math.abs(targetWeight - startWeight);
+        const doneDelta = Math.abs(currentWeight - startWeight);
+        if (totalDelta > 0) {
+          const goingDown = targetWeight < startWeight;
+          const movedRight = goingDown ? currentWeight <= startWeight : currentWeight >= startWeight;
+          weightPct = Math.round(Math.max(0, Math.min(100, movedRight ? (doneDelta / totalDelta) * 100 : 0)));
+        } else {
+          weightPct = 100;
+        }
+        weightLabelKg = `${currentWeight.toFixed(1)} → ${targetWeight.toFixed(1)} kg`;
       }
 
       const sesiWord = lang === "id" ? "sesi" : lang === "zh" ? "次" : "session";
       const tantanganWord = lang === "id" ? "tantangan" : lang === "zh" ? "挑战" : "challenges";
       const streakWord = lang === "id" ? "hari streak" : lang === "zh" ? "天连击" : "day streak";
-      const completeWord = lang === "id" ? "selesai" : lang === "zh" ? "完成" : "complete";
+      const noTargetWord = lang === "id" ? "Target belum diatur" : lang === "zh" ? "未设置目标" : "No target set";
 
       setLockedProgress({
         DAILY_30:    { current: challengeCount, total: 30, label: `${Math.min(challengeCount, 30)}/30 ${tantanganWord}` },
         STREAK_30:   { current: streak,         total: 30, label: `${Math.min(streak, 30)}/30 ${streakWord}` },
-        WEIGHT_GOAL: { current: planPct,        total: 100, label: `${planPct}% ${completeWord}` },
+        WEIGHT_GOAL: { current: weightPct, total: 100, label: weightLabelKg ? `${weightLabelKg} (${weightPct}%)` : noTargetWord },
         RUN_10K:     { current: totalRunKm,     total: 10, label: `${totalRunKm.toFixed(1)}/10 km` },
         FIRST_RIDE:  { current: Math.min(cyclingSessions, 1), total: 1, label: `${Math.min(cyclingSessions, 1)}/1 ${sesiWord}` },
         RIDE_20K:    { current: totalRideKm,    total: 20, label: `${totalRideKm.toFixed(1)}/20 km` },
