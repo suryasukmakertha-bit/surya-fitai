@@ -334,19 +334,8 @@ serve(async (req) => {
       let updateField: string | null = null;
       let updateValue: string = todayStr;
 
-      // Morning: 5:00–11:59
-      if (hour >= 5 && hour < 12 && sub.last_morning_sent !== todayStr) {
-        const msg = morningMessages[lang] || morningMessages.en;
-        payload = { ...msg, tag: "morning-reminder" };
-        updateField = "last_morning_sent";
-      }
-
-      // Afternoon: 12:00–17:59
-      if (!payload && hour >= 12 && hour < 18 && sub.last_afternoon_sent !== todayStr) {
-        const msg = afternoonMessages[lang] || afternoonMessages.en;
-        payload = { ...msg, tag: "afternoon-reminder" };
-        updateField = "last_afternoon_sent";
-      }
+      // Morning (7 AM) and Afternoon (3 PM) reminders removed per product decision.
+      // Only the evening reminder remains active.
 
       // Evening: 18:00–22:59
       if (!payload && hour >= 18 && hour < 23 && sub.last_evening_sent !== todayStr) {
