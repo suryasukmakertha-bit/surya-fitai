@@ -24,10 +24,38 @@ function resolveMood(p: Props): Mood {
 }
 
 function getMessage(lang: string, mood: Mood, streak: number): string {
+  const streakMsg = (l: "id" | "en" | "zh"): string => {
+    if (streak <= 0) {
+      return l === "id"
+        ? "Yuk mulai streak hari ini! 💪"
+        : l === "zh"
+        ? "今天开始你的连击吧！💪"
+        : "Start your streak today! 💪";
+    }
+    if (streak <= 2) {
+      return l === "id"
+        ? `Streak ${streak} hari — awal yang bagus! 🔥`
+        : l === "zh"
+        ? `连续${streak}天 — 好的开始！🔥`
+        : `${streak} day streak — great start! 🔥`;
+    }
+    if (streak <= 5) {
+      return l === "id"
+        ? `Streak ${streak} hari — terus lanjutkan! 🔥`
+        : l === "zh"
+        ? `连续${streak}天 — 继续加油！🔥`
+        : `${streak} day streak — keep going! 🔥`;
+    }
+    return l === "id"
+      ? `Streak ${streak} hari 🔥 Jaga terus!`
+      : l === "zh"
+      ? `连续${streak}天 🔥 继续保持！`
+      : `${streak} day streak 🔥 Keep it up!`;
+  };
   const dict: Record<string, Record<Mood, string>> = {
     id: {
       happy: "Progress kamu keren 💪",
-      determined: `Streak ${streak} hari 🔥 Jaga terus!`,
+      determined: streakMsg("id"),
       excited: "Challenge selesai! Luar biasa ⭐",
       sleepy: "Sudah 3 hari nih... balik lagi yuk 👋",
       thinking: "Siap latihan hari ini? 🎯",
@@ -35,7 +63,7 @@ function getMessage(lang: string, mood: Mood, streak: number): string {
     },
     en: {
       happy: "You're doing great 💪",
-      determined: `${streak} day streak 🔥 Keep it up!`,
+      determined: streakMsg("en"),
       excited: "Challenge done! Amazing ⭐",
       sleepy: "Miss you... come back 👋",
       thinking: "Ready for today's workout? 🎯",
@@ -43,7 +71,7 @@ function getMessage(lang: string, mood: Mood, streak: number): string {
     },
     zh: {
       happy: "你的进步很棒 💪",
-      determined: `连续${streak}天 🔥 继续保持！`,
+      determined: streakMsg("zh"),
       excited: "挑战完成！太厉害了 ⭐",
       sleepy: "已经3天了...回来吧 👋",
       thinking: "准备好今天的训练了吗？🎯",
