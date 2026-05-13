@@ -59,26 +59,9 @@ async function showNotificationViaSW(title: string, body: string) {
 }
 
 function checkAndSendReminders() {
-  if (Notification.permission !== "granted") return;
-
-  const now = new Date();
-  const hour = now.getHours();
-  const today = getTodayStr();
-  const lang = getLang();
-
-  // Morning: 7:00–8:00
-  if (hour >= 7 && hour < 8 && localStorage.getItem(LAST_MORNING_KEY) !== today) {
-    const msg = morningMessages[lang];
-    showNotificationViaSW(msg.title, msg.body);
-    localStorage.setItem(LAST_MORNING_KEY, today);
-  }
-
-  // Afternoon: 15:00–16:00
-  if (hour >= 15 && hour < 16 && localStorage.getItem(LAST_AFTERNOON_KEY) !== today) {
-    const msg = afternoonMessages[lang];
-    showNotificationViaSW(msg.title, msg.body);
-    localStorage.setItem(LAST_AFTERNOON_KEY, today);
-  }
+  // 7 AM and 3 PM workout reminders removed per product decision.
+  // Other notification types remain handled elsewhere.
+  return;
 }
 
 // ===== Web Push Subscription (server-sent notifications) =====
@@ -277,32 +260,7 @@ function getDelayUntilHour(targetHour: number): number {
 }
 
 function scheduleSWReminders() {
-  if (!("serviceWorker" in navigator)) return;
-  if (Notification.permission !== "granted") return;
-
-  const lang = getLang();
-
-  navigator.serviceWorker.ready.then((reg) => {
-    const morningDelay = getDelayUntilHour(7);
-    const morning = morningMessages[lang];
-    reg.active?.postMessage({
-      type: "SCHEDULE_NOTIFICATION",
-      delay: morningDelay,
-      title: morning.title,
-      body: morning.body,
-      tag: "morning-reminder",
-    });
-
-    const afternoonDelay = getDelayUntilHour(15);
-    const afternoon = afternoonMessages[lang];
-    reg.active?.postMessage({
-      type: "SCHEDULE_NOTIFICATION",
-      delay: afternoonDelay,
-      title: afternoon.title,
-      body: afternoon.body,
-      tag: "afternoon-reminder",
-    });
-  });
+  // 7 AM and 3 PM reminders removed; nothing to schedule client-side.
 }
 
 async function tryPeriodicSync() {
