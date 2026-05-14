@@ -27,10 +27,50 @@ function getRIRText(tempo: string | undefined, lang: string): string | null {
   return `Stop with ~${n} reps left`;
 }
 
-function getWeightDesc(lang: string): string {
-  if (lang === 'id') return '(beban terberat yang bisa diangkat 1 kali dengan form sempurna)';
-  if (lang === 'zh') return '（用完美姿势能举起一次的最大重量）';
-  return '(heaviest weight you can lift once with perfect form)';
+function isBodyweight(weight?: string, intensity?: string): boolean {
+  const s = `${weight || ''} ${intensity || ''}`.toLowerCase();
+  return /bodyweight|berat\s*badan|自重/.test(s);
+}
+
+function bodyweightLabel(lang: string): string {
+  if (lang === 'id') return 'Berat Badan';
+  if (lang === 'zh') return '自重';
+  return 'Bodyweight';
+}
+
+function derivePctFromReps(reps?: string): string | null {
+  if (!reps) return null;
+  const nums = reps.match(/\d+/g);
+  if (!nums || nums.length === 0) return null;
+  const lo = parseInt(nums[0], 10);
+  const hi = nums[1] ? parseInt(nums[1], 10) : lo;
+  const mid = (lo + hi) / 2;
+  let pct: number;
+  if (mid <= 6) pct = 86;
+  else if (mid <= 8) pct = 82;
+  else if (mid <= 10) pct = 77;
+  else if (mid <= 12) pct = 72;
+  else if (mid <= 15) pct = 67;
+  else pct = 62;
+  return `~${pct}%`;
+}
+
+function formatWeightLine(weight: string, intensity: string | undefined, reps: string | undefined, lang: string): string {
+  if (isBodyweight(weight, intensity)) return bodyweightLabel(lang);
+  const pct = (intensity && intensity.trim()) || derivePctFromReps(reps) || '';
+  if (lang === 'id') {
+    return pct
+      ? `${weight} (${pct} dari 1RM kamu — beban maksimal yang bisa diangkat 1 kali dengan form sempurna)`
+      : `${weight}`;
+  }
+  if (lang === 'zh') {
+    return pct
+      ? `${weight}（约为你1RM的${pct.replace('~','')} — 用完美姿势能举起一次的最大重量）`
+      : `${weight}`;
+  }
+  return pct
+    ? `${weight} (${pct} of your 1RM — the max you can lift once with perfect form)`
+    : `${weight}`;
 }
 
 interface Exercise {
@@ -42,6 +82,7 @@ interface Exercise {
   cues?: string;
   alternative?: string;
   weight_kg?: string;
+  intensity_pct?: string;
   notes?: string;
 }
 
@@ -383,7 +424,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                 <p className="text-xs font-semibold text-primary uppercase tracking-wide inline-flex items-center gap-1.5">
                   <Dumbbell className="w-3.5 h-3.5" /> {(t as any).weightRecommendation}
                 </p>
-                <p className="text-sm text-muted-foreground">{selectedExercise.weight_kg} {getWeightDesc(lang)}</p>
+                <p className="text-sm text-muted-foreground">
+                  {formatWeightLine(selectedExercise.weight_kg, selectedExercise.intensity_pct, selectedExercise.reps, lang)}
+                </p>
               </div>
             )}
 
