@@ -310,6 +310,7 @@ OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
           "estimatedTimeMinutes": number,
           "weight_kg": "string (recommended load range in kg, e.g. '15-20 kg'; or 'Bodyweight' for bodyweight-only exercises)",
           "intensity_pct": "string (approximate %1RM for this exercise, e.g. '~75%'; use 'Bodyweight' for bodyweight-only exercises)",
+          "rir": "number (Reps In Reserve, integer 0-3; required for gym/barbell/dumbbell/cable/machine equipment)",
           "notes": "string (form cues / safety tips)"
         }
       ]
@@ -473,6 +474,20 @@ EXPERIENCE-LEVEL SPECIFIC RULES:
 - Beginner: 2-3 sets per exercise, 3-4 exercises per session, very detailed form cues, rest 90-120s
 - Intermediate: 3-4 sets per exercise, 4-5 exercises per session, balanced cues, rest 75-105s
 - Advanced: 4-5 sets per exercise, 5-6 exercises per session, concise advanced cues, rest 60-90s
+
+HYPERTROPHY SYSTEM (GYM-EQUIPMENT ONLY — applies when equipment includes "gym", "barbell", "dumbbell", "cable", or "machine". DOES NOT apply to bodyweight-only plans):
+- SETS: ALWAYS exactly 3 sets for every exercise. Never 4 or 5. This OVERRIDES the per-experience set counts above for gym plans.
+- Classify each exercise into one of three categories and use the matching reps / rest / RIR:
+  * Heavy Compound (Bench Press, Barbell Squat / Box Squat, Deadlift / Romanian Deadlift, Barbell Row / T-Bar Row, Overhead Press): reps 5-8, rest 150-240s, RIR 1-3
+  * Secondary Compound (Lat Pulldown, Leg Press, Incline DB Press, Seated Dumbbell Press, Bulgarian Split Squat, Dumbbell Lunge, Glute Bridge variants): reps 8-12, rest 90-180s, RIR 1-2
+  * Isolation (Lateral Raise, Cable Crossover, Face Pull, Barbell/Dumbbell/Hammer/Concentration Curl, Tricep Pushdown, Skull Crushers, Leg Curl/Extension, Calf Raise, Core work): reps 10-15, rest 45-90s, RIR 0-1
+- RIR adjustment by experience level (${experience}):
+  * Beginner → MINIMUM RIR 2 on every exercise. Never 0 or 1, even on isolation. Cap RIR at 3.
+  * Intermediate → RIR 1-2 across all categories.
+  * Advanced → RIR 0-1 allowed on heavy/secondary compounds; isolation may go to 0.
+- Set the "rir" field to a single integer 0-3 chosen from the allowed range above for each exercise.
+- The "reps" and "rest" fields MUST fall inside the category's range (e.g. Heavy Compound rest must be a value or sub-range within 150-240s such as "180s" or "180-240s").
+- These RIR/rep/rest rules OVERRIDE any conflicting earlier guidance for gym plans only. They DO NOT change which exercises are picked; the curated library and split rules above still apply.
 
 EXERCISE NAMING RULE FOR RESISTANCE BAND EXERCISES:
 - When generating any exercise that uses a resistance band as the primary equipment, the exercise name MUST always include the word "band", "banded", or "resistance band" in the name itself.
