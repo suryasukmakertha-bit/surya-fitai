@@ -338,14 +338,14 @@ OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
 }
 
 TRAINING SCIENCE RULES:
-- Generate a complete 4-week progressive workout program. Week 1 is foundation, Week 2 increases volume, Week 3 increases intensity, Week 4 is peak week.
+- Generate a complete 4-week progressive workout program. Week 1 is foundation, Week 2 increases volume, Week 3 increases intensity, Week 4 is a DELOAD week (recovery / form focus — NOT a peak week).
 - Target total working sets per session: ${targetSets} sets (calculated from ${targetLiftingMinutes} min lifting time at 2.3 min/set avg)
 - Session duration target: ${sessionMin} minutes (5 min warm-up + ${targetLiftingMinutes} min lifting + 5 min cool-down)
 - Apply progressive overload: systematically increase weight, reps, or volume across the 4 weeks
 - Week 1 (Foundation): Adaptation phase, moderate intensity 60-70% capacity, focus on perfect form and movement patterns
 - Week 2 (Volume): Volume increase — add 1-2 reps per set, or add 1 extra set on key compound lifts
 - Week 3 (Intensity): Load increase — add 2.5-5kg on compound lifts, 1-2.5kg on isolation; reps stay moderate
-- Week 4 (Peak): Peak intensity week with top working sets at RPE 8-9, then taper the final 2 sessions slightly to consolidate gains
+- Week 4 (Deload): RECOVERY week. Reduce loads to ~60-70% of Week 3, reduce sets by ~30%, keep reps moderate, focus on perfect form and movement quality. This is NOT a peak/PR week.
 - Include recommended weight load (kg) for EVERY exercise
 - Calculate weight_kg AND intensity_pct for EVERY exercise based on the rep range and the user's experience level (${experience}).
   Use this %1RM table by rep range:
@@ -362,6 +362,20 @@ TRAINING SCIENCE RULES:
   Set intensity_pct to that single value formatted as e.g. "~75%". Set weight_kg to a small kg range (e.g. "15-20 kg") that reflects the chosen %1RM applied to a realistic 1RM estimate for this user.
   For exercises that use only bodyweight (no external load), set weight_kg to "Bodyweight" and intensity_pct to "Bodyweight".
 - Include form cues and safety notes for each exercise
+
+EXERCISE NOTES (the "notes" field) — PLAIN LANGUAGE RULES:
+- Write notes for everyday gym users, NOT coaches. Avoid academic / powerlifting jargon.
+- NEVER use these terms in notes: "peak week", "peak", "posterior chain peak", "RPE", "1RM", "AMRAP", "intensification", "accumulation", "supercompensation", "CNS", "GPP/SPP".
+- Week 4 notes MUST reflect DELOAD context. Use phrasing like:
+    EN: "Deload week — focus on form"
+    ID: "Minggu deload — fokus pada teknik"
+    ZH: "减负周 — 专注于动作技术"
+  Or for posterior-chain / heavy compound days in Week 4:
+    EN: "Maintain form, reduce weight from last week"
+    ID: "Jaga form, kurangi beban dari minggu lalu"
+    ZH: "保持动作标准，减轻上周的重量"
+- Match the note's language to the rest of the generated plan's language.
+- Keep notes short (1 short sentence), simple, and action-oriented.
 - Use proper training splits based on ${workoutDays} training days per week
 - Only use exercises doable with: ${equipmentStr}
 
@@ -577,7 +591,7 @@ Generate Month ${nextMonth} applying these progressive overload principles:
 - Maintain the SAME training split, weekly schedule, and equipment constraints as Month ${prevMonth}.
 - Week 1 of this new month = slightly easier (deload feel, ~80% intensity).
 - Weeks 2-3 = progressive increase in volume/intensity.
-- Week 4 = NEW peak week (higher than Month ${prevMonth} peak).
+- Week 4 = DELOAD week (recovery / form focus, lighter than Week 3 — NOT a peak week).
 - Keep the same nutrition macros unless the user's body weight changed significantly.
 Address the client warmly and acknowledge their completion of Month ${prevMonth} in the motivational_message.
 
