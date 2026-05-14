@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { X, Moon, Zap, Lightbulb, ArrowLeftRight, Dumbbell, StickyNote } from "lucide-react";
+import { X, Moon, Zap, Lightbulb, ArrowLeftRight, Dumbbell, StickyNote, ChevronRight } from "lucide-react";
 import DailyProgressImage from "@/components/DailyProgressImage";
 import ExerciseGifPlayer from "@/components/ExerciseGifPlayer";
 import DailyCelebrationPopup from "@/components/DailyCelebrationPopup";
@@ -291,7 +291,8 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                   return (
                     <div
                       key={`${day.day}-${ex.name}`}
-                      className={`flex items-center justify-between bg-secondary/50 rounded-md px-4 py-2.5 text-sm transition-opacity cursor-pointer hover:bg-secondary/70 ${isDone ? "opacity-60" : ""}`}
+                      className={`flex items-center justify-between bg-secondary/50 rounded-md px-4 py-2.5 text-sm transition-opacity cursor-pointer hover:bg-secondary/70 border-l-2 ${isDone ? "opacity-60" : ""}`}
+                      style={{ borderLeftColor: "#FF6A00", boxShadow: "inset 1px 0 0 rgba(255,106,0,0.15)" }}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1" onClick={() => setSelectedExercise(ex)}>
                         <Checkbox
@@ -299,17 +300,15 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                           onCheckedChange={() => handleToggle(day.day, ex.name)}
                           onClick={(e) => e.stopPropagation()}
                         />
-                        <span className={`text-foreground font-medium truncate ${isDone ? "line-through" : ""}`}>
+                        <span className={`text-foreground font-medium ${isDone ? "line-through" : ""}`}>
                           {ex.name}
                         </span>
                       </div>
-                      <span
-                        className="text-muted-foreground text-xs ml-2 shrink-0"
+                      <ChevronRight
+                        className="w-4 h-4 ml-2 shrink-0"
+                        style={{ color: "#FF6A00" }}
                         onClick={() => setSelectedExercise(ex)}
-                      >
-                        {ex.sets} × {ex.reps} • {t.rest.charAt(0).toUpperCase() + t.rest.slice(1)} {ex.rest}
-                        {getRIRText(ex.tempo, lang) ? ` • ${getRIRText(ex.tempo, lang)}` : ''}
-                      </span>
+                      />
                     </div>
                   );
                 })}
