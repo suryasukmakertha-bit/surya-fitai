@@ -310,6 +310,7 @@ OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
           "estimatedTimeMinutes": number,
           "weight_kg": "string (recommended load range in kg, e.g. '15-20 kg'; or 'Bodyweight' for bodyweight-only exercises)",
           "intensity_pct": "string (approximate %1RM for this exercise, e.g. '~75%'; use 'Bodyweight' for bodyweight-only exercises)",
+          "rir": "number (Reps In Reserve, integer 0-3; required for gym/barbell/dumbbell/cable/machine equipment)",
           "notes": "string (form cues / safety tips)"
         }
       ]
