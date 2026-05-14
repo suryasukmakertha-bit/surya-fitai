@@ -63,14 +63,13 @@ export default function Medals() {
     if (!user) return;
     (async () => {
       const sb = supabase as any;
-      const [challenges, workouts, runAgg, rideAgg, rideCount, plans, checkins] = await Promise.all([
+      const [challenges, workouts, runAgg, rideAgg, rideCount, plans] = await Promise.all([
         sb.from("user_challenge_progress").select("id", { count: "exact", head: true }).eq("user_id", user.id).not("completed_at", "is", null),
         sb.from("workout_completions").select("workout_date").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(500),
         sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "running"),
         sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "cycling"),
         sb.from("activity_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("activity_type", "cycling"),
-        sb.from("saved_plans").select("id, plan_data, user_info, plan_started_at, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
-        sb.from("progress_checkins").select("weight, date").eq("user_id", user.id).order("date", { ascending: true }),
+        sb.from("saved_plans").select("id, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
       ]);
 
       const challengeCount = challenges.count || 0;
