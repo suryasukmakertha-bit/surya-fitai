@@ -339,6 +339,16 @@ OUTPUT MUST BE VALID JSON with this EXACT schema (all text values in ${lang}):
 
 TRAINING SCIENCE RULES:
 - Generate a complete 4-week progressive workout program. Week 1 is foundation, Week 2 increases volume, Week 3 increases intensity, Week 4 is a DELOAD week (recovery / form focus — NOT a peak week).
+
+CRITICAL RULE — TRAINING DAYS CONSISTENCY (HIGHEST PRIORITY, NO EXCEPTIONS):
+- The user selected ${workoutDays} training days per week. EVERY one of the 4 weeks MUST contain EXACTLY ${workoutDays} training days and EXACTLY ${7 - (parseInt(trainingDaysPerWeek) || 4)} rest days. No week may have fewer training days than another.
+- This applies regardless of: injury status, sleep quality, stress level, experience level, program type (Pemula/Bulking/Cutting), or week phase (including Week 4 deload).
+- Injuries affect WHICH exercises are used, NOT how many days per week. Replace contraindicated movements with safe alternatives but KEEP the same training frequency. Example: knee injury → swap squats/lunges for Romanian Deadlift, Glute Bridge, Leg Curl — but keep all ${workoutDays} training days.
+- Sleep / stress affect intensity and RIR, NOT the number of training days.
+- Progressive overload means gradually increasing weight / volume / intensity each week. It NEVER means reducing the number of training days.
+- Week 4 deload = LIGHTER loads and reduced sets on the SAME ${workoutDays} training days. Do NOT convert training days into rest days in Week 4.
+- Before returning the JSON, verify that workout_plan contains the same training-day count for Week 1, Week 2, Week 3, and Week 4. If any week has fewer training days than ${workoutDays}, regenerate that week.
+
 - Target total working sets per session: ${targetSets} sets (calculated from ${targetLiftingMinutes} min lifting time at 2.3 min/set avg)
 - Session duration target: ${sessionMin} minutes (5 min warm-up + ${targetLiftingMinutes} min lifting + 5 min cool-down)
 - Apply progressive overload: systematically increase weight, reps, or volume across the 4 weeks
