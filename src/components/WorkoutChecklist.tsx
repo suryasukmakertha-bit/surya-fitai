@@ -17,6 +17,22 @@ import { checkWorkoutStreakMedals, checkProgramCompleteMedal } from "@/lib/daily
 import { emitMedalsEarned } from "@/lib/medalEvents";
 import { getPlanProgress } from "@/lib/planProgress";
 
+function getRIRText(tempo: string | undefined, lang: string): string | null {
+  if (!tempo) return null;
+  const match = tempo.match(/(\d)/);
+  if (!match) return null;
+  const n = match[1];
+  if (lang === 'id') return `Berhenti saat tersisa ~${n} rep`;
+  if (lang === 'zh') return `还剩约${n}次时停止`;
+  return `Stop with ~${n} reps left`;
+}
+
+function getWeightDesc(lang: string): string {
+  if (lang === 'id') return '(beban terberat yang bisa diangkat 1 kali dengan form sempurna)';
+  if (lang === 'zh') return '（用完美姿势能举起一次的最大重量）';
+  return '(heaviest weight you can lift once with perfect form)';
+}
+
 interface Exercise {
   name: string;
   sets: string;
@@ -50,7 +66,7 @@ interface CompletionState {
 
 export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt, planMonthNumber }: WorkoutChecklistProps) {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { toast } = useToast();
   const [completionState, setCompletionState] = useState<CompletionState>({});
   const [loading, setLoading] = useState(true);
@@ -291,7 +307,8 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                         className="text-muted-foreground text-xs ml-2 shrink-0"
                         onClick={() => setSelectedExercise(ex)}
                       >
-                        {ex.sets} × {ex.reps} · {ex.rest} {t.rest}
+                        {ex.sets} × {ex.reps} • {t.rest.charAt(0).toUpperCase() + t.rest.slice(1)} {ex.rest}
+                        {getRIRText(ex.tempo, lang) ? ` • ${getRIRText(ex.tempo, lang)}` : ''}
                       </span>
                     </div>
                   );
@@ -333,11 +350,11 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
               <ExerciseGifPlayer exerciseName={selectedExercise.name} />
             )}
 
-            {/* Sets × Reps · Rest · Tempo */}
+            {/* Sets × Reps • Rest • RIR */}
             <div className="bg-secondary/50 rounded-lg px-4 py-3">
               <p className="text-sm text-foreground font-medium">
-                {selectedExercise?.sets} × {selectedExercise?.reps} · {selectedExercise?.rest} {t.rest}
-                {selectedExercise?.tempo && ` · ${(t as any).tempoLabel}: ${selectedExercise.tempo}`}
+                {selectedExercise?.sets} × {selectedExercise?.reps} • {t.rest.charAt(0).toUpperCase() + t.rest.slice(1)} {selectedExercise?.rest}
+                {selectedExercise?.tempo && getRIRText(selectedExercise.tempo, lang) ? ` • ${getRIRText(selectedExercise.tempo, lang)}` : ''}
               </p>
             </div>
 
@@ -367,7 +384,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                 <p className="text-xs font-semibold text-primary uppercase tracking-wide inline-flex items-center gap-1.5">
                   <Dumbbell className="w-3.5 h-3.5" /> {(t as any).weightRecommendation}
                 </p>
-                <p className="text-sm text-muted-foreground">{selectedExercise.weight_kg}</p>
+                <p className="text-sm text-muted-foreground">{selectedExercise.weight_kg} {getWeightDesc(lang)}</p>
               </div>
             )}
 
