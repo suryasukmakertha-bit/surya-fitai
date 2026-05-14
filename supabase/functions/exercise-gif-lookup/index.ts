@@ -33,7 +33,7 @@ const STATIC_GIF_MAP: Record<string, string> = {
   // BICEP
   "Barbell Curl": "barbell-bicep-curl.jpg",
   "Dumbbell Curl": "dumbbell-bicep-curls.jpg",
-  "Hammer Curl": "hammer-curls.jpg",
+  "Hammer Curl": "hammer-curl.jpg",
   "Hammer Curl (Dumbbell)": "hammer-curl.jpg",
   "Dumbbell Hammer Curl": "hammer-curl.jpg",
   "Neutral Grip Curl": "hammer-curl.jpg",
