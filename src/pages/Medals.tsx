@@ -11,6 +11,7 @@ import { downloadMedalPng } from "@/lib/medalImage";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPlanProgress } from "@/lib/planProgress";
+import { checkPlanCompletionMedal } from "@/lib/dailyChallenge";
 
 interface UserMedal {
   id: string;
@@ -89,6 +90,12 @@ export default function Medals() {
 
       // Target Tercapai: count fully completed plans
       const completedPlansCount = (plans.data || []).filter((p: any) => p.plan_completed_at !== null).length;
+
+      // Auto-unlock medal if eligible
+      if (completedPlansCount >= 1) {
+        const awarded = await checkPlanCompletionMedal(user.id);
+        if (awarded.length > 0) load();
+      }
 
       const sesiWord = lang === "id" ? "sesi" : lang === "zh" ? "次" : "session";
       const tantanganWord = lang === "id" ? "tantangan" : lang === "zh" ? "挑战" : "challenges";
