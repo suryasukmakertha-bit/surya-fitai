@@ -190,23 +190,8 @@ export async function checkAndAwardMedals(userId: string): Promise<NewMedal[]> {
   const earned: NewMedal[] = [];
   for (const tier of DAILY_MEDALS) {
     if (completed >= tier.count) {
-      const { data: existing } = await sb
-        .from("user_medals")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("medal_id", tier.medal.medal_id)
-        .maybeSingle();
-      if (!existing) {
-        const { error } = await sb.from("user_medals").insert({
-          user_id: userId,
-          ...tier.medal,
-        });
-        if (!error) {
-          const xp = MEDAL_XP[tier.medal.medal_id] || 0;
-          if (xp > 0) await awardXp(userId, xp);
-          earned.push({ ...tier.medal, xp_earned: xp });
-        }
-      }
+      const m = await awardIfNew(userId, tier.medal);
+      if (m) earned.push(m);
     }
   }
   return earned;
@@ -216,17 +201,15 @@ export async function checkAndAwardMedals(userId: string): Promise<NewMedal[]> {
 
 async function awardIfNew(userId: string, medal: NewMedal): Promise<NewMedal | null> {
   const sb = supabase as any;
-  const { data: existing } = await sb
-    .from("user_medals")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("medal_id", medal.medal_id)
-    .maybeSingle();
-  if (existing) return null;
-  const { error } = await sb.from("user_medals").insert({ user_id: userId, ...medal });
-  if (error) return null;
-  const xp = MEDAL_XP[medal.medal_id] || 0;
-  if (xp > 0) await awardXp(userId, xp);
+  // Server-side validates earning criteria + grants XP atomically
+  const { data, error } = await sb.rpc("award_medal_if_earned", {
+    p_medal_id: medal.medal_id,
+    p_medal_name: medal.medal_name,
+    p_medal_tier: medal.medal_tier,
+    p_medal_description: medal.medal_description,
+  });
+  if (error || !data || !(data as any).awarded) return null;
+  const xp = (data as any).xp_earned ?? MEDAL_XP[medal.medal_id] ?? 0;
   return { ...medal, xp_earned: xp };
 }
 
