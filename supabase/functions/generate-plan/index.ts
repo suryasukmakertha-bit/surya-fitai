@@ -346,6 +346,20 @@ TRAINING SCIENCE RULES:
 - Week 3 (Intensity): Load increase — add 2.5-5kg on compound lifts, 1-2.5kg on isolation; reps stay moderate
 - Week 4 (Peak): Peak intensity week with top working sets at RPE 8-9, then taper the final 2 sessions slightly to consolidate gains
 - Include recommended weight load (kg) for EVERY exercise
+- Calculate weight_kg AND intensity_pct for EVERY exercise based on the rep range and the user's experience level (${experience}).
+  Use this %1RM table by rep range:
+    5-6 reps  → 85-87% of 1RM
+    6-8 reps  → 80-85% of 1RM
+    8-10 reps → 75-80% of 1RM
+    10-12 reps → 70-75% of 1RM
+    12-15 reps → 65-70% of 1RM
+    15-20 reps → 60-65% of 1RM
+  Experience adjustment within each band:
+    Beginner → use the LOWER end of the % range
+    Intermediate → use the MIDDLE of the % range
+    Advanced → use the UPPER end of the % range
+  Set intensity_pct to that single value formatted as e.g. "~75%". Set weight_kg to a small kg range (e.g. "15-20 kg") that reflects the chosen %1RM applied to a realistic 1RM estimate for this user.
+  For exercises that use only bodyweight (no external load), set weight_kg to "Bodyweight" and intensity_pct to "Bodyweight".
 - Include form cues and safety notes for each exercise
 - Use proper training splits based on ${workoutDays} training days per week
 - Only use exercises doable with: ${equipmentStr}
