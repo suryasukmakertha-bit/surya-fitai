@@ -44,51 +44,19 @@ export interface DailyChallenge {
 }
 
 export async function getOrCreateDailyChallenge(): Promise<DailyChallenge | null> {
-  const date = todayDateStr();
   const sb = supabase as any;
-  const { data: existing } = await sb
-    .from("daily_challenges")
-    .select("*")
-    .eq("challenge_date", date)
-    .maybeSingle();
-  if (existing) return existing as DailyChallenge;
-
-  // Generate deterministic from date seed
-  const exIdx = Math.floor(seededRandom(date + ":ex") * POOL.length);
-  const exercise = POOL[exIdx];
-  const diffPick = seededRandom(date + ":diff");
-  let difficulty: "mudah" | "sedang" | "sulit";
-  let target_reps: number;
-  let xp_reward: number;
-  if (diffPick < 0.34) {
-    difficulty = "mudah";
-    target_reps = pickInt(date + ":r", 20, 40);
-    xp_reward = 30;
-  } else if (diffPick < 0.75) {
-    difficulty = "sedang";
-    target_reps = pickInt(date + ":r", 40, 60);
-    xp_reward = 50;
-  } else {
-    difficulty = "sulit";
-    target_reps = pickInt(date + ":r", 15, 25);
-    xp_reward = 80;
-  }
-
-  const { data: inserted, error } = await sb
-    .from("daily_challenges")
-    .insert({ challenge_date: date, exercise_name: exercise, target_reps, difficulty, xp_reward })
-    .select()
-    .maybeSingle();
-  if (error) {
-    // Race: another insert won; refetch
-    const { data: again } = await sb
+  const { data, error } = await sb.rpc("get_or_create_daily_challenge");
+  if (error || !data) {
+    // Fallback: read-only fetch (no client insert allowed)
+    const date = todayDateStr();
+    const { data: existing } = await sb
       .from("daily_challenges")
       .select("*")
       .eq("challenge_date", date)
       .maybeSingle();
-    return (again as DailyChallenge) || null;
+    return (existing as DailyChallenge) || null;
   }
-  return inserted as DailyChallenge;
+  return data as DailyChallenge;
 }
 
 export interface ChallengeProgress {
@@ -141,19 +109,10 @@ export async function completeChallenge(
       { onConflict: "user_id,challenge_date" }
     );
 
-  // Upsert XP
-  const { data: xpRow } = await sb
-    .from("user_xp")
-    .select("total_xp")
-    .eq("user_id", userId)
-    .maybeSingle();
-  const newTotal = (xpRow?.total_xp || 0) + xpReward;
-  await sb
-    .from("user_xp")
-    .upsert(
-      { user_id: userId, total_xp: newTotal, updated_at: now },
-      { onConflict: "user_id" }
-    );
+  // XP awarded server-side via secure RPC
+  if (xpReward > 0) {
+    await sb.rpc("increment_user_xp", { p_user_id: userId, p_xp: xpReward });
+  }
 }
 
 export interface NewMedal {
@@ -185,16 +144,8 @@ export const MEDAL_XP: Record<string, number> = {
 async function awardXp(userId: string, xp: number): Promise<void> {
   if (!xp || xp <= 0) return;
   const sb = supabase as any;
-  try {
-    const { error } = await sb.rpc("increment_user_xp", { p_user_id: userId, p_xp: xp });
-    if (!error) return;
-  } catch { /* fall through */ }
-  const { data: row } = await sb.from("user_xp").select("total_xp").eq("user_id", userId).maybeSingle();
-  const newTotal = (row?.total_xp || 0) + xp;
-  await sb.from("user_xp").upsert(
-    { user_id: userId, total_xp: newTotal, updated_at: new Date().toISOString() },
-    { onConflict: "user_id" },
-  );
+  // XP can only be modified server-side via the secure RPC
+  await sb.rpc("increment_user_xp", { p_user_id: userId, p_xp: xp });
 }
 
 const DAILY_MEDALS: { count: number; medal: NewMedal }[] = [
@@ -239,23 +190,8 @@ export async function checkAndAwardMedals(userId: string): Promise<NewMedal[]> {
   const earned: NewMedal[] = [];
   for (const tier of DAILY_MEDALS) {
     if (completed >= tier.count) {
-      const { data: existing } = await sb
-        .from("user_medals")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("medal_id", tier.medal.medal_id)
-        .maybeSingle();
-      if (!existing) {
-        const { error } = await sb.from("user_medals").insert({
-          user_id: userId,
-          ...tier.medal,
-        });
-        if (!error) {
-          const xp = MEDAL_XP[tier.medal.medal_id] || 0;
-          if (xp > 0) await awardXp(userId, xp);
-          earned.push({ ...tier.medal, xp_earned: xp });
-        }
-      }
+      const m = await awardIfNew(userId, tier.medal);
+      if (m) earned.push(m);
     }
   }
   return earned;
@@ -265,17 +201,15 @@ export async function checkAndAwardMedals(userId: string): Promise<NewMedal[]> {
 
 async function awardIfNew(userId: string, medal: NewMedal): Promise<NewMedal | null> {
   const sb = supabase as any;
-  const { data: existing } = await sb
-    .from("user_medals")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("medal_id", medal.medal_id)
-    .maybeSingle();
-  if (existing) return null;
-  const { error } = await sb.from("user_medals").insert({ user_id: userId, ...medal });
-  if (error) return null;
-  const xp = MEDAL_XP[medal.medal_id] || 0;
-  if (xp > 0) await awardXp(userId, xp);
+  // Server-side validates earning criteria + grants XP atomically
+  const { data, error } = await sb.rpc("award_medal_if_earned", {
+    p_medal_id: medal.medal_id,
+    p_medal_name: medal.medal_name,
+    p_medal_tier: medal.medal_tier,
+    p_medal_description: medal.medal_description,
+  });
+  if (error || !data || !(data as any).awarded) return null;
+  const xp = (data as any).xp_earned ?? MEDAL_XP[medal.medal_id] ?? 0;
   return { ...medal, xp_earned: xp };
 }
 

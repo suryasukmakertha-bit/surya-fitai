@@ -768,6 +768,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_medal_if_earned: {
+        Args: {
+          p_medal_description: string
+          p_medal_id: string
+          p_medal_name: string
+          p_medal_tier: string
+        }
+        Returns: Json
+      }
       calculate_workout_progress: {
         Args: {
           p_date: string
@@ -776,6 +785,24 @@ export type Database = {
           p_user: string
         }
         Returns: number
+      }
+      get_or_create_daily_challenge: {
+        Args: never
+        Returns: {
+          challenge_date: string
+          created_at: string | null
+          difficulty: string
+          exercise_name: string
+          id: string
+          target_reps: number
+          xp_reward: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "daily_challenges"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       increment_user_xp: {
         Args: { p_user_id: string; p_xp: number }
