@@ -34,6 +34,9 @@ const STATIC_GIF_MAP: Record<string, string> = {
   "Barbell Curl": "barbell-bicep-curl.jpg",
   "Dumbbell Curl": "dumbbell-bicep-curls.jpg",
   "Hammer Curl": "hammer-curls.jpg",
+  "Hammer Curl (Dumbbell)": "hammer-curl.jpg",
+  "Dumbbell Hammer Curl": "hammer-curl.jpg",
+  "Neutral Grip Curl": "hammer-curl.jpg",
   "Concentration Curl": "concentration-curls.jpg",
 
   // TRICEP
@@ -57,10 +60,23 @@ const STATIC_GIF_MAP: Record<string, string> = {
   // CORE
   "Forearm Plank": "plank-hold.jpg",
   "Dead Bug": "dead-bug.jpg",
-  "Side Plank (Knee Version)": "side-plank-knee-version.jpg",
+  "Side Plank": "side-plank.jpg",
+  "Side Plank (Knee Version)": "side-plank.jpg",
+  "Side Plank Hold": "side-plank.jpg",
+  "Lateral Plank": "side-plank.jpg",
+
+  // LEGS - MACHINE
+  "Leg Press Machine": "leg-press-machine.jpg",
+  "Leg Press": "leg-press-machine.jpg",
+  "Machine Leg Press": "leg-press-machine.jpg",
+  "Leg Press (Machine)": "leg-press-machine.jpg",
 
   // BODYWEIGHT
-  "Push Up": "wall-push-ups.jpg",
+  "Push Up": "push-up.jpg",
+  "Push-Up": "push-up.jpg",
+  "Pushup": "push-up.jpg",
+  "Standard Push Up": "push-up.jpg",
+  "Floor Push Up": "push-up.jpg",
   "Incline Push Up": "incline-push-ups.jpg",
   "Inverted Row": "inverted-row-table.jpg",
   "Bird Dog": "bird-dog.jpg",
@@ -72,7 +88,7 @@ const STATIC_GIF_MAP: Record<string, string> = {
   "Single Leg Glute Bridge": "glute-bridges.jpg",
   "Bicycle Crunch": "banded-bicycle-crunch.jpg",
   "Bench Dip": "seated-tricep-dips-kursi.jpg",
-  "Close Grip Push Up": "wall-push-ups.jpg",
+  "Close Grip Push Up": "push-up.jpg",
 };
 
 // Normalize a name to lower-case alphanumeric+space form for tolerant matching.
