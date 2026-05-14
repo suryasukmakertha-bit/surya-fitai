@@ -835,9 +835,13 @@ export default function Results() {
 
         // Extract focus label from template.day (e.g. "Monday (Upper Body Push)" → "Upper Body Push")
         const focusMatch = typeof template.day === "string" ? template.day.match(/\(([^)]+)\)/) : null;
-        const focus = focusMatch ? focusMatch[1] : (typeof template.day === "string" ? template.day : "Workout");
+        const rawFocus = focusMatch ? focusMatch[1] : (typeof template.day === "string" ? template.day : "Workout");
+        // Strip focus if it is just a duplicated localized date/week label
+        // (e.g. "Minggu 1 - Kamis, 2026-05-14" or "第1周 - ...").
+        const looksLikeDateLabel = /\d{4}-\d{2}-\d{2}/.test(rawFocus) || /minggu\s*\d|week\s*\d|第\s*\d+\s*周/i.test(rawFocus);
+        const focus = looksLikeDateLabel ? "" : rawFocus;
         days.push({
-          day: `${prefixWeek} - ${dayName}, ${dateStr} (${focus})`,
+          day: focus ? `${prefixWeek} - ${dayName}, ${dateStr} (${focus})` : `${prefixWeek} - ${dayName}, ${dateStr}`,
           exercises: template.exercises,
         });
       }
