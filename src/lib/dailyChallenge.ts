@@ -328,6 +328,23 @@ export async function checkProgramCompleteMedal(userId: string, completedDays: n
   return m ? [m] : [];
 }
 
+export async function checkPlanCompletionMedal(userId: string): Promise<NewMedal[]> {
+  const sb = supabase as any;
+  const { count } = await sb
+    .from("saved_plans")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .not("plan_completed_at", "is", null);
+  if (!count || count < 1) return [];
+  const m = await awardIfNew(userId, {
+    medal_id: "WEIGHT_GOAL",
+    medal_name: "Target Tercapai",
+    medal_tier: "gold",
+    medal_description: "Menyelesaikan satu rencana latihan penuh",
+  });
+  return m ? [m] : [];
+}
+
 export async function checkFirstGenerateMedal(userId: string): Promise<NewMedal[]> {
   const m = await awardIfNew(userId, {
     medal_id: "FIRST_GENERATE",
