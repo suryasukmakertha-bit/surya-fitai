@@ -388,6 +388,7 @@ const translations = {
     // Daily Challenge
     "dailyChallenge.label": "DAILY CHALLENGE",
     "dailyChallenge.doX": "Do {{count}} {{exercise}}",
+    "dailyChallenge.holdX": "Hold {{exercise}} for {{count}} seconds",
     "dailyChallenge.difficulty.mudah": "Easy",
     "dailyChallenge.difficulty.sedang": "Medium",
     "dailyChallenge.difficulty.sulit": "Hard",
@@ -904,6 +905,7 @@ const translations = {
 
     "dailyChallenge.label": "TANTANGAN HARIAN",
     "dailyChallenge.doX": "Lakukan {{count}} {{exercise}}",
+    "dailyChallenge.holdX": "Tahan {{exercise}} selama {{count}} detik",
     "dailyChallenge.difficulty.mudah": "Mudah",
     "dailyChallenge.difficulty.sedang": "Sedang",
     "dailyChallenge.difficulty.sulit": "Sulit",
@@ -1415,6 +1417,7 @@ const translations = {
 
     "dailyChallenge.label": "每日挑战",
     "dailyChallenge.doX": "完成 {{count}} 个{{exercise}}",
+    "dailyChallenge.holdX": "保持{{exercise}}{{count}}秒",
     "dailyChallenge.difficulty.mudah": "简单",
     "dailyChallenge.difficulty.sedang": "中等",
     "dailyChallenge.difficulty.sulit": "困难",
