@@ -125,6 +125,21 @@ export default function DailyChallengeCard() {
 
   const exerciseLabel = (t as any)[`exerciseName.${challenge.exercise_name}`] || challenge.exercise_name;
 
+  const isIsometric = (() => {
+    const n = challenge.exercise_name.toLowerCase();
+    return (
+      n.includes("plank") ||
+      n.includes("wall sit") ||
+      n.includes("dead hang") ||
+      n.includes("hollow body") ||
+      n.includes("superman hold") ||
+      n.includes("glute bridge hold") ||
+      n.includes("l-sit") ||
+      n.includes("hold") ||
+      n.includes("isometric")
+    );
+  })();
+
   return (
     <>
       <div
@@ -152,7 +167,10 @@ export default function DailyChallengeCard() {
           {exerciseLabel}
         </p>
         <p className="mb-3" style={{ fontSize: 13, color: "#888" }}>
-          {tt("dailyChallenge.doX", { count: challenge.target_reps, exercise: exerciseLabel })}
+          {tt(isIsometric ? "dailyChallenge.holdX" : "dailyChallenge.doX", {
+            count: challenge.target_reps,
+            exercise: exerciseLabel,
+          })}
         </p>
 
         <div className="flex items-center gap-2 mb-3">
