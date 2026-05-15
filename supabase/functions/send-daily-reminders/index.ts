@@ -318,6 +318,26 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // SECURITY: this endpoint blasts push notifications to ALL subscribers.
+  // It must only be callable by the cron job (service role) or by a caller
+  // presenting the shared CRON_SECRET. The anon key is publicly visible
+  // in the client bundle and must NOT be sufficient to trigger this.
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const providedCronSecret = req.headers.get("x-cron-secret") ?? "";
+
+  const isServiceRole = serviceRoleKey.length > 0 && bearer === serviceRoleKey;
+  const isCronSecret = cronSecret.length > 0 && providedCronSecret === cronSecret;
+
+  if (!isServiceRole && !isCronSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
