@@ -140,6 +140,29 @@ serve(async (req) => {
     const isExtension = !!extensionContext?.previousMonthNumber;
 
     const sbAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+    // SECURITY: verify the claimed extension is real. The client cannot be trusted
+    // to set extensionContext — we must confirm the user actually owns a completed
+    // plan whose plan_month_number equals previousMonthNumber. Otherwise any
+    // authenticated user could bypass the generate-quota by sending a fake
+    // extensionContext payload.
+    if (isExtension && !isAdmin) {
+      const prevMonthNum = Number(extensionContext.previousMonthNumber);
+      if (!Number.isFinite(prevMonthNum) || prevMonthNum < 1) {
+        return jsonResponse({ error: 'invalid_extension', message: 'Invalid extension context.' }, 403);
+      }
+      const { data: prevPlan } = await sbAdmin
+        .from('saved_plans')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('plan_month_number', prevMonthNum)
+        .not('plan_completed_at', 'is', null)
+        .maybeSingle();
+      if (!prevPlan) {
+        return jsonResponse({ error: 'invalid_extension', message: 'No completed prior plan found for extension.' }, 403);
+      }
+    }
+
     let incrementCounter: 'trial' | 'period' | 'free' | null = null;
     const now0 = new Date();
     const currentMonthKey = `${now0.getFullYear()}-${String(now0.getMonth() + 1).padStart(2, '0')}`;
