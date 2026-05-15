@@ -53,26 +53,77 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// ===== Translated messages =====
+// ===== SUNY mascot messages — Morning (07:00 local) & Afternoon (15:00 local) =====
 interface Msg { title: string; body: string }
 
-const morningMessages: Record<string, Msg> = {
-  en: { title: "Good morning! 💪", body: "Good morning! 💪 Time to crush your workout with AI trainer. Let's go!" },
-  id: { title: "Selamat pagi! 💪", body: "Selamat pagi! 💪 Waktunya workout bareng Coach Surya. Ayo mulai!" },
-  zh: { title: "早上好！💪", body: "早上好！💪 是时候和AI教练一起训练了。加油！" },
+const morningTitles: Record<string, string> = {
+  id: "SUNY di sini! 🤖",
+  en: "SUNY here! 🤖",
+  zh: "SUNY来了！🤖",
 };
 
-const afternoonMessages: Record<string, Msg> = {
-  en: { title: "Good afternoon! 💪", body: "Good afternoon! 💪 It's time for your workout with AI trainer 💪 Keep the momentum going!" },
-  id: { title: "Selamat siang! 💪", body: "Selamat siang! 💪 Saatnya latihan hari ini. Coach Surya sudah menunggu!" },
-  zh: { title: "下午好！💪", body: "下午好！💪 今天的训练时间到了。保持动力！" },
+const morningBodies: Record<string, string[]> = {
+  id: [
+    "Pagi! Tubuhmu udah siap, tinggal kamu yang mutusin. Yuk mulai! 💪",
+    "Hei! Aku udah nunggu dari tadi. Latihan yuk sekarang! 🔥",
+    "Selamat pagi! Coach Surya bilang hari ini hari yang bagus buat PR baru 😤",
+    "Bangun! Aku SUNY, teman latihanmu. Kita gaspol pagi ini! ⚡",
+    "Morning! Jangan kasih otot kamu alasan buat istirahat terus 😄💪",
+  ],
+  en: [
+    "Morning! Your body's ready — now it's your turn. Let's go! 💪",
+    "Hey! I've been waiting. Time to train! 🔥",
+    "Good morning! Coach Surya says today's a great day for a new PR 😤",
+    "Rise up! I'm SUNY, your AI buddy. Let's crush this morning! ⚡",
+    "Morning! Don't give your muscles another excuse to rest 😄💪",
+  ],
+  zh: [
+    "早上好！你的身体已准备好，现在轮到你决定了。出发！💪",
+    "嘿！我一直在等你。现在去训练吧！🔥",
+    "早安！Coach Surya说今天是创新纪录的好日子 😤",
+    "起来！我是SUNY，你的AI训练伙伴。早上冲吧！⚡",
+    "早上好！别再给肌肉找借口休息了 😄💪",
+  ],
 };
 
-const eveningMessages: Record<string, Msg> = {
-  en: { title: "Good evening! 🌙", body: "Good evening! 🌙 Don't skip today's workout. Your AI trainer is ready!" },
-  id: { title: "Selamat malam! 🌙", body: "Selamat malam! 🌙 Jangan lewatkan workout hari ini. Coach Surya siap menemanimu!" },
-  zh: { title: "晚上好！🌙", body: "晚上好！🌙 不要跳过今天的训练。你的AI教练已经准备好了！" },
+const afternoonTitles: Record<string, string> = {
+  id: "SUNY check-in! 🤖",
+  en: "SUNY check-in! 🤖",
+  zh: "SUNY打卡！🤖",
 };
+
+const afternoonBodies: Record<string, string[]> = {
+  id: [
+    "Sore nih! Kalau belum latihan tadi pagi, sekarang waktu yang pas 🎯",
+    "Hei kamu! Sudah gerak belum hari ini? SUNY nungguin lho 😏",
+    "Jam 3 sore — waktu terbaik buat bakar kalori kata riset! Gaspol! 🔥",
+    "Belum terlambat! Masih ada waktu buat sesi latihan epic sore ini 💪",
+    "SUNY reminder: tubuhmu lebih kuat dari alasanmu. Ayo latihan! ⚡",
+  ],
+  en: [
+    "Afternoon! If you missed this morning, now's the perfect time 🎯",
+    "Hey you! Have you moved today? SUNY's waiting 😏",
+    "3 PM — science says it's peak performance time! Let's go! 🔥",
+    "Not too late! There's still time for an epic evening session 💪",
+    "SUNY reminder: your body is stronger than your excuses. Train now! ⚡",
+  ],
+  zh: [
+    "下午好！如果早上没训练，现在是最佳时机 🎯",
+    "嘿！今天动了吗？SUNY在等你哦 😏",
+    "下午3点 — 研究表明这是最佳运动时间！出发！🔥",
+    "还不算晚！今晚还有时间来一次精彩训练 💪",
+    "SUNY提醒：你的身体比你的借口更强大。去训练！⚡",
+  ],
+};
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function resolveLang(lang: string | null | undefined): "id" | "en" | "zh" {
+  if (lang === "en" || lang === "zh" || lang === "id") return lang;
+  return "id";
+}
 
 // ===== Base64URL helpers =====
 function b64UrlEncode(buf: Uint8Array): string {
@@ -329,19 +380,28 @@ serve(async (req) => {
         timeZone: tz,
       }).format(now);
 
-      const lang = sub.lang || "en";
+      const lang = resolveLang(sub.lang);
       let payload: { title: string; body: string; tag: string } | null = null;
       let updateField: string | null = null;
-      let updateValue: string = todayStr;
+      const updateValue: string = todayStr;
 
-      // Morning (7 AM) and Afternoon (3 PM) reminders removed per product decision.
-      // Only the evening reminder remains active.
-
-      // Evening: 18:00–22:59
-      if (!payload && hour >= 18 && hour < 23 && sub.last_evening_sent !== todayStr) {
-        const msg = eveningMessages[lang] || eveningMessages.en;
-        payload = { ...msg, tag: "evening-reminder" };
-        updateField = "last_evening_sent";
+      // Morning slot — fires at local hour 07 only, once per day
+      if (hour === 7 && sub.last_morning_sent !== todayStr) {
+        payload = {
+          title: morningTitles[lang],
+          body: pickRandom(morningBodies[lang]),
+          tag: "suny-morning",
+        };
+        updateField = "last_morning_sent";
+      }
+      // Afternoon slot — fires at local hour 15 only, once per day
+      else if (hour === 15 && sub.last_afternoon_sent !== todayStr) {
+        payload = {
+          title: afternoonTitles[lang],
+          body: pickRandom(afternoonBodies[lang]),
+          tag: "suny-afternoon",
+        };
+        updateField = "last_afternoon_sent";
       }
 
       if (payload && updateField) {
