@@ -146,6 +146,7 @@ serve(async (req) => {
     // plan whose plan_month_number equals previousMonthNumber. Otherwise any
     // authenticated user could bypass the generate-quota by sending a fake
     // extensionContext payload.
+    let prevPlanData: any = null;
     if (isExtension && !isAdmin) {
       const prevMonthNum = Number(extensionContext.previousMonthNumber);
       if (!Number.isFinite(prevMonthNum) || prevMonthNum < 1) {
@@ -153,13 +154,26 @@ serve(async (req) => {
       }
       const { data: prevPlan } = await sbAdmin
         .from('saved_plans')
-        .select('id')
+        .select('id, plan_data')
         .eq('user_id', userId)
         .eq('plan_month_number', prevMonthNum)
         .not('plan_completed_at', 'is', null)
         .maybeSingle();
       if (!prevPlan) {
         return jsonResponse({ error: 'invalid_extension', message: 'No completed prior plan found for extension.' }, 403);
+      }
+      prevPlanData = (prevPlan as any).plan_data || null;
+    } else if (isExtension && isAdmin) {
+      const prevMonthNum = Number(extensionContext.previousMonthNumber);
+      if (Number.isFinite(prevMonthNum) && prevMonthNum >= 1) {
+        const { data: prevPlan } = await sbAdmin
+          .from('saved_plans')
+          .select('plan_data')
+          .eq('user_id', userId)
+          .eq('plan_month_number', prevMonthNum)
+          .not('plan_completed_at', 'is', null)
+          .maybeSingle();
+        prevPlanData = (prevPlan as any)?.plan_data || null;
       }
     }
 
