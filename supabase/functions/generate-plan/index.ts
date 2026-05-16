@@ -556,11 +556,13 @@ HYPERTROPHY SYSTEM (GYM-EQUIPMENT ONLY — applies when equipment includes "gym"
   * Heavy Compound (Bench Press, Barbell Squat / Box Squat, Deadlift / Romanian Deadlift, Barbell Row / T-Bar Row, Overhead Press): reps 5-8, rest 150-240s, RIR 1-3
   * Secondary Compound (Lat Pulldown, Leg Press, Incline DB Press, Seated Dumbbell Press, Bulgarian Split Squat, Dumbbell Lunge, Glute Bridge variants): reps 8-12, rest 90-180s, RIR 1-2
   * Isolation (Lateral Raise, Cable Crossover, Face Pull, Barbell/Dumbbell/Hammer/Concentration Curl, Tricep Pushdown, Skull Crushers, Leg Curl/Extension, Calf Raise, Core work): reps 10-15, rest 45-90s, RIR 0-1
-- RIR adjustment by experience level (${experience}):
-  * Beginner → MINIMUM RIR 2 on every exercise. Never 0 or 1, even on isolation. Cap RIR at 3.
-  * Intermediate → RIR 1-2 across all categories.
-  * Advanced → RIR 0-1 allowed on heavy/secondary compounds; isolation may go to 0.
-- Set the "rir" field to a single integer 0-3 chosen from the allowed range above for each exercise.
+- RIR adjustment by experience level (${experience}) — STRICT, OVERRIDES the category default ranges:
+  * Beginner (Pemula): Compound exercises (Heavy Compound + Secondary Compound) → RIR exactly 4. Isolation → RIR exactly 3.
+  * Intermediate (Menengah): Compound exercises → RIR exactly 3. Isolation → RIR exactly 2.
+  * Advanced (Mahir): Compound exercises → RIR exactly 2. Isolation → RIR 0 or 1 (near failure / to failure).
+- Applies to BOTH bulking and cutting programs.
+- Set the "rir" field to the exact integer dictated above for each exercise's category.
+- The "notes" field for every exercise MUST also display the RIR value in plain text so the user can see it (e.g. EN: "RIR 3 — leave 3 reps in reserve"; ID: "RIR 3 — sisakan 3 repetisi"; ZH: "RIR 3 — 保留3次"). Match the plan's output language.
 - The "reps" and "rest" fields MUST fall inside the category's range (e.g. Heavy Compound rest must be a value or sub-range within 150-240s such as "180s" or "180-240s").
 - These RIR/rep/rest rules OVERRIDE any conflicting earlier guidance for gym plans only. They DO NOT change which exercises are picked; the curated library and split rules above still apply.
 
