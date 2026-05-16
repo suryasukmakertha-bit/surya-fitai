@@ -78,6 +78,7 @@ serve(async (req) => {
     })
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    console.error('[midtrans-create-transaction] error:', err)
+    return new Response(JSON.stringify({ error: 'An internal error occurred. Please try again.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })
