@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.prevent_profile_counter_tampering() FROM PUBLIC, anon;
