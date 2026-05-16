@@ -372,6 +372,20 @@ CRITICAL RULE — TRAINING DAYS CONSISTENCY (HIGHEST PRIORITY, NO EXCEPTIONS):
 - Week 4 deload = LIGHTER loads and reduced sets on the SAME ${workoutDays} training days. Do NOT convert training days into rest days in Week 4.
 - Before returning the JSON, verify that workout_plan contains the same training-day count for Week 1, Week 2, Week 3, and Week 4. If any week has fewer training days than ${workoutDays}, regenerate that week.
 
+CRITICAL RULE — EXERCISE LIST CONSISTENCY ACROSS WEEKS (HIGHEST PRIORITY, NO EXCEPTIONS):
+- The EXERCISE LIST and EXERCISE COUNT for each training day MUST be IDENTICAL across all 4 weeks.
+- Example: if Week 1 Monday has [Barbell Bench Press, Seated Dumbbell Press, Cable Crossover, Lateral Raise (Dumbbell), Tricep Pushdown (Cable)] (5 exercises), then Week 2 Monday, Week 3 Monday, and Week 4 Monday MUST contain the EXACT SAME 5 exercises in the EXACT SAME ORDER with the EXACT SAME names.
+- The SAME rule applies to every training day of the week (Tuesday in W1 = Tuesday in W2 = W3 = W4, etc.).
+- ONLY the following fields may vary week-to-week: "sets", "reps", "weight_kg", "intensity_pct", "rir", and the "notes" text. The "name", "alternative", "tempo", "rest", "cues", and the number of exercises per day MUST remain identical across all 4 weeks.
+- Generate the exercise list ONCE per training day, then reuse that same list for Weeks 1, 2, 3, and 4 — only changing sets/reps/weight per week according to the progressive overload rules below.
+- DO NOT drop exercises in later weeks. DO NOT shrink Week 3 or Week 4 to fewer exercises. Week 4 deload reduces SETS and WEIGHT, NOT the number of exercises.
+- Progressive overload across weeks (applied to the SAME exercises):
+    * Week 1 (Foundation): lighter weight, focus on form
+    * Week 2 (Volume): SAME exercises, increase reps
+    * Week 3 (Intensity): SAME exercises, increase weight
+    * Week 4 (Deload): SAME exercises, reduce 1 set per exercise and reduce weight by ~20%
+- Before returning the JSON, verify for every weekday slot that the exercise names and count in Week 1, Week 2, Week 3, and Week 4 match exactly. If any week deviates, regenerate that week using the Week 1 exercise list.
+
 - Target total working sets per session: ${targetSets} sets (calculated from ${targetLiftingMinutes} min lifting time at 2.3 min/set avg)
 - Session duration target: ${sessionMin} minutes (5 min warm-up + ${targetLiftingMinutes} min lifting + 5 min cool-down)
 - Apply progressive overload: systematically increase weight, reps, or volume across the 4 weeks
