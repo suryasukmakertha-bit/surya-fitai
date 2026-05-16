@@ -170,6 +170,6 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("admin-report error", e);
-    return json({ error: "server_error", detail: String(e) }, 500);
+    return json({ error: "server_error" }, 500);
   }
 });

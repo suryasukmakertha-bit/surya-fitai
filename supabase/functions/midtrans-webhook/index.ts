@@ -97,6 +97,6 @@ serve(async (req) => {
 
   } catch (err) {
     console.error('[midtrans-webhook]', err)
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 })
+    return new Response(JSON.stringify({ error: 'An internal error occurred.' }), { status: 500 })
   }
 })

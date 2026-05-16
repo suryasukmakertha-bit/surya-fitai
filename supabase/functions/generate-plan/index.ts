@@ -965,10 +965,10 @@ Generate the complete plan now.`;
       return jsonResponse({ error: "timeout", message: "Plan generation timed out. Please try again." }, 408);
     }
     if (e?.status === 429) {
-      return jsonResponse({ error: "rate_limit", message: e.message }, 429);
+      return jsonResponse({ error: "rate_limit", message: "Too many requests. Please try again shortly." }, 429);
     }
     if (e?.status === 402) {
-      return jsonResponse({ error: "payment_required", message: e.message }, 402);
+      return jsonResponse({ error: "payment_required", message: "AI credits exhausted. Please contact support." }, 402);
     }
     if (e?.status === 422 || e?.code === "parse_error") {
       console.error("[PlanGen] FAILED — parse error", { message: e?.message });
@@ -979,7 +979,7 @@ Generate the complete plan now.`;
       stack: e instanceof Error ? e.stack : undefined,
     });
     return jsonResponse(
-      { error: "internal_error", message: e instanceof Error ? e.message : "Unknown error" },
+      { error: "internal_error", message: "An internal error occurred. Please try again." },
       500
     );
   }

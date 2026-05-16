@@ -125,15 +125,10 @@ export function useGenerateLimit() {
       const pStart = currentPeriodStart(subStart, now);
       const pEnd = currentPeriodEnd(pStart);
       const lastReset = (profile as any)?.last_generate_reset ? new Date((profile as any).last_generate_reset) : null;
-      let used = (profile as any)?.period_generate_count ?? 0;
-      // Auto-reset if last_generate_reset is before current period start
-      if (!lastReset || lastReset < new Date(pStart.toDateString())) {
-        await supabase.from("profiles").update({
-          period_generate_count: 0,
-          last_generate_reset: pStart.toISOString().slice(0, 10),
-        }).eq("user_id", user.id);
-        used = 0;
-      }
+      const rawUsed = (profile as any)?.period_generate_count ?? 0;
+      // Display-only: if the stored reset date is before the current period start,
+      // the server (generate-plan) will reset on next generate. Show 0 in the UI.
+      const used = !lastReset || lastReset < new Date(pStart.toDateString()) ? 0 : rawUsed;
       setInfo({
         status: "active",
         used,
