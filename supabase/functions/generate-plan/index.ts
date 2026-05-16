@@ -146,6 +146,7 @@ serve(async (req) => {
     // plan whose plan_month_number equals previousMonthNumber. Otherwise any
     // authenticated user could bypass the generate-quota by sending a fake
     // extensionContext payload.
+    let prevPlanData: any = null;
     if (isExtension && !isAdmin) {
       const prevMonthNum = Number(extensionContext.previousMonthNumber);
       if (!Number.isFinite(prevMonthNum) || prevMonthNum < 1) {
@@ -153,13 +154,26 @@ serve(async (req) => {
       }
       const { data: prevPlan } = await sbAdmin
         .from('saved_plans')
-        .select('id')
+        .select('id, plan_data')
         .eq('user_id', userId)
         .eq('plan_month_number', prevMonthNum)
         .not('plan_completed_at', 'is', null)
         .maybeSingle();
       if (!prevPlan) {
         return jsonResponse({ error: 'invalid_extension', message: 'No completed prior plan found for extension.' }, 403);
+      }
+      prevPlanData = (prevPlan as any).plan_data || null;
+    } else if (isExtension && isAdmin) {
+      const prevMonthNum = Number(extensionContext.previousMonthNumber);
+      if (Number.isFinite(prevMonthNum) && prevMonthNum >= 1) {
+        const { data: prevPlan } = await sbAdmin
+          .from('saved_plans')
+          .select('plan_data')
+          .eq('user_id', userId)
+          .eq('plan_month_number', prevMonthNum)
+          .not('plan_completed_at', 'is', null)
+          .maybeSingle();
+        prevPlanData = (prevPlan as any)?.plan_data || null;
       }
     }
 
@@ -542,11 +556,13 @@ HYPERTROPHY SYSTEM (GYM-EQUIPMENT ONLY — applies when equipment includes "gym"
   * Heavy Compound (Bench Press, Barbell Squat / Box Squat, Deadlift / Romanian Deadlift, Barbell Row / T-Bar Row, Overhead Press): reps 5-8, rest 150-240s, RIR 1-3
   * Secondary Compound (Lat Pulldown, Leg Press, Incline DB Press, Seated Dumbbell Press, Bulgarian Split Squat, Dumbbell Lunge, Glute Bridge variants): reps 8-12, rest 90-180s, RIR 1-2
   * Isolation (Lateral Raise, Cable Crossover, Face Pull, Barbell/Dumbbell/Hammer/Concentration Curl, Tricep Pushdown, Skull Crushers, Leg Curl/Extension, Calf Raise, Core work): reps 10-15, rest 45-90s, RIR 0-1
-- RIR adjustment by experience level (${experience}):
-  * Beginner → MINIMUM RIR 2 on every exercise. Never 0 or 1, even on isolation. Cap RIR at 3.
-  * Intermediate → RIR 1-2 across all categories.
-  * Advanced → RIR 0-1 allowed on heavy/secondary compounds; isolation may go to 0.
-- Set the "rir" field to a single integer 0-3 chosen from the allowed range above for each exercise.
+- RIR adjustment by experience level (${experience}) — STRICT, OVERRIDES the category default ranges:
+  * Beginner (Pemula): Compound exercises (Heavy Compound + Secondary Compound) → RIR exactly 4. Isolation → RIR exactly 3.
+  * Intermediate (Menengah): Compound exercises → RIR exactly 3. Isolation → RIR exactly 2.
+  * Advanced (Mahir): Compound exercises → RIR exactly 2. Isolation → RIR 0 or 1 (near failure / to failure).
+- Applies to BOTH bulking and cutting programs.
+- Set the "rir" field to the exact integer dictated above for each exercise's category.
+- The "notes" field for every exercise MUST also display the RIR value in plain text so the user can see it (e.g. EN: "RIR 3 — leave 3 reps in reserve"; ID: "RIR 3 — sisakan 3 repetisi"; ZH: "RIR 3 — 保留3次"). Match the plan's output language.
 - The "reps" and "rest" fields MUST fall inside the category's range (e.g. Heavy Compound rest must be a value or sub-range within 150-240s such as "180s" or "180-240s").
 - These RIR/rep/rest rules OVERRIDE any conflicting earlier guidance for gym plans only. They DO NOT change which exercises are picked; the curated library and split rules above still apply.
 
@@ -628,18 +644,85 @@ Generate ALL text content in ${lang}. JSON keys must remain in English.`;
 
     const prevMonth = extensionContext?.previousMonthNumber;
     const nextMonth = prevMonth ? prevMonth + 1 : null;
+
+    // Build a compact, structured snapshot of the previous month's workout
+    // so the AI can reuse the EXACT exercise list, day order, rest pattern,
+    // and use prev Week 2 reps + prev Week 3 weight as the new Week 1 baseline.
+    let prevMonthSnapshot = "";
+    if (nextMonth && prevPlanData?.workout_plan && Array.isArray(prevPlanData.workout_plan)) {
+      const wp: any[] = prevPlanData.workout_plan;
+      // Group entries by week index based on order: 7 entries per week.
+      const weeks: any[][] = [[], [], [], []];
+      for (let i = 0; i < wp.length && i < 28; i++) {
+        weeks[Math.floor(i / 7)].push(wp[i]);
+      }
+      const summarizeWeek = (week: any[]) =>
+        week.map((d, idx) => {
+          const isRest = !d?.exercises || d.exercises.length === 0;
+          if (isRest) return `  Day ${idx + 1}: REST`;
+          const exList = d.exercises.map((e: any) =>
+            `${e.name} [sets=${e.sets ?? '?'}, reps=${e.reps ?? '?'}, weight=${e.weight_kg ?? '?'}, rir=${e.rir ?? '?'}]`
+          ).join('; ');
+          return `  Day ${idx + 1}: ${exList}`;
+        }).join('\n');
+
+      const restPattern = weeks[0].map((d: any, idx: number) =>
+        (!d?.exercises || d.exercises.length === 0) ? `Day${idx + 1}=REST` : `Day${idx + 1}=TRAIN`
+      ).join(', ');
+
+      prevMonthSnapshot = `
+PREVIOUS MONTH ${prevMonth} SNAPSHOT (source of truth — reuse EXACTLY):
+Rest day pattern (must be IDENTICAL in new month): ${restPattern}
+
+Previous Week 1:
+${summarizeWeek(weeks[0])}
+
+Previous Week 2 (reps source for new Week 1):
+${summarizeWeek(weeks[1])}
+
+Previous Week 3 (weight source for new Week 1):
+${summarizeWeek(weeks[2])}
+
+Previous Week 4 (deload):
+${summarizeWeek(weeks[3])}
+`;
+    }
+
     const extensionPreamble = nextMonth
       ? `EXTENSION CONTEXT — PROGRESSIVE OVERLOAD MONTH ${nextMonth}:
 The user has successfully completed Month ${prevMonth} of their fitness program.
-Generate Month ${nextMonth} applying these progressive overload principles:
-- Increase reps by 1-2 per set compared to last month (e.g., if previous month used 8 reps, use 9-10 reps).
-- Increase suggested weight by 5-10% for compound strength exercises (squat, deadlift, bench, row, overhead press).
-- Introduce 1-2 NEW exercise variations on each training day to prevent adaptation (e.g., goblet squat → front squat, flat bench → incline bench, conventional deadlift → Romanian deadlift).
-- Maintain the SAME training split, weekly schedule, and equipment constraints as Month ${prevMonth}.
-- Week 1 of this new month = slightly easier (deload feel, ~80% intensity).
-- Weeks 2-3 = progressive increase in volume/intensity.
-- Week 4 = DELOAD week (recovery / form focus, lighter than Week 3 — NOT a peak week).
-- Keep the same nutrition macros unless the user's body weight changed significantly.
+${prevMonthSnapshot}
+
+CRITICAL EXTENSION RULES (HIGHEST PRIORITY — NO EXCEPTIONS):
+
+1. EXERCISE LIST — IDENTICAL TO PREVIOUS MONTH:
+   - The exercise selection, exercise count per day, exercise order, and the muscle-group pattern per session MUST be IDENTICAL to the previous month shown in the snapshot above.
+   - Do NOT add new exercises. Do NOT remove exercises. Do NOT swap exercises for variations. Do NOT introduce variety. Reuse the EXACT same exercise names from previous Month ${prevMonth}.
+   - The workout session order (Session 1 content, Session 2 content, ...) must follow the SAME sequence as the previous month. Only the calendar dates will differ because the user is starting from today's date — the workout content stays the same in the same session order.
+
+2. REST DAY PATTERN — IDENTICAL TO PREVIOUS MONTH:
+   - The rest day positions within the 7-day week MUST follow the SAME pattern as the previous month (see "Rest day pattern" above).
+   - If previous month had rest on Day 3 and Day 6 of the week, the new month MUST also have rest on Day 3 and Day 6.
+   - Do NOT add extra rest days. Do NOT shift training days. Match the previous pattern exactly.
+
+3. WEEK 1 BASELINE OF THE EXTENDED MONTH:
+   - reps for each exercise in new Week 1 = reps used by the SAME exercise in previous month Week 2 (the volume week).
+   - weight_kg / intensity_pct for each exercise in new Week 1 = weight used by the SAME exercise in previous month Week 3 (the intensity week).
+   - sets in new Week 1 = same set count as previous month Week 3.
+   - This is the new starting point. It is NOT a deload — it is a higher baseline because the user is now stronger.
+
+4. WEEK PROGRESSION IN THE EXTENDED MONTH:
+   - Week 1: baseline as defined in rule 3 (prev Week 2 reps + prev Week 3 weight).
+   - Week 2: SAME exercises. Increase reps by 1-2 per set above Week 1. Keep weight equal to Week 1.
+   - Week 3: SAME exercises. Increase weight by 2.5-5kg on compounds / 1-2.5kg on isolation above Week 2. Reps return to Week 1 levels.
+   - Week 4 (DELOAD): SAME exercises. Reduce 1 set per exercise. Reduce weight by ~20% vs Week 3. Keep reps moderate. This is NOT a peak week.
+
+5. ALL FOUR WEEKS MUST HAVE WORKOUTS:
+   - workout_plan MUST contain EXACTLY 28 entries (4 weeks × 7 days). Weeks 2, 3, and 4 are NOT empty and are NOT all rest days. They contain the SAME exercises as Week 1 with adjusted sets/reps/weight per rule 4.
+   - Before returning JSON, verify Week 2, Week 3, and Week 4 each contain the same number of training days and the same exercise names as Week 1.
+
+6. KEEP the same nutrition macros, training split, and equipment constraints as Month ${prevMonth}.
+
 Address the client warmly and acknowledge their completion of Month ${prevMonth} in the motivational_message.
 
 `
