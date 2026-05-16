@@ -562,6 +562,7 @@ HYPERTROPHY SYSTEM (GYM-EQUIPMENT ONLY — applies when equipment includes "gym"
   * Advanced (Mahir): Compound exercises → RIR exactly 2. Isolation → RIR 0 or 1 (near failure / to failure).
 - Applies to BOTH bulking and cutting programs.
 - Set the "rir" field to the exact integer dictated above for each exercise's category.
+- The "tempo" field's FIRST digit (eccentric seconds) MUST equal the exercise's RIR value, because the app's UI derives the displayed "stop with ~N reps left" text from that first digit. Examples: Advanced compound (RIR 2) → tempo "2010" or "2110"; Advanced isolation (RIR 1) → tempo "1010"; Advanced isolation taken to failure (RIR 0) → tempo "0010"; Intermediate compound (RIR 3) → tempo "3010"; Beginner compound (RIR 4) → tempo "4010". Never emit a tempo whose first digit differs from the rir field.
 - The "notes" field for every exercise MUST also display the RIR value in plain text so the user can see it (e.g. EN: "RIR 3 — leave 3 reps in reserve"; ID: "RIR 3 — sisakan 3 repetisi"; ZH: "RIR 3 — 保留3次"). Match the plan's output language.
 - The "reps" and "rest" fields MUST fall inside the category's range (e.g. Heavy Compound rest must be a value or sub-range within 150-240s such as "180s" or "180-240s").
 - These RIR/rep/rest rules OVERRIDE any conflicting earlier guidance for gym plans only. They DO NOT change which exercises are picked; the curated library and split rules above still apply.
