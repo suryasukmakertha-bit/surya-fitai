@@ -644,18 +644,85 @@ Generate ALL text content in ${lang}. JSON keys must remain in English.`;
 
     const prevMonth = extensionContext?.previousMonthNumber;
     const nextMonth = prevMonth ? prevMonth + 1 : null;
+
+    // Build a compact, structured snapshot of the previous month's workout
+    // so the AI can reuse the EXACT exercise list, day order, rest pattern,
+    // and use prev Week 2 reps + prev Week 3 weight as the new Week 1 baseline.
+    let prevMonthSnapshot = "";
+    if (nextMonth && prevPlanData?.workout_plan && Array.isArray(prevPlanData.workout_plan)) {
+      const wp: any[] = prevPlanData.workout_plan;
+      // Group entries by week index based on order: 7 entries per week.
+      const weeks: any[][] = [[], [], [], []];
+      for (let i = 0; i < wp.length && i < 28; i++) {
+        weeks[Math.floor(i / 7)].push(wp[i]);
+      }
+      const summarizeWeek = (week: any[]) =>
+        week.map((d, idx) => {
+          const isRest = !d?.exercises || d.exercises.length === 0;
+          if (isRest) return `  Day ${idx + 1}: REST`;
+          const exList = d.exercises.map((e: any) =>
+            `${e.name} [sets=${e.sets ?? '?'}, reps=${e.reps ?? '?'}, weight=${e.weight_kg ?? '?'}, rir=${e.rir ?? '?'}]`
+          ).join('; ');
+          return `  Day ${idx + 1}: ${exList}`;
+        }).join('\n');
+
+      const restPattern = weeks[0].map((d: any, idx: number) =>
+        (!d?.exercises || d.exercises.length === 0) ? `Day${idx + 1}=REST` : `Day${idx + 1}=TRAIN`
+      ).join(', ');
+
+      prevMonthSnapshot = `
+PREVIOUS MONTH ${prevMonth} SNAPSHOT (source of truth — reuse EXACTLY):
+Rest day pattern (must be IDENTICAL in new month): ${restPattern}
+
+Previous Week 1:
+${summarizeWeek(weeks[0])}
+
+Previous Week 2 (reps source for new Week 1):
+${summarizeWeek(weeks[1])}
+
+Previous Week 3 (weight source for new Week 1):
+${summarizeWeek(weeks[2])}
+
+Previous Week 4 (deload):
+${summarizeWeek(weeks[3])}
+`;
+    }
+
     const extensionPreamble = nextMonth
       ? `EXTENSION CONTEXT — PROGRESSIVE OVERLOAD MONTH ${nextMonth}:
 The user has successfully completed Month ${prevMonth} of their fitness program.
-Generate Month ${nextMonth} applying these progressive overload principles:
-- Increase reps by 1-2 per set compared to last month (e.g., if previous month used 8 reps, use 9-10 reps).
-- Increase suggested weight by 5-10% for compound strength exercises (squat, deadlift, bench, row, overhead press).
-- Introduce 1-2 NEW exercise variations on each training day to prevent adaptation (e.g., goblet squat → front squat, flat bench → incline bench, conventional deadlift → Romanian deadlift).
-- Maintain the SAME training split, weekly schedule, and equipment constraints as Month ${prevMonth}.
-- Week 1 of this new month = slightly easier (deload feel, ~80% intensity).
-- Weeks 2-3 = progressive increase in volume/intensity.
-- Week 4 = DELOAD week (recovery / form focus, lighter than Week 3 — NOT a peak week).
-- Keep the same nutrition macros unless the user's body weight changed significantly.
+${prevMonthSnapshot}
+
+CRITICAL EXTENSION RULES (HIGHEST PRIORITY — NO EXCEPTIONS):
+
+1. EXERCISE LIST — IDENTICAL TO PREVIOUS MONTH:
+   - The exercise selection, exercise count per day, exercise order, and the muscle-group pattern per session MUST be IDENTICAL to the previous month shown in the snapshot above.
+   - Do NOT add new exercises. Do NOT remove exercises. Do NOT swap exercises for variations. Do NOT introduce variety. Reuse the EXACT same exercise names from previous Month ${prevMonth}.
+   - The workout session order (Session 1 content, Session 2 content, ...) must follow the SAME sequence as the previous month. Only the calendar dates will differ because the user is starting from today's date — the workout content stays the same in the same session order.
+
+2. REST DAY PATTERN — IDENTICAL TO PREVIOUS MONTH:
+   - The rest day positions within the 7-day week MUST follow the SAME pattern as the previous month (see "Rest day pattern" above).
+   - If previous month had rest on Day 3 and Day 6 of the week, the new month MUST also have rest on Day 3 and Day 6.
+   - Do NOT add extra rest days. Do NOT shift training days. Match the previous pattern exactly.
+
+3. WEEK 1 BASELINE OF THE EXTENDED MONTH:
+   - reps for each exercise in new Week 1 = reps used by the SAME exercise in previous month Week 2 (the volume week).
+   - weight_kg / intensity_pct for each exercise in new Week 1 = weight used by the SAME exercise in previous month Week 3 (the intensity week).
+   - sets in new Week 1 = same set count as previous month Week 3.
+   - This is the new starting point. It is NOT a deload — it is a higher baseline because the user is now stronger.
+
+4. WEEK PROGRESSION IN THE EXTENDED MONTH:
+   - Week 1: baseline as defined in rule 3 (prev Week 2 reps + prev Week 3 weight).
+   - Week 2: SAME exercises. Increase reps by 1-2 per set above Week 1. Keep weight equal to Week 1.
+   - Week 3: SAME exercises. Increase weight by 2.5-5kg on compounds / 1-2.5kg on isolation above Week 2. Reps return to Week 1 levels.
+   - Week 4 (DELOAD): SAME exercises. Reduce 1 set per exercise. Reduce weight by ~20% vs Week 3. Keep reps moderate. This is NOT a peak week.
+
+5. ALL FOUR WEEKS MUST HAVE WORKOUTS:
+   - workout_plan MUST contain EXACTLY 28 entries (4 weeks × 7 days). Weeks 2, 3, and 4 are NOT empty and are NOT all rest days. They contain the SAME exercises as Week 1 with adjusted sets/reps/weight per rule 4.
+   - Before returning JSON, verify Week 2, Week 3, and Week 4 each contain the same number of training days and the same exercise names as Week 1.
+
+6. KEEP the same nutrition macros, training split, and equipment constraints as Month ${prevMonth}.
+
 Address the client warmly and acknowledge their completion of Month ${prevMonth} in the motivational_message.
 
 `
