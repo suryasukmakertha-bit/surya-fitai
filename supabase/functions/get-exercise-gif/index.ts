@@ -173,9 +173,9 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    console.log(`[get-exercise-gif] Fatal error: ${err}`)
+    console.error(`[get-exercise-gif] Fatal error:`, err)
     return new Response(
-      JSON.stringify({ error: String(err), gif_url: null }),
+      JSON.stringify({ error: 'An internal error occurred.', gif_url: null }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
