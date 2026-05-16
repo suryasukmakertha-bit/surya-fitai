@@ -17,11 +17,22 @@ import { checkWorkoutStreakMedals, checkProgramCompleteMedal } from "@/lib/daily
 import { emitMedalsEarned } from "@/lib/medalEvents";
 import { getPlanProgress } from "@/lib/planProgress";
 
-function getRIRText(tempo: string | undefined, lang: string): string | null {
-  if (!tempo) return null;
-  const match = tempo.match(/(\d)/);
-  if (!match) return null;
-  const n = match[1];
+function getRIRText(rir: number | string | undefined, tempo: string | undefined, lang: string): string | null {
+  let n: number | null = null;
+  if (rir !== undefined && rir !== null && rir !== '') {
+    const parsed = typeof rir === 'number' ? rir : parseInt(String(rir), 10);
+    if (Number.isFinite(parsed) && parsed >= 0) n = parsed;
+  }
+  if (n === null && tempo) {
+    const match = tempo.match(/(\d)/);
+    if (match) n = parseInt(match[1], 10);
+  }
+  if (n === null) return null;
+  if (n <= 0) {
+    if (lang === 'id') return 'Sampai gagal (failure)';
+    if (lang === 'zh') return '力竭为止';
+    return 'To failure';
+  }
   if (lang === 'id') return `Berhenti saat tersisa ~${n} rep`;
   if (lang === 'zh') return `还剩约${n}次时停止`;
   return `Stop with ~${n} reps left`;
@@ -84,6 +95,7 @@ interface Exercise {
   weight_kg?: string;
   intensity_pct?: string;
   notes?: string;
+  rir?: number | string;
 }
 
 interface DayPlan {
@@ -394,7 +406,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
             <div className="bg-secondary/50 rounded-lg px-4 py-3">
               <p className="text-sm text-foreground font-medium">
                 {selectedExercise?.sets} × {selectedExercise?.reps} • {t.rest.charAt(0).toUpperCase() + t.rest.slice(1)} {selectedExercise?.rest}
-                {selectedExercise?.tempo && getRIRText(selectedExercise.tempo, lang) ? ` • ${getRIRText(selectedExercise.tempo, lang)}` : ''}
+                {getRIRText(selectedExercise?.rir, selectedExercise?.tempo, lang) ? ` • ${getRIRText(selectedExercise?.rir, selectedExercise?.tempo, lang)}` : ''}
               </p>
             </div>
 
