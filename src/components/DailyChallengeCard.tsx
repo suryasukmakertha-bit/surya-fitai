@@ -14,6 +14,7 @@ import {
   type NewMedal,
 } from "@/lib/dailyChallenge";
 import MedalEarnedPopup from "./MedalEarnedPopup";
+import ChallengeTimerPopup from "./challenge/ChallengeTimerPopup";
 
 const DIFF_STYLE: Record<string, { bg: string; color: string }> = {
   mudah: { bg: "rgba(16,185,129,0.15)", color: "#10b981" },
@@ -56,6 +57,7 @@ export default function DailyChallengeCard() {
   const [confettiKey, setConfettiKey] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [medalQueue, setMedalQueue] = useState<NewMedal[]>([]);
+  const [timerOpen, setTimerOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -144,6 +146,9 @@ export default function DailyChallengeCard() {
     <>
       <div
         className="mt-5"
+        onClick={() => { if (!completed) setTimerOpen(true); }}
+        role="button"
+        tabIndex={0}
         style={{
           background: "hsl(var(--surface))",
           border: "0.5px solid rgba(255,107,0,0.2)",
@@ -151,6 +156,7 @@ export default function DailyChallengeCard() {
           padding: 16,
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 16px rgba(0,0,0,0.3)",
           position: "relative",
+          cursor: completed ? "default" : "pointer",
         }}
       >
         <div className="flex items-center justify-between mb-2">
@@ -204,7 +210,7 @@ export default function DailyChallengeCard() {
 
         {!accepted && (
           <button
-            onClick={onAccept}
+            onClick={(e) => { e.stopPropagation(); setTimerOpen(true); }}
             disabled={busy}
             className="w-full font-bold text-white"
             style={{
@@ -219,7 +225,7 @@ export default function DailyChallengeCard() {
 
         {accepted && !completed && (
           <button
-            onClick={onComplete}
+            onClick={(e) => { e.stopPropagation(); setTimerOpen(true); }}
             disabled={busy}
             className="w-full font-bold inline-flex items-center justify-center gap-2"
             style={{
@@ -260,6 +266,27 @@ export default function DailyChallengeCard() {
           </>
         )}
       </div>
+
+      <ChallengeTimerPopup
+        open={timerOpen}
+        onClose={() => setTimerOpen(false)}
+        exerciseName={challenge.exercise_name}
+        difficulty={challenge.difficulty}
+        xpReward={challenge.xp_reward}
+        fallbackTarget={challenge.target_reps}
+        challengeDate={challenge.challenge_date}
+        alreadyCompleted={completed}
+        onCompleted={() => {
+          setProgress({
+            accepted_at: progress?.accepted_at || new Date().toISOString(),
+            completed_at: new Date().toISOString(),
+            xp_earned: challenge.xp_reward,
+          });
+          setConfettiKey((k) => k + 1);
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 900);
+        }}
+      />
 
       {medalQueue.length > 0 && (
         <MedalEarnedPopup
