@@ -54,27 +54,6 @@ function Eyes({ mood }: { mood: SunyMood }) {
   }
 }
 
-function Mouth({ mood }: { mood: SunyMood }) {
-  const stroke = "#0a0a0a";
-  switch (mood) {
-    case "excited":
-      return <path d="M62 138 Q80 152 98 138" stroke={stroke} strokeWidth="2.5" fill="none" strokeLinecap="round" />;
-    case "focused":
-      return <line x1="68" y1="142" x2="92" y2="142" stroke={stroke} strokeWidth="2.5" strokeLinecap="round" />;
-    case "hype":
-      return <ellipse cx="80" cy="142" rx="7" ry="6" fill="#0a0a0a" />;
-    case "struggle":
-      return <path d="M62 142 Q70 136 78 142 T94 142" stroke={stroke} strokeWidth="2.5" fill="none" strokeLinecap="round" />;
-    case "celebrate":
-      return (
-        <g>
-          <path d="M58 136 Q80 158 102 136 Z" fill="#0a0a0a" />
-          <rect x="66" y="138" width="28" height="4" fill="#FFFFFF" />
-        </g>
-      );
-  }
-}
-
 const animByMood: Record<SunyMood, string> = {
   excited: "sunyBounce 1.4s ease-in-out infinite",
   focused: "none",
