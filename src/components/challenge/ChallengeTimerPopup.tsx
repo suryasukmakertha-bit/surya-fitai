@@ -105,7 +105,9 @@ export default function ChallengeTimerPopup(props: Props) {
 
   const entry: ChallengePoolEntry | null = findChallengeEntry(props.exerciseName);
   const kind: "reps" | "time" = entry?.kind ?? "reps";
-  const target = entry ? entry.targets[props.difficulty] : props.fallbackTarget;
+  // Always use the target value from the daily challenge data (shown on the
+  // dashboard card). Never hardcode from the local pool.
+  const target = props.fallbackTarget;
 
   const exerciseLabel =
     (t as any)[`exerciseName.${props.exerciseName}`] ||

@@ -124,9 +124,6 @@ export default function SunyMascot({ mood, size = 140 }: { mood: SunyMood; size?
           <ellipse cx="46" cy="132" rx="6" ry="9" fill="#1a1a1a" />
           <ellipse cx="114" cy="132" rx="6" ry="9" fill="#1a1a1a" />
 
-          {/* Mouth on body chest area between visor and S */}
-          <Mouth mood={mood} />
-
           {/* Helmet */}
           <ellipse cx="80" cy="72" rx="52" ry="50" fill="url(#sunyHelmet)" stroke="#0a0a0a" strokeWidth="1.2" />
           {/* Visor */}
