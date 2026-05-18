@@ -152,7 +152,6 @@ export default function ExerciseGifPlayer({ exerciseName }: ExerciseGifPlayerPro
           onError={handleImgError}
         />
       </div>
-      <p className="text-muted-foreground/60 text-[10px] text-center py-2">Source: ExerciseDB</p>
     </div>
   );
 }
