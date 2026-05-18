@@ -75,6 +75,25 @@ function GifSkeleton() {
   );
 }
 
+const ASSET_BASE = "https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/";
+const ASSET_FILE: Record<string, string> = {
+  "Push-up": "push-up.gif",
+  "Sit-up": "sit-up.gif",
+  "Squat": "squat.gif",
+  "Lunge": "lunges.gif",
+  "Burpee": "burpees.gif",
+  "Mountain Climber": "mountain-climber.gif",
+  "Jump Squat": "jump-squat.gif",
+  "Crunch": "crunches.gif",
+  "High Knees": "high-knees.gif",
+  "Jumping Jack": "jumping-jack.gif",
+  "Plank": "plank-hold.jpg",
+  "Wall Sit": "wall-sit.jpg",
+  "Dead Hang": "dead-hang.jpg",
+  "Glute Bridge Hold": "glute-bridge-hold.jpg",
+  "Superman Hold": "superman-hold.jpg",
+};
+
 export default function ChallengeTimerPopup(props: Props) {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
@@ -94,7 +113,6 @@ export default function ChallengeTimerPopup(props: Props) {
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [mood, setMood] = useState<SunyMood>("excited");
-  const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [gifLoaded, setGifLoaded] = useState(false);
   const [count, setCount] = useState(0); // for reps
   const [secondsLeft, setSecondsLeft] = useState(target); // for time
@@ -102,6 +120,8 @@ export default function ChallengeTimerPopup(props: Props) {
   const [medalQueue, setMedalQueue] = useState<NewMedal[]>([]);
   const timerRef = useRef<number | null>(null);
   const pausedRef = useRef<boolean>(false);
+
+  const gifUrl = entry && ASSET_FILE[entry.key] ? ASSET_BASE + ASSET_FILE[entry.key] : null;
 
   // Reset state when re-opening
   useEffect(() => {
@@ -118,34 +138,6 @@ export default function ChallengeTimerPopup(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open]);
-
-  // Fetch GIF from ExerciseDB; fallback to existing static map function
-  useEffect(() => {
-    if (!props.open || !entry) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const url = `https://exercisedb.dev/api/v1/exercises/name/${encodeURIComponent(entry.apiName)}?limit=1&offset=0`;
-        const r = await fetch(url);
-        if (r.ok) {
-          const json: any = await r.json();
-          const arr = Array.isArray(json) ? json : json?.data || json?.exercises || [];
-          const first = Array.isArray(arr) ? arr[0] : null;
-          const g = first?.gifUrl || first?.gif_url;
-          if (!cancelled && g) { setGifUrl(g); return; }
-        }
-      } catch {}
-      // Fallback via existing edge function (returns static jpg)
-      try {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { data } = await supabase.functions.invoke("exercise-gif-lookup", {
-          body: { exerciseName: entry.key },
-        });
-        if (!cancelled && data?.gifUrl) setGifUrl(data.gifUrl);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [props.open, entry]);
 
   // Page Visibility: pause timer when tab hidden
   useEffect(() => {
