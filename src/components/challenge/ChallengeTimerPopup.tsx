@@ -75,6 +75,25 @@ function GifSkeleton() {
   );
 }
 
+const ASSET_BASE = "https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/";
+const ASSET_FILE: Record<string, string> = {
+  "Push-up": "push-up.gif",
+  "Sit-up": "sit-up.gif",
+  "Squat": "squat.gif",
+  "Lunge": "lunges.gif",
+  "Burpee": "burpees.gif",
+  "Mountain Climber": "mountain-climber.gif",
+  "Jump Squat": "jump-squat.gif",
+  "Crunch": "crunches.gif",
+  "High Knees": "high-knees.gif",
+  "Jumping Jack": "jumping-jack.gif",
+  "Plank": "plank-hold.jpg",
+  "Wall Sit": "wall-sit.jpg",
+  "Dead Hang": "dead-hang.jpg",
+  "Glute Bridge Hold": "glute-bridge-hold.jpg",
+  "Superman Hold": "superman-hold.jpg",
+};
+
 export default function ChallengeTimerPopup(props: Props) {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
@@ -94,7 +113,6 @@ export default function ChallengeTimerPopup(props: Props) {
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [mood, setMood] = useState<SunyMood>("excited");
-  const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [gifLoaded, setGifLoaded] = useState(false);
   const [count, setCount] = useState(0); // for reps
   const [secondsLeft, setSecondsLeft] = useState(target); // for time
@@ -102,6 +120,8 @@ export default function ChallengeTimerPopup(props: Props) {
   const [medalQueue, setMedalQueue] = useState<NewMedal[]>([]);
   const timerRef = useRef<number | null>(null);
   const pausedRef = useRef<boolean>(false);
+
+  const gifUrl = entry && ASSET_FILE[entry.key] ? ASSET_BASE + ASSET_FILE[entry.key] : null;
 
   // Reset state when re-opening
   useEffect(() => {
@@ -118,34 +138,6 @@ export default function ChallengeTimerPopup(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open]);
-
-  // Fetch GIF from ExerciseDB; fallback to existing static map function
-  useEffect(() => {
-    if (!props.open || !entry) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const url = `https://exercisedb.dev/api/v1/exercises/name/${encodeURIComponent(entry.apiName)}?limit=1&offset=0`;
-        const r = await fetch(url);
-        if (r.ok) {
-          const json: any = await r.json();
-          const arr = Array.isArray(json) ? json : json?.data || json?.exercises || [];
-          const first = Array.isArray(arr) ? arr[0] : null;
-          const g = first?.gifUrl || first?.gif_url;
-          if (!cancelled && g) { setGifUrl(g); return; }
-        }
-      } catch {}
-      // Fallback via existing edge function (returns static jpg)
-      try {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { data } = await supabase.functions.invoke("exercise-gif-lookup", {
-          body: { exerciseName: entry.key },
-        });
-        if (!cancelled && data?.gifUrl) setGifUrl(data.gifUrl);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [props.open, entry]);
 
   // Page Visibility: pause timer when tab hidden
   useEffect(() => {
@@ -252,11 +244,6 @@ export default function ChallengeTimerPopup(props: Props) {
 
   if (!props.open) return null;
 
-  const sourceCredit =
-    lang === "id" ? "Sumber: ExerciseDB (exercisedb.dev)"
-      : lang === "zh" ? "来源: ExerciseDB (exercisedb.dev)"
-      : "Source: ExerciseDB (exercisedb.dev)";
-
   const startLabel = lang === "id" ? "Mulai" : lang === "zh" ? "开始" : "Start";
   const closeLabel = lang === "id" ? "Keren!" : lang === "zh" ? "太棒了!" : "Awesome!";
   const tapToCount =
@@ -290,9 +277,10 @@ export default function ChallengeTimerPopup(props: Props) {
             color: "hsl(var(--foreground))",
             border: "1px solid rgba(255,106,0,0.35)",
             borderRadius: 20,
-            padding: 20,
             width: "100%", maxWidth: 380,
-            maxHeight: "92vh", overflowY: "auto",
+            maxHeight: "calc(100vh - 120px)",
+            display: "flex", flexDirection: "column",
+            overflow: "hidden",
             boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
             position: "relative",
           }}
@@ -301,7 +289,7 @@ export default function ChallengeTimerPopup(props: Props) {
             onClick={() => { cancelSpeech(); props.onClose(); }}
             aria-label="Close"
             style={{
-              position: "absolute", top: 10, right: 10,
+              position: "absolute", top: 10, right: 10, zIndex: 2,
               width: 32, height: 32, borderRadius: 16,
               background: "rgba(255,255,255,0.06)",
               border: "1px solid rgba(255,255,255,0.1)",
@@ -312,6 +300,7 @@ export default function ChallengeTimerPopup(props: Props) {
             <X size={16} />
           </button>
 
+          <div style={{ overflowY: "auto", padding: 20, paddingBottom: phase === "intro" ? 8 : 20, flex: 1 }}>
           {/* INTRO */}
           {phase === "intro" && (
             <>
@@ -347,25 +336,10 @@ export default function ChallengeTimerPopup(props: Props) {
                 )}
                 {gifUrl && !gifLoaded && <GifSkeleton />}
               </div>
-              <p style={{ textAlign: "center", marginTop: 6, fontSize: 10, color: "hsl(var(--muted-foreground))" }}>
-                {sourceCredit}
-              </p>
 
               <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
                 <SunyMascot mood="excited" size={120} />
               </div>
-
-              <button
-                onClick={() => setPhase("countdown")}
-                style={{
-                  marginTop: 14, width: "100%",
-                  background: "linear-gradient(90deg,#ff6b00,#ff3d7f)",
-                  color: "#fff", fontWeight: 800, fontSize: 16,
-                  padding: 14, borderRadius: 12, border: "none",
-                }}
-              >
-                {startLabel}
-              </button>
             </>
           )}
 
@@ -441,6 +415,27 @@ export default function ChallengeTimerPopup(props: Props) {
                 }}
               >
                 {closeLabel}
+              </button>
+            </div>
+          )}
+          </div>
+
+          {phase === "intro" && (
+            <div style={{
+              padding: 16,
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              background: "hsl(var(--background))",
+            }}>
+              <button
+                onClick={() => setPhase("countdown")}
+                style={{
+                  width: "100%",
+                  background: "linear-gradient(90deg,#ff6b00,#ff3d7f)",
+                  color: "#fff", fontWeight: 800, fontSize: 16,
+                  padding: 14, borderRadius: 12, border: "none",
+                }}
+              >
+                {startLabel}
               </button>
             </div>
           )}
