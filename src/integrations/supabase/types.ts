@@ -786,6 +786,7 @@ export type Database = {
         }
         Returns: number
       }
+      complete_daily_challenge: { Args: never; Returns: Json }
       get_or_create_daily_challenge: {
         Args: never
         Returns: {

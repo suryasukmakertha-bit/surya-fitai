@@ -95,24 +95,10 @@ export async function completeChallenge(
   xpReward: number
 ): Promise<void> {
   const sb = supabase as any;
-  const now = new Date().toISOString();
-  await sb
-    .from("user_challenge_progress")
-    .upsert(
-      {
-        user_id: userId,
-        challenge_date: date,
-        accepted_at: now,
-        completed_at: now,
-        xp_earned: xpReward,
-      },
-      { onConflict: "user_id,challenge_date" }
-    );
-
-  // XP awarded server-side via secure RPC
-  if (xpReward > 0) {
-    await sb.rpc("increment_user_xp", { p_user_id: userId, p_xp: xpReward });
-  }
+  // Completion + XP award handled atomically server-side.
+  // xp_earned and completed_at are not client-writable.
+  void userId; void date; void xpReward;
+  await sb.rpc("complete_daily_challenge");
 }
 
 export interface NewMedal {
