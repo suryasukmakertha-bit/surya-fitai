@@ -16,6 +16,7 @@ import FeedbackModal from "@/components/FeedbackModal";
 import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 import MedalsList from "@/components/medals/MedalsList";
+import { computeLongestStreak, getRestDayIndices } from "@/lib/streak";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -60,10 +61,11 @@ export default function Profile() {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const [{ data: profile }, { data: completions }, { count: planCount }] = await Promise.all([
+      const [{ data: profile }, { data: completions }, { count: planCount }, { data: latestPlan }] = await Promise.all([
         supabase.from("profiles").select("display_name, avatar_url, created_at").eq("user_id", user.id).maybeSingle(),
         supabase.from("workout_completions").select("workout_date").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(1000),
         supabase.from("saved_plans").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("saved_plans").select("plan_data").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       if (cancelled) return;
       const p = profile as any;
@@ -76,16 +78,9 @@ export default function Profile() {
       const dates = (completions || []).map((r: any) => r.workout_date);
       const total = dates.length;
       const dateSet = new Set<string>(dates);
-      const sorted = Array.from(dateSet).sort(); // asc
-      // Longest consecutive
-      let longest = 0; let cur = 0; let prev: Date | null = null;
-      sorted.forEach((d) => {
-        const cd = new Date(d);
-        if (prev && (cd.getTime() - prev.getTime()) === 86400000) cur += 1;
-        else cur = 1;
-        if (cur > longest) longest = cur;
-        prev = cd;
-      });
+      // Longest streak — rest days skipped (per active plan's weekly split).
+      const restDays = getRestDayIndices((latestPlan as any)?.plan_data);
+      const longest = computeLongestStreak(dateSet, restDays);
       setStats({
         total,
         longestStreak: longest,

@@ -116,6 +116,18 @@ const afternoonBodies: Record<string, string[]> = {
   ],
 };
 
+const eveningTitles: Record<string, string> = {
+  id: "Waktunya latihan malam! 🌙",
+  en: "Time for your evening workout! 🌙",
+  zh: "晚间训练时间到了！🌙",
+};
+
+const eveningBodies: Record<string, string[]> = {
+  id: ["Jangan skip hari ini. Suny nungguin kamu! 💪"],
+  en: ["Don't skip today. Suny is waiting for you! 💪"],
+  zh: ["今天别偷懒，Suny在等你！💪"],
+};
+
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -338,6 +350,14 @@ serve(async (req) => {
     });
   }
 
+  // TEST MODE: ?test=1 bypasses the local-hour gate so delivery can be
+  // verified on demand. Still requires the cron secret / service role above.
+  const url = new URL(req.url);
+  const testMode = url.searchParams.get("test") === "1";
+  if (testMode) {
+    console.log("send-daily-reminders: TEST MODE - hour gate bypassed");
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -406,7 +426,7 @@ serve(async (req) => {
       const updateValue: string = todayStr;
 
       // Morning slot — fires at local hour 07 only, once per day
-      if (hour === 7 && sub.last_morning_sent !== todayStr) {
+      if ((hour === 7 || testMode) && sub.last_morning_sent !== todayStr) {
         payload = {
           title: morningTitles[lang],
           body: pickRandom(morningBodies[lang]),
@@ -422,6 +442,15 @@ serve(async (req) => {
           tag: "suny-afternoon",
         };
         updateField = "last_afternoon_sent";
+      }
+      // Evening slot — fires at local hour 19 only, once per day
+      else if (hour === 19 && sub.last_evening_sent !== todayStr) {
+        payload = {
+          title: eveningTitles[lang],
+          body: pickRandom(eveningBodies[lang]),
+          tag: "suny-evening",
+        };
+        updateField = "last_evening_sent";
       }
 
       if (payload && updateField) {
