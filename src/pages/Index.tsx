@@ -79,20 +79,13 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     let cancelled = false;
     (async () => {
       try {
-        const [{ data: planData, count }, { data: profile }, { data: completions }] = await Promise.all([
+        const [{ data: planData, count }, { data: profile }] = await Promise.all([
           supabase
           .from("saved_plans")
           .select("id, plan_name, program_type, plan_month_number, plan_data, user_info, created_at, plan_started_at", { count: "exact" })
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
           supabase.from("profiles").select("display_name, avatar_url").eq("user_id", user.id).maybeSingle(),
-          supabase
-            .from("workout_completions")
-            .select("workout_date, day_label")
-            .eq("user_id", user.id)
-            .eq("completed", true)
-            .order("workout_date", { ascending: false })
-            .limit(500),
         ]);
         if (cancelled) return;
         const plans = planData || [];
@@ -105,37 +98,8 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         setDisplayName(((profile as any)?.display_name as string) || "");
         setAvatarUrl(((profile as any)?.avatar_url as string) || null);
 
-        // Compute stats
-        const all = completions || [];
-        const total = all.length;
-        // Streak: consecutive scheduled-workout days completed, skipping rest days.
-        const activePlanForStreak = stored || plans[0] || null;
-        const restDays = getRestDayIndices(activePlanForStreak?.plan_data);
-        const streak = computeCurrentStreak(
-          all.map((r: any) => r.workout_date),
-          restDays
-        );
-        // Active days this week (Mon-based)
-        const now = new Date();
-        const dayIdx = (now.getDay() + 6) % 7; // Mon=0
-        const monday = new Date(now); monday.setDate(now.getDate() - dayIdx); monday.setHours(0,0,0,0);
-        const weekDates = new Set<string>();
-        all.forEach((r: any) => {
-          const d = new Date(r.workout_date);
-          if (d >= monday) weekDates.add(r.workout_date);
-        });
-        setStats({ total, streak, activeDaysWeek: weekDates.size });
-
-        // Last workout
-        if (all.length > 0) {
-          const lastDate = all[0].workout_date as string;
-          const sameDay = all.filter((r: any) => r.workout_date === lastDate);
-          setLastWorkout({
-            date: lastDate,
-            day_label: (sameDay[0] as any).day_label || "",
-            count: sameDay.length,
-          });
-        }
+        setStats({ total: 0, streak: 0, activeDaysWeek: 0 });
+        setLastWorkout(null);
       } finally {
         if (!cancelled) setLoadingPlans(false);
       }
