@@ -118,18 +118,58 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   useEffect(() => {
     if (!user || !activePlan) {
       setPlanStats({ completedDays: 0, totalDays: 28, currentWeek: 1, totalWeeks: 4 });
+      setStats({ total: 0, streak: 0, activeDaysWeek: 0 });
+      setLastWorkout(null);
       return;
     }
     let cancelled = false;
     (async () => {
-      const p = await getPlanProgress(user.id, activePlan);
+      let completionsQuery = supabase
+        .from("workout_completions")
+        .select("workout_date, day_label, completed_at")
+        .eq("user_id", user.id)
+        .eq("plan_id", activePlan.id)
+        .eq("completed", true)
+        .order("workout_date", { ascending: false })
+        .limit(500);
+      if (activePlan.plan_started_at) {
+        completionsQuery = completionsQuery.gte("completed_at", activePlan.plan_started_at);
+      }
+      const [p, { data: completions }] = await Promise.all([
+        getPlanProgress(user.id, activePlan),
+        completionsQuery,
+      ]);
       if (cancelled) return;
+      const all = completions || [];
+      const completedDates = Array.from(new Set(all.map((r: any) => r.workout_date)));
+      const restDays = getRestDayIndices(activePlan.plan_data);
+      const streak = computeCurrentStreak(completedDates, restDays);
+      const now = new Date();
+      const dayIdx = (now.getDay() + 6) % 7;
+      const monday = new Date(now); monday.setDate(now.getDate() - dayIdx); monday.setHours(0,0,0,0);
+      const weekDates = new Set<string>();
+      completedDates.forEach((date) => {
+        const d = new Date(`${date}T00:00:00`);
+        if (d >= monday) weekDates.add(date);
+      });
       setPlanStats({
         completedDays: p.completedDays,
         totalDays: p.totalDays,
         currentWeek: p.currentWeek,
         totalWeeks: p.totalWeeks,
       });
+      setStats({ total: p.completedDays, streak, activeDaysWeek: weekDates.size });
+      if (all.length > 0) {
+        const lastDate = all[0].workout_date as string;
+        const sameDay = all.filter((r: any) => r.workout_date === lastDate);
+        setLastWorkout({
+          date: lastDate,
+          day_label: (sameDay[0] as any).day_label || "",
+          count: sameDay.length,
+        });
+      } else {
+        setLastWorkout(null);
+      }
     })();
     return () => { cancelled = true; };
   }, [user, activePlan]);
