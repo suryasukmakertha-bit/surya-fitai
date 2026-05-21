@@ -143,7 +143,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
       const all = completions || [];
       const completedDates = Array.from(new Set(all.map((r: any) => r.workout_date)));
       const restDays = getRestDayIndices(activePlan.plan_data);
-      const streak = computeCurrentStreak(completedDates, restDays);
+      const streak = Math.min(computeCurrentStreak(completedDates, restDays), p.completedDays);
       const now = new Date();
       const dayIdx = (now.getDay() + 6) % 7;
       const monday = new Date(now); monday.setDate(now.getDate() - dayIdx); monday.setHours(0,0,0,0);
