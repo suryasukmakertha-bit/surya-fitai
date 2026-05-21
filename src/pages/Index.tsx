@@ -108,17 +108,13 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         // Compute stats
         const all = completions || [];
         const total = all.length;
-        // Streak: consecutive days ending today (or yesterday if no today)
-        const dateSet = new Set(all.map((r: any) => r.workout_date));
-        let streak = 0;
-        let cursor = new Date();
-        // If no workout today, allow start from yesterday
-        const fmt = (d: Date) => d.toISOString().slice(0, 10);
-        if (!dateSet.has(fmt(cursor))) cursor.setDate(cursor.getDate() - 1);
-        while (dateSet.has(fmt(cursor))) {
-          streak += 1;
-          cursor.setDate(cursor.getDate() - 1);
-        }
+        // Streak: consecutive scheduled-workout days completed, skipping rest days.
+        const activePlanForStreak = stored || plans[0] || null;
+        const restDays = getRestDayIndices(activePlanForStreak?.plan_data);
+        const streak = computeCurrentStreak(
+          all.map((r: any) => r.workout_date),
+          restDays
+        );
         // Active days this week (Mon-based)
         const now = new Date();
         const dayIdx = (now.getDay() + 6) % 7; // Mon=0
