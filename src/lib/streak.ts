@@ -5,6 +5,7 @@
  * Mon-based: index 0 = Monday ... index 6 = Sunday). Entries whose label
  * contains "rest" / "istirahat" / "休息" are treated as scheduled rest.
  *
+ * - Streak increments ONLY on unique dates with completed workout entries.
  * - Rest days NEVER break the streak — they are skipped entirely.
  * - Only a missed scheduled workout day resets the streak.
  */
@@ -39,6 +40,15 @@ function fmtLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function completedDateSet(completedDates: Iterable<string>): Set<string> {
+  const set = new Set<string>();
+  for (const value of completedDates) {
+    const key = typeof value === "string" ? value.slice(0, 10) : "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key)) set.add(key);
+  }
+  return set;
+}
+
 /**
  * Current streak ending today (or yesterday if today has no workout yet).
  * Walks backwards; rest days are skipped, missed scheduled days break.
@@ -47,7 +57,8 @@ export function computeCurrentStreak(
   completedDates: Iterable<string>,
   restDays: Set<number>
 ): number {
-  const set = new Set(completedDates);
+  const set = completedDateSet(completedDates);
+  if (set.size === 0) return 0;
   const cursor = new Date();
   cursor.setHours(0, 0, 0, 0);
 
@@ -73,7 +84,7 @@ export function computeCurrentStreak(
       break;
     }
   }
-  return streak;
+  return Math.min(streak, set.size);
 }
 
 /**
@@ -84,7 +95,7 @@ export function computeLongestStreak(
   completedDates: Iterable<string>,
   restDays: Set<number>
 ): number {
-  const set = new Set(completedDates);
+  const set = completedDateSet(completedDates);
   if (set.size === 0) return 0;
   const sorted = Array.from(set).sort();
   const start = new Date(sorted[0] + "T00:00:00");
@@ -106,7 +117,7 @@ export function computeLongestStreak(
     }
     cursor.setDate(cursor.getDate() + 1);
   }
-  return longest;
+  return Math.min(longest, set.size);
 }
 
 // Re-export helper for callers that already have a date string.
