@@ -61,11 +61,10 @@ export default function Profile() {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const [{ data: profile }, { data: completions }, { count: planCount }, { data: latestPlan }] = await Promise.all([
+      const [{ data: profile }, { data: completions }, { data: plans, count: planCount }] = await Promise.all([
         supabase.from("profiles").select("display_name, avatar_url, created_at").eq("user_id", user.id).maybeSingle(),
-        supabase.from("workout_completions").select("workout_date").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(1000),
-        supabase.from("saved_plans").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("saved_plans").select("plan_data").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("workout_completions").select("workout_date, plan_id, completed_at").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(1000),
+        supabase.from("saved_plans").select("id, plan_data, plan_started_at", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
       const p = profile as any;
@@ -75,11 +74,17 @@ export default function Profile() {
       setMemberSince(p?.created_at || user.created_at || "");
 
       // Stats
-      const dates = (completions || []).map((r: any) => r.workout_date);
+      const activePlanKey = `surya:activePlanId:${user.id}`;
+      const storedPlanId = localStorage.getItem(activePlanKey);
+      const activePlan = storedPlanId ? (plans || []).find((p: any) => p.id === storedPlanId) : (plans || [])[0];
+      const activeCompletions = activePlan
+        ? (completions || []).filter((r: any) => r.plan_id === activePlan.id && (!activePlan.plan_started_at || !r.completed_at || r.completed_at >= activePlan.plan_started_at))
+        : (completions || []);
+      const dates = activeCompletions.map((r: any) => r.workout_date);
       const total = dates.length;
       const dateSet = new Set<string>(dates);
       // Longest streak — rest days skipped (per active plan's weekly split).
-      const restDays = getRestDayIndices((latestPlan as any)?.plan_data);
+      const restDays = getRestDayIndices((activePlan as any)?.plan_data);
       const longest = computeLongestStreak(dateSet, restDays);
       setStats({
         total,
