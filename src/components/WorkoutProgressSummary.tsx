@@ -3,7 +3,8 @@ import { Flame, Calendar, Trophy, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
+import { format, subDays, eachDayOfInterval } from "date-fns";
+import { computeCurrentStreak, getRestDayIndices } from "@/lib/streak";
 import {
   ResponsiveContainer,
   BarChart,
@@ -75,46 +76,39 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       setTotalCompleted(data.length);
     }
 
-    // Streak calculation
+    // Streak calculation — rest days are skipped (per plan's weekly split).
     let streakQuery = supabase
       .from("workout_completions")
       .select("workout_date")
       .eq("completed", true)
       .order("workout_date", { ascending: false });
-
-    if (planId) {
-      streakQuery = streakQuery.eq("plan_id", planId);
-    }
-
+    if (planId) streakQuery = streakQuery.eq("plan_id", planId);
     const { data: allDates } = await streakQuery;
 
-    if (allDates && allDates.length > 0) {
-      const uniqueDates = [...new Set(allDates.map((d) => d.workout_date))].sort().reverse();
-      let currentStreak = 0;
-      let checkDate = startOfDay(new Date());
-
-      for (const dateStr of uniqueDates) {
-        const expected = format(checkDate, "yyyy-MM-dd");
-        if (dateStr === expected) {
-          currentStreak++;
-          checkDate = subDays(checkDate, 1);
-        } else if (dateStr < expected) {
-          if (currentStreak === 0) {
-            checkDate = subDays(checkDate, 1);
-            const prevExpected = format(checkDate, "yyyy-MM-dd");
-            if (dateStr === prevExpected) {
-              currentStreak++;
-              checkDate = subDays(checkDate, 1);
-            } else {
-              break;
-            }
-          } else {
-            break;
-          }
-        }
-      }
-      setStreak(currentStreak);
+    let restDays = new Set<number>();
+    if (planId) {
+      const { data: planRow } = await supabase
+        .from("saved_plans")
+        .select("plan_data")
+        .eq("id", planId)
+        .maybeSingle();
+      restDays = getRestDayIndices((planRow as any)?.plan_data);
+    } else {
+      const { data: latestPlan } = await supabase
+        .from("saved_plans")
+        .select("plan_data")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      restDays = getRestDayIndices((latestPlan as any)?.plan_data);
     }
+
+    setStreak(
+      computeCurrentStreak(
+        (allDates || []).map((d: any) => d.workout_date),
+        restDays
+      )
+    );
 
     setLoading(false);
   };
