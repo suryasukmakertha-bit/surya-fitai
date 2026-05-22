@@ -99,7 +99,7 @@ export default function SunyMascot({ mood, size = 140 }: { mood: SunyMood; size?
 
           {/* Body */}
           <rect x="50" y="118" width="60" height="44" rx="14" fill="url(#sunyBody)" stroke="#0a0a0a" strokeWidth="1.2" />
-          <text x="80" y="156" textAnchor="middle" fontFamily="Plus Jakarta Sans, sans-serif" fontWeight="800" fontSize="14" fill="#FF6A00">S</text>
+          <text x="80" y="140" textAnchor="middle" dominantBaseline="central" fontFamily="Plus Jakarta Sans, sans-serif" fontWeight="800" fontSize="28" fill="#FF6A00">S</text>
           <ellipse cx="46" cy="132" rx="6" ry="9" fill="#1a1a1a" />
           <ellipse cx="114" cy="132" rx="6" ry="9" fill="#1a1a1a" />
 
