@@ -470,6 +470,16 @@ const translations = {
     "medal.png.header": "SURYA-FITAI · ACHIEVEMENT",
     "medal.png.tagline": "AI-POWERED. YOU. LIMITLESS.",
 
+    // Medal progress labels
+    "medal.progress.locked": "Locked",
+    "medal.progress.challenges": "{{n}}/{{total}} challenges",
+    "medal.progress.streak": "{{n}}/{{total}} day streak",
+    "medal.progress.sessions": "{{n}}/{{total}} session",
+    "medal.progress.sessionsPlural": "{{n}}/{{total}} sessions",
+    "medal.progress.km": "{{n}}/{{total}} km",
+    "medal.progress.programs": "{{n}}/{{total}} program",
+    "medal.progress.days": "{{n}}/{{total}} consecutive days",
+
     // Running / Cycling tracker
     "running.title": "Running",
     "running.start": "Start Run",
@@ -982,6 +992,15 @@ const translations = {
     "medal.png.header": "SURYA-FITAI · PENCAPAIAN",
     "medal.png.tagline": "AI-POWERED. YOU. LIMITLESS.",
 
+    "medal.progress.locked": "Terkunci",
+    "medal.progress.challenges": "{{n}}/{{total}} tantangan",
+    "medal.progress.streak": "{{n}}/{{total}} hari streak",
+    "medal.progress.sessions": "{{n}}/{{total}} sesi",
+    "medal.progress.sessionsPlural": "{{n}}/{{total}} sesi",
+    "medal.progress.km": "{{n}}/{{total}} km",
+    "medal.progress.programs": "{{n}}/{{total}} program",
+    "medal.progress.days": "{{n}}/{{total}} hari berturut-turut",
+
     // Running / Cycling tracker
     "running.title": "Lari",
     "running.start": "Mulai Lari",
@@ -1493,6 +1512,15 @@ const translations = {
 
     "medal.png.header": "SURYA-FITAI · 成就",
     "medal.png.tagline": "AI驱动. 专注于你. 无限可能.",
+
+    "medal.progress.locked": "未解锁",
+    "medal.progress.challenges": "{{n}}/{{total}} 挑战",
+    "medal.progress.streak": "{{n}}/{{total}} 天连击",
+    "medal.progress.sessions": "{{n}}/{{total}} 次",
+    "medal.progress.sessionsPlural": "{{n}}/{{total}} 次",
+    "medal.progress.km": "{{n}}/{{total}} 公里",
+    "medal.progress.programs": "{{n}}/{{total}} 计划",
+    "medal.progress.days": "{{n}}/{{total}} 连续天数",
 
     // Running / Cycling tracker
     "running.title": "跑步",
