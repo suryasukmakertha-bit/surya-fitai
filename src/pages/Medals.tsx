@@ -11,7 +11,14 @@ import { downloadMedalPng } from "@/lib/medalImage";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPlanProgress } from "@/lib/planProgress";
-import { checkPlanCompletionMedal } from "@/lib/dailyChallenge";
+import {
+  checkPlanCompletionMedal,
+  checkAndAwardMedals,
+  checkWorkoutStreakMedals,
+  checkFirstGenerateMedal,
+  checkActivityMedals,
+  checkCheckinMedals,
+} from "@/lib/dailyChallenge";
 
 interface UserMedal {
   id: string;
@@ -64,13 +71,15 @@ export default function Medals() {
     if (!user) return;
     (async () => {
       const sb = supabase as any;
-      const [challenges, workouts, runAgg, rideAgg, rideCount, plans] = await Promise.all([
+      const [challenges, workouts, runAgg, rideAgg, runCount, rideCount, plans, checkins] = await Promise.all([
         sb.from("user_challenge_progress").select("id", { count: "exact", head: true }).eq("user_id", user.id).not("completed_at", "is", null),
         sb.from("workout_completions").select("workout_date").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(500),
         sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "running"),
         sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "cycling"),
+        sb.from("activity_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("activity_type", "running"),
         sb.from("activity_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("activity_type", "cycling"),
         sb.from("saved_plans").select("id, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+        sb.from("progress_checkins").select("date").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
       ]);
 
       const challengeCount = challenges.count || 0;
@@ -84,38 +93,57 @@ export default function Medals() {
       let streak = 0;
       while (dateSet.has(fmt(cursor))) { streak++; cursor.setDate(cursor.getDate() - 1); }
 
+      // Check-in consecutive streak
+      const cinSet = new Set<string>((checkins.data || []).map((r: any) => r.date));
+      const cinCursor = new Date();
+      if (!cinSet.has(fmt(cinCursor))) cinCursor.setDate(cinCursor.getDate() - 1);
+      let checkinStreak = 0;
+      while (cinSet.has(fmt(cinCursor))) { checkinStreak++; cinCursor.setDate(cinCursor.getDate() - 1); }
+
       const totalRunKm = (runAgg.data || []).reduce((s: number, r: any) => s + Number(r.distance_km || 0), 0);
       const totalRideKm = (rideAgg.data || []).reduce((s: number, r: any) => s + Number(r.distance_km || 0), 0);
+      const runningSessions = runCount.count || 0;
       const cyclingSessions = rideCount.count || 0;
+      const planCount = (plans.data || []).length;
 
       // Target Tercapai: count fully completed plans
       const completedPlansCount = (plans.data || []).filter((p: any) => p.plan_completed_at !== null).length;
 
-      // Auto-unlock medal if eligible
-      if (completedPlansCount >= 1) {
-        const awarded = await checkPlanCompletionMedal(user.id);
-        if (awarded.length > 0) load();
+      // Auto-unlock any medal the user already qualifies for
+      const awardJobs: Promise<any[]>[] = [];
+      if (planCount >= 1) awardJobs.push(checkFirstGenerateMedal(user.id));
+      if (challengeCount >= 1) awardJobs.push(checkAndAwardMedals(user.id));
+      if (streak >= 3) awardJobs.push(checkWorkoutStreakMedals(user.id));
+      if (completedPlansCount >= 1) awardJobs.push(checkPlanCompletionMedal(user.id));
+      if (runningSessions >= 1) awardJobs.push(checkActivityMedals(user.id, "running", totalRunKm));
+      if (cyclingSessions >= 1) awardJobs.push(checkActivityMedals(user.id, "cycling", totalRideKm));
+      if (awardJobs.length > 0) {
+        const results = await Promise.all(awardJobs);
+        if (results.some((r) => Array.isArray(r) && r.length > 0)) load();
       }
 
-      const sesiWord = lang === "id" ? "sesi" : lang === "zh" ? "次" : "session";
-      const tantanganWord = lang === "id" ? "tantangan" : lang === "zh" ? "挑战" : "challenges";
-      const streakWord = lang === "id" ? "hari streak" : lang === "zh" ? "天连击" : "day streak";
-      const planCompletedLabel = lang === "id"
-        ? `${completedPlansCount}/1 plan selesai`
-        : lang === "zh"
-        ? `${completedPlansCount}/1 计划完成`
-        : `${completedPlansCount}/1 plan completed`;
+      const lbl = (key: string, n: number | string, total: number) =>
+        tt(key, { n, total });
 
       setLockedProgress({
-        DAILY_30:    { current: challengeCount, total: 30, label: `${Math.min(challengeCount, 30)}/30 ${tantanganWord}` },
-        STREAK_30:   { current: streak,         total: 30, label: `${Math.min(streak, 30)}/30 ${streakWord}` },
-        WEIGHT_GOAL: { current: completedPlansCount, total: 1, label: planCompletedLabel },
-        RUN_10K:     { current: totalRunKm,     total: 10, label: `${totalRunKm.toFixed(1)}/10 km` },
-        FIRST_RIDE:  { current: Math.min(cyclingSessions, 1), total: 1, label: `${Math.min(cyclingSessions, 1)}/1 ${sesiWord}` },
-        RIDE_20K:    { current: totalRideKm,    total: 20, label: `${totalRideKm.toFixed(1)}/20 km` },
+        FIRST_GENERATE:   { current: Math.min(planCount, 1),         total: 1,  label: lbl("medal.progress.programs", Math.min(planCount, 1), 1) },
+        DAILY_1:          { current: Math.min(challengeCount, 1),    total: 1,  label: lbl("medal.progress.challenges", Math.min(challengeCount, 1), 1) },
+        DAILY_7:          { current: Math.min(challengeCount, 7),    total: 7,  label: lbl("medal.progress.challenges", Math.min(challengeCount, 7), 7) },
+        DAILY_30:         { current: Math.min(challengeCount, 30),   total: 30, label: lbl("medal.progress.challenges", Math.min(challengeCount, 30), 30) },
+        STREAK_3:         { current: Math.min(streak, 3),            total: 3,  label: lbl("medal.progress.streak", Math.min(streak, 3), 3) },
+        STREAK_7:         { current: Math.min(streak, 7),            total: 7,  label: lbl("medal.progress.streak", Math.min(streak, 7), 7) },
+        STREAK_30:        { current: Math.min(streak, 30),           total: 30, label: lbl("medal.progress.streak", Math.min(streak, 30), 30) },
+        PROGRAM_COMPLETE: { current: Math.min(completedPlansCount, 1), total: 1, label: lbl("medal.progress.programs", Math.min(completedPlansCount, 1), 1) },
+        WEIGHT_GOAL:      { current: Math.min(completedPlansCount, 1), total: 1, label: lbl("medal.progress.programs", Math.min(completedPlansCount, 1), 1) },
+        CHECKIN_14:       { current: Math.min(checkinStreak, 14),    total: 14, label: lbl("medal.progress.days", Math.min(checkinStreak, 14), 14) },
+        FIRST_RUN:        { current: Math.min(runningSessions, 1),   total: 1,  label: lbl("medal.progress.sessions", Math.min(runningSessions, 1), 1) },
+        RUN_5K:           { current: Math.min(totalRunKm, 5),        total: 5,  label: lbl("medal.progress.km", totalRunKm.toFixed(1), 5) },
+        RUN_10K:          { current: Math.min(totalRunKm, 10),       total: 10, label: lbl("medal.progress.km", totalRunKm.toFixed(1), 10) },
+        FIRST_RIDE:       { current: Math.min(cyclingSessions, 1),   total: 1,  label: lbl("medal.progress.sessions", Math.min(cyclingSessions, 1), 1) },
+        RIDE_20K:         { current: Math.min(totalRideKm, 20),      total: 20, label: lbl("medal.progress.km", totalRideKm.toFixed(1), 20) },
       });
     })().catch(() => {});
-  }, [user, lang]);
+  }, [user, lang, load]);
 
   if (!user) return null;
 
@@ -217,7 +245,7 @@ export default function Medals() {
               const total = prog?.total ?? m.progressHint?.total ?? 1;
               const current = prog?.current ?? 0;
               const pct = Math.max(0, Math.min(100, (current / total) * 100));
-              const labelText = prog?.label ?? m.progressHint?.label ?? "Terkunci";
+              const labelText = prog?.label ?? tt("medal.progress.locked");
               return (
               <div key={m.medal_id} style={{
                 height: 140, borderRadius: 14, padding: 12,
