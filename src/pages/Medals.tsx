@@ -134,7 +134,6 @@ export default function Medals() {
         STREAK_7:         { current: Math.min(streak, 7),            total: 7,  label: lbl("medal.progress.streak", Math.min(streak, 7), 7) },
         STREAK_30:        { current: Math.min(streak, 30),           total: 30, label: lbl("medal.progress.streak", Math.min(streak, 30), 30) },
         PROGRAM_COMPLETE: { current: Math.min(completedPlansCount, 1), total: 1, label: lbl("medal.progress.programs", Math.min(completedPlansCount, 1), 1) },
-        WEIGHT_GOAL:      { current: Math.min(completedPlansCount, 1), total: 1, label: lbl("medal.progress.programs", Math.min(completedPlansCount, 1), 1) },
         CHECKIN_14:       { current: Math.min(checkinStreak, 14),    total: 14, label: lbl("medal.progress.days", Math.min(checkinStreak, 14), 14) },
         FIRST_RUN:        { current: Math.min(runningSessions, 1),   total: 1,  label: lbl("medal.progress.sessions", Math.min(runningSessions, 1), 1) },
         RUN_5K:           { current: Math.min(totalRunKm, 5),        total: 5,  label: lbl("medal.progress.km", totalRunKm.toFixed(1), 5) },

@@ -14,7 +14,6 @@ export const ALL_MEDALS: MedalDef[] = [
   { medal_id: "STREAK_7",  medal_name: "Minggu Penuh Api",   medal_tier: "silver", medal_description: "Latihan 7 hari berturut-turut",  progressHint: { label: "0/7 hari streak", total: 7 } },
   { medal_id: "STREAK_30", medal_name: "Unstoppable",        medal_tier: "gold",   medal_description: "Latihan 30 hari berturut-turut", progressHint: { label: "0/30 hari streak", total: 30 } },
   { medal_id: "PROGRAM_COMPLETE", medal_name: "Program Tamat", medal_tier: "silver", medal_description: "Menyelesaikan satu program penuh", progressHint: { label: "0/1 program", total: 1 } },
-  { medal_id: "WEIGHT_GOAL", medal_name: "Target Tercapai", medal_tier: "gold", medal_description: "Mencapai target berat badan", progressHint: { label: "Belum tercapai", total: 1 } },
   { medal_id: "CHECKIN_14",  medal_name: "Konsisten",       medal_tier: "silver", medal_description: "Check-in berat badan 14 hari berturut-turut", progressHint: { label: "0/14 hari", total: 14 } },
   { medal_id: "FIRST_RUN",   medal_name: "Pelari Baru",     medal_tier: "bronze", medal_description: "Menyelesaikan sesi lari pertama", progressHint: { label: "0/1 sesi", total: 1 } },
   { medal_id: "RUN_5K",      medal_name: "5K Finisher",     medal_tier: "silver", medal_description: "Menyelesaikan lari 5 km", progressHint: { label: "0/5 km", total: 5 } },
