@@ -255,7 +255,7 @@ serve(async (req) => {
     });
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: (err as Error).message, gifUrl: null }),
+      JSON.stringify({ error: "Internal server error", gifUrl: null }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
