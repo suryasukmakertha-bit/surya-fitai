@@ -280,6 +280,7 @@ export type Database = {
           free_generate_month: string
           id: string
           last_generate_reset: string | null
+          longest_streak: number
           period_generate_count: number
           trial_generate_count: number
           updated_at: string
@@ -293,6 +294,7 @@ export type Database = {
           free_generate_month?: string
           id?: string
           last_generate_reset?: string | null
+          longest_streak?: number
           period_generate_count?: number
           trial_generate_count?: number
           updated_at?: string
@@ -306,6 +308,7 @@ export type Database = {
           free_generate_month?: string
           id?: string
           last_generate_reset?: string | null
+          longest_streak?: number
           period_generate_count?: number
           trial_generate_count?: number
           updated_at?: string
@@ -777,6 +780,7 @@ export type Database = {
         }
         Returns: Json
       }
+      bump_longest_streak: { Args: { p_value: number }; Returns: number }
       calculate_workout_progress: {
         Args: {
           p_date: string
