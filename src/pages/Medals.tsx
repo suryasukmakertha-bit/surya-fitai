@@ -87,8 +87,7 @@ export default function Medals() {
       const challengeCount = challenges.count || 0;
 
       // Streak shown for STREAK_* medals = historical best across all plans (monotonic).
-      const dates: string[] = (workouts.data || []).map((r: any) => r.workout_date);
-      const dateSet = new Set(dates);
+      void workouts; // kept for future use; no longer needed for streak.
       const fmt = (d: Date) => d.toISOString().slice(0, 10);
       const streak = Number(bestStreak || 0);
 
