@@ -83,9 +83,8 @@ export default function Profile() {
       const dates = activeCompletions.map((r: any) => r.workout_date);
       const total = dates.length;
       const dateSet = new Set<string>(dates);
-      // Longest streak — rest days skipped (per active plan's weekly split).
-      const restDays = getRestDayIndices((activePlan as any)?.plan_data);
-      const longest = computeLongestStreak(dateSet, restDays);
+      // Longest streak = historical best across ALL plans, monotonic (never decreases).
+      const longest = await syncLongestStreak(user.id);
       setStats({
         total,
         longestStreak: longest,
