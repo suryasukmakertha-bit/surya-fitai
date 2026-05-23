@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getPlanProgress } from "@/lib/planProgress";
 import { computeCurrentStreak, getRestDayIndices } from "@/lib/streak";
+import { syncLongestStreak } from "@/lib/longestStreak";
 import DailyChallengeCard from "@/components/DailyChallengeCard";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import FeaturedMedalChip from "@/components/medals/FeaturedMedalChip";
