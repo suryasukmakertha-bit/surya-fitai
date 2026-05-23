@@ -16,7 +16,7 @@ import FeedbackModal from "@/components/FeedbackModal";
 import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 import MedalsList from "@/components/medals/MedalsList";
-import { computeLongestStreak, getRestDayIndices } from "@/lib/streak";
+import { syncLongestStreak } from "@/lib/longestStreak";
 
 export default function Profile() {
   const navigate = useNavigate();
