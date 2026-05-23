@@ -11,6 +11,7 @@ import { downloadMedalPng } from "@/lib/medalImage";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPlanProgress } from "@/lib/planProgress";
+import { syncLongestStreak } from "@/lib/longestStreak";
 import {
   checkPlanCompletionMedal,
   checkAndAwardMedals,
@@ -71,7 +72,7 @@ export default function Medals() {
     if (!user) return;
     (async () => {
       const sb = supabase as any;
-      const [challenges, workouts, runAgg, rideAgg, runCount, rideCount, plans, checkins] = await Promise.all([
+      const [challenges, workouts, runAgg, rideAgg, runCount, rideCount, plans, checkins, bestStreak] = await Promise.all([
         sb.from("user_challenge_progress").select("id", { count: "exact", head: true }).eq("user_id", user.id).not("completed_at", "is", null),
         sb.from("workout_completions").select("workout_date").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(500),
         sb.from("activity_sessions").select("distance_km").eq("user_id", user.id).eq("activity_type", "running"),
@@ -80,18 +81,16 @@ export default function Medals() {
         sb.from("activity_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("activity_type", "cycling"),
         sb.from("saved_plans").select("id, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
         sb.from("progress_checkins").select("date").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
+        syncLongestStreak(user.id),
       ]);
 
       const challengeCount = challenges.count || 0;
 
-      // Streak calc
+      // Streak shown for STREAK_* medals = historical best across all plans (monotonic).
       const dates: string[] = (workouts.data || []).map((r: any) => r.workout_date);
       const dateSet = new Set(dates);
       const fmt = (d: Date) => d.toISOString().slice(0, 10);
-      const cursor = new Date();
-      if (!dateSet.has(fmt(cursor))) cursor.setDate(cursor.getDate() - 1);
-      let streak = 0;
-      while (dateSet.has(fmt(cursor))) { streak++; cursor.setDate(cursor.getDate() - 1); }
+      const streak = Number(bestStreak || 0);
 
       // Check-in consecutive streak
       const cinSet = new Set<string>((checkins.data || []).map((r: any) => r.date));
