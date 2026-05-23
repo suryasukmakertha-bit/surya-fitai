@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format, subDays, eachDayOfInterval } from "date-fns";
-import { computeCurrentStreak, getRestDayIndices } from "@/lib/streak";
+import { syncLongestStreak } from "@/lib/longestStreak";
 import {
   ResponsiveContainer,
   BarChart,
@@ -76,39 +76,8 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       setTotalCompleted(data.length);
     }
 
-    // Streak calculation — rest days are skipped (per plan's weekly split).
-    let streakQuery = supabase
-      .from("workout_completions")
-      .select("workout_date")
-      .eq("completed", true)
-      .order("workout_date", { ascending: false });
-    if (planId) streakQuery = streakQuery.eq("plan_id", planId);
-    const { data: allDates } = await streakQuery;
-
-    let restDays = new Set<number>();
-    if (planId) {
-      const { data: planRow } = await supabase
-        .from("saved_plans")
-        .select("plan_data")
-        .eq("id", planId)
-        .maybeSingle();
-      restDays = getRestDayIndices((planRow as any)?.plan_data);
-    } else {
-      const { data: latestPlan } = await supabase
-        .from("saved_plans")
-        .select("plan_data")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      restDays = getRestDayIndices((latestPlan as any)?.plan_data);
-    }
-
-    setStreak(
-      computeCurrentStreak(
-        (allDates || []).map((d: any) => d.workout_date),
-        restDays
-      )
-    );
+    // Streak shown here = historical best across ALL plans (monotonic).
+    if (user) setStreak(await syncLongestStreak(user.id));
 
     setLoading(false);
   };
