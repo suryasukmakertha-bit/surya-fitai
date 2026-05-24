@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format, subDays, eachDayOfInterval } from "date-fns";
-import { syncLongestStreak } from "@/lib/longestStreak";
+import { computeLongestStreak, getRestDayIndices } from "@/lib/streak";
 import {
   ResponsiveContainer,
   BarChart,
@@ -76,8 +76,24 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       setTotalCompleted(data.length);
     }
 
-    // Streak shown here = historical best across ALL plans (monotonic).
-    if (user) setStreak(await syncLongestStreak(user.id));
+    // Streak shown here = streak for the CURRENT PLAN only (per-plan, isolated).
+    if (user && planId) {
+      const sb = supabase as any;
+      const [{ data: planRow }, { data: planCompletions }] = await Promise.all([
+        sb.from("saved_plans").select("plan_data").eq("id", planId).maybeSingle(),
+        sb.from("workout_completions")
+          .select("workout_date")
+          .eq("user_id", user.id)
+          .eq("plan_id", planId)
+          .eq("completed", true)
+          .limit(2000),
+      ]);
+      const dates = new Set<string>((planCompletions || []).map((r: any) => r.workout_date));
+      const restDays = getRestDayIndices((planRow as any)?.plan_data);
+      setStreak(computeLongestStreak(dates, restDays));
+    } else {
+      setStreak(0);
+    }
 
     setLoading(false);
   };
