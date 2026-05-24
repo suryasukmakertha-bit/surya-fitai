@@ -1,5 +1,5 @@
 // Surya-FitAi Service Worker v7
-const CACHE_NAME = 'surya-fitai-v7';
+const CACHE_NAME = 'surya-fitai-v8';
 const DB_NAME = 'surya-fitai-sw';
 const STORE_NAME = 'reminders';
 
@@ -127,20 +127,22 @@ async function checkAndShowReminders() {
 
 // ── Install ──
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.keys().then((names) =>
       Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
     )
   );
-  self.skipWaiting();
 });
 
 // ── Activate ──
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((names) =>
-      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
-    ).then(() => self.clients.claim())
+    (async () => {
+      const names = await caches.keys();
+      await Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)));
+      await self.clients.claim();
+    })()
   );
 });
 
@@ -153,9 +155,12 @@ self.addEventListener('periodicsync', (event) => {
 
 // ── Push notification handler ──
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
   let data = {};
-  try { data = event.data.json(); } catch (e) {}
+  if (event.data) {
+    try { data = event.data.json(); } catch (e) {
+      try { data = { body: event.data.text() }; } catch (_) {}
+    }
+  }
 
   const title = data.title || 'Your workout is waiting 💪';
   const body = data.body || "Your AI trainer is ready. Let's complete today's workout.";
