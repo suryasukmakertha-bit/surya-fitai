@@ -10,7 +10,11 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function syncLongestStreak(userId: string): Promise<number> {
   const sb = supabase as any;
-  const { data: bumped, error } = await sb.rpc("bump_longest_streak");
+  let tz = "UTC";
+  try {
+    tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch { /* keep UTC */ }
+  const { data: bumped, error } = await sb.rpc("bump_longest_streak", { p_tz: tz });
   if (error) {
     const { data } = await sb.from("profiles").select("longest_streak").eq("user_id", userId).maybeSingle();
     return Number((data as any)?.longest_streak ?? 0);
