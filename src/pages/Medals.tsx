@@ -88,7 +88,7 @@ export default function Medals() {
 
       // Streak shown for STREAK_* medals = historical best across all plans (monotonic).
       void workouts; // kept for future use; no longer needed for streak.
-      const { fmtLocal: fmt } = await import("@/lib/dateLocal");
+      const fmt = fmtLocal;
       const streak = Number(bestStreak || 0);
 
       // Check-in consecutive streak
