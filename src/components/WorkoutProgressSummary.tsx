@@ -32,6 +32,8 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
   const [streak, setStreak] = useState(0);
   const [totalCompleted, setTotalCompleted] = useState(0);
   const [todayCount, setTodayCount] = useState(0);
+  const [activeDaysCount, setActiveDaysCount] = useState(0);
+  const [activeDaysOf, setActiveDaysOf] = useState(7);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
