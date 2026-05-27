@@ -10,21 +10,90 @@
  * - Only a missed scheduled workout day resets the streak.
  */
 
-function isRestLabel(label: string): boolean {
-  if (!label) return true;
-  return /rest|istirahat|休息/i.test(label);
+/**
+ * weeklySplit is a free-form string[] (one entry per scheduled day) — not a
+ * 7-slot Mon..Sun array. Each entry is parsed to extract its weekday token
+ * (EN / ID / ZH) and to detect whether the label is a workout or a rest day.
+ */
+
+type DayIdx = 0 | 1 | 2 | 3 | 4 | 5 | 6; // Mon=0 .. Sun=6
+
+const DAY_TOKENS: Array<{ token: string; idx: DayIdx; ambiguous?: boolean }> = [
+  { token: "monday", idx: 0 }, { token: "mon", idx: 0 }, { token: "senin", idx: 0 }, { token: "星期一", idx: 0 }, { token: "周一", idx: 0 },
+  { token: "tuesday", idx: 1 }, { token: "tues", idx: 1 }, { token: "tue", idx: 1 }, { token: "selasa", idx: 1 }, { token: "星期二", idx: 1 }, { token: "周二", idx: 1 },
+  { token: "wednesday", idx: 2 }, { token: "wed", idx: 2 }, { token: "rabu", idx: 2 }, { token: "星期三", idx: 2 }, { token: "周三", idx: 2 },
+  { token: "thursday", idx: 3 }, { token: "thurs", idx: 3 }, { token: "thur", idx: 3 }, { token: "thu", idx: 3 }, { token: "kamis", idx: 3 }, { token: "星期四", idx: 3 }, { token: "周四", idx: 3 },
+  { token: "friday", idx: 4 }, { token: "fri", idx: 4 }, { token: "jumat", idx: 4 }, { token: "星期五", idx: 4 }, { token: "周五", idx: 4 },
+  { token: "saturday", idx: 5 }, { token: "sat", idx: 5 }, { token: "sabtu", idx: 5 }, { token: "星期六", idx: 5 }, { token: "周六", idx: 5 },
+  { token: "sunday", idx: 6 }, { token: "sun", idx: 6 }, { token: "minggu", idx: 6, ambiguous: true }, { token: "ahad", idx: 6 }, { token: "星期日", idx: 6 }, { token: "周日", idx: 6 },
+];
+
+function getDayIdxFromText(value: string): DayIdx | null {
+  const normalized = value.toLowerCase().replace(/[()]/g, " ").replace(/\s+/g, " ").trim();
+  const matches: Array<{ idx: DayIdx; pos: number; ambiguous: boolean }> = [];
+  for (const { token, idx, ambiguous } of DAY_TOKENS) {
+    const isAscii = /^[a-z]+$/.test(token);
+    const pattern = isAscii ? new RegExp(`\\b${token}\\b`, "g") : new RegExp(token, "g");
+    let m: RegExpExecArray | null;
+    while ((m = pattern.exec(normalized)) !== null) {
+      matches.push({ idx, pos: m.index, ambiguous: Boolean(ambiguous) });
+    }
+  }
+  if (matches.length === 0) return null;
+  const hasUnambig = matches.some((m) => !m.ambiguous);
+  const list = hasUnambig ? matches.filter((m) => !m.ambiguous) : matches;
+  list.sort((a, b) => b.pos - a.pos);
+  return list[0].idx;
 }
 
-/** Returns set of Mon-based day-of-week indices (0=Mon..6=Sun) that are rest days. */
+function isRestLabelText(value: string): boolean {
+  const lower = value.toLowerCase();
+  const hasWorkoutHint = /(power|hypertrophy|strength|stability|cardio|hiit|upper|lower|full\s*body|mobilitas|kekuatan|functional|balance|core|push|pull|legs?|endurance|otot|massa|fat\s*loss)/i.test(lower);
+  const hasRestHint = /(\brest\b(?:\s*[/&-]\s*recover(?:y)?)?|\brest\s*day(?:s)?\b|istirahat|pemulihan|active\s*recovery|recovery|休息|恢复)/i.test(lower);
+  return hasRestHint && !hasWorkoutHint;
+}
+
+/**
+ * Returns Mon-based day-of-week indices (0=Mon..6=Sun) treated as REST for the
+ * given plan. A day is "rest" if it is explicitly labeled rest OR if it does
+ * NOT appear at all in weeklySplit (i.e. the plan never schedules it). Only
+ * scheduled workout days that are missed should break the streak.
+ */
 export function getRestDayIndices(planData: any): Set<number> {
-  const rest = new Set<number>();
   const split = planData?.weeklySplit;
-  if (!Array.isArray(split) || split.length !== 7) return rest;
-  split.forEach((d: any, i: number) => {
-    const label = typeof d === "string" ? d : d?.day || "";
-    if (isRestLabel(label)) rest.add(i);
-  });
-  return rest;
+  if (!Array.isArray(split) || split.length === 0) return new Set<number>();
+
+  const workoutDays = new Set<DayIdx>();
+  const restDays = new Set<DayIdx>();
+
+  const lines = split
+    .flatMap((entry: any) => (typeof entry === "string" ? entry.split(/\n+/) : [String(entry?.day || "")]))
+    .map((l: string) => l.replace(/[–—]/g, "-").trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const idx = getDayIdxFromText(line);
+    if (idx === null) continue;
+    if (isRestLabelText(line)) {
+      restDays.add(idx);
+      workoutDays.delete(idx);
+    } else {
+      workoutDays.add(idx);
+      restDays.delete(idx);
+    }
+  }
+
+  // If we couldn't identify any workout days, fall back to "no rest days" so
+  // the streak walker doesn't silently skip everything.
+  if (workoutDays.size === 0) return new Set<number>();
+
+  // Any weekday not scheduled as a workout is effectively a rest day for streak
+  // purposes (it must never break the streak).
+  const result = new Set<number>();
+  for (let i = 0; i < 7; i++) {
+    if (!workoutDays.has(i as DayIdx)) result.add(i);
+  }
+  return result;
 }
 
 /** Local Mon-based day index for a YYYY-MM-DD string. */
