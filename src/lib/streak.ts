@@ -229,3 +229,64 @@ export function computeLongestStreak(
 
 // Re-export helper for callers that already have a date string.
 export { dowMon };
+
+/**
+ * Derive rest-day OFFSETS (0..6) from the plan's workout_plan template.
+ * Index 0 = plan_started_at, index 1 = +1 day, etc. A day is "rest" iff
+ * its exercises array is empty (or label explicitly says rest). This is the
+ * authoritative source — weeklySplit weekday names can be wrong/misordered.
+ */
+export function getRestOffsetsFromPlan(planData: any): Set<number> {
+  const wp = planData?.workout_plan || planData?.workoutPlan;
+  if (!Array.isArray(wp) || wp.length === 0) return new Set<number>();
+  const rest = new Set<number>();
+  const len = Math.min(7, wp.length);
+  for (let i = 0; i < len; i++) {
+    const entry = wp[i];
+    const exCount = Array.isArray(entry?.exercises) ? entry.exercises.length : 0;
+    const label = String(entry?.day || entry?.title || "");
+    if (exCount === 0 || isRestLabelText(label)) rest.add(i);
+  }
+  return rest;
+}
+
+/**
+ * Forward streak using positional rest offsets from plan_started_at.
+ * - Rest day (by offset): skip
+ * - Workout day with completion: streak++
+ * - Workout day missed (date < today): streak resets to 0
+ * - Today not done yet: stop without resetting
+ * - Future dates: stop
+ */
+export function computeForwardStreakByOffsets(
+  completedDates: Iterable<string>,
+  restOffsets: Set<number>,
+  planStartedAt: string
+): number {
+  const set = completedDateSet(completedDates);
+  const startKey = planStartedAt.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startKey)) return 0;
+  const cursor = new Date(startKey + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayKey = fmtLocal(today);
+
+  let streak = 0;
+  let offset = 0;
+  for (let i = 0; i < 366 * 2; i++) {
+    if (cursor > today) break;
+    const key = fmtLocal(cursor);
+    const isRest = restOffsets.has(offset % 7);
+    if (!isRest) {
+      if (set.has(key)) {
+        streak += 1;
+      } else if (key < todayKey) {
+        streak = 0;
+      }
+      // today not done: skip
+    }
+    cursor.setDate(cursor.getDate() + 1);
+    offset += 1;
+  }
+  return streak;
+}
