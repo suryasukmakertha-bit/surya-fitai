@@ -4,7 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format, subDays, eachDayOfInterval } from "date-fns";
-import { computeCurrentStreak, computeForwardStreak, getRestDayIndices } from "@/lib/streak";
+import {
+  computeCurrentStreak,
+  computeForwardStreak,
+  computeForwardStreakByOffsets,
+  getRestDayIndices,
+  getRestOffsetsFromPlan,
+} from "@/lib/streak";
 import { getTodayLocal, fmtLocal } from "@/lib/dateLocal";
 import {
   ResponsiveContainer,
@@ -113,8 +119,14 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         .eq("completed", true)
         .limit(2000);
       const dates = new Set<string>((planCompletions || []).map((r: any) => r.workout_date));
+      // Authoritative rest pattern comes from the plan's workout_plan template
+      // (positional, indexed from plan_started_at). Falls back to weekday-name
+      // parsing only if no workout_plan is present.
+      const restOffsets = getRestOffsetsFromPlan(planData);
       const restDays = getRestDayIndices(planData);
-      if (planStartedAt) {
+      if (planStartedAt && restOffsets.size > 0) {
+        setStreak(computeForwardStreakByOffsets(dates, restOffsets, planStartedAt));
+      } else if (planStartedAt) {
         setStreak(computeForwardStreak(dates, restDays, planStartedAt));
       } else {
         setStreak(computeCurrentStreak(dates, restDays));
