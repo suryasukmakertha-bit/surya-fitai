@@ -157,6 +157,44 @@ export function computeCurrentStreak(
 }
 
 /**
+ * Forward streak: walk from plan_started_at to today.
+ * - Rest day: skip
+ * - Workout day with completion: streak++
+ * - Workout day missed (date < today): streak resets to 0
+ * - Future dates: stop
+ */
+export function computeForwardStreak(
+  completedDates: Iterable<string>,
+  restDays: Set<number>,
+  planStartedAt: string
+): number {
+  const set = completedDateSet(completedDates);
+  const startKey = planStartedAt.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startKey)) return 0;
+  const cursor = new Date(startKey + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayKey = fmtLocal(today);
+
+  let streak = 0;
+  for (let i = 0; i < 366 * 2; i++) {
+    if (cursor > today) break;
+    const key = fmtLocal(cursor);
+    const isRest = restDays.has((cursor.getDay() + 6) % 7);
+    if (!isRest) {
+      if (set.has(key)) {
+        streak += 1;
+      } else if (key < todayKey) {
+        streak = 0;
+      }
+      // key === todayKey and not done: skip (don't reset, don't increment)
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return streak;
+}
+
+/**
  * Longest streak across history. Iterates each calendar day from the earliest
  * completed date to today; rest days are skipped, missed scheduled days reset.
  */
