@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format, subDays, eachDayOfInterval } from "date-fns";
-import { computeCurrentStreak, getRestDayIndices } from "@/lib/streak";
+import { computeCurrentStreak, computeForwardStreak, getRestDayIndices } from "@/lib/streak";
 import { getTodayLocal, fmtLocal } from "@/lib/dateLocal";
 import {
   ResponsiveContainer,
@@ -114,7 +114,11 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         .limit(2000);
       const dates = new Set<string>((planCompletions || []).map((r: any) => r.workout_date));
       const restDays = getRestDayIndices(planData);
-      setStreak(computeCurrentStreak(dates, restDays));
+      if (planStartedAt) {
+        setStreak(computeForwardStreak(dates, restDays, planStartedAt));
+      } else {
+        setStreak(computeCurrentStreak(dates, restDays));
+      }
     } else {
       setStreak(0);
     }
