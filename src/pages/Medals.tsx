@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ALL_MEDALS, TIER_COLOR, tierGradient } from "@/lib/medalCatalog";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import { downloadMedalPng } from "@/lib/medalImage";
+import { fmtLocal } from "@/lib/dateLocal";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPlanProgress } from "@/lib/planProgress";
