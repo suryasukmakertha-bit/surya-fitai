@@ -83,7 +83,12 @@ export async function getWeeklyTotalKm(userId: string, type: ActivityType): Prom
   const now = new Date();
   const dayIdx = (now.getDay() + 6) % 7;
   const monday = new Date(now); monday.setDate(now.getDate() - dayIdx); monday.setHours(0,0,0,0);
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
   const { data } = await sb
     .from("activity_sessions")
     .select("distance_km, date")

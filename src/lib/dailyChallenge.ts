@@ -201,7 +201,12 @@ async function awardIfNew(userId: string, medal: NewMedal): Promise<NewMedal | n
 
 function consecutiveStreakEndingNow(dates: string[]): number {
   const set = new Set(dates);
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
   const cursor = new Date();
   if (!set.has(fmt(cursor))) cursor.setDate(cursor.getDate() - 1);
   let n = 0;

@@ -409,7 +409,10 @@ export default function Results() {
   const [planProgress, setPlanProgress] = useState<PlanProgress | null>(null);
   const [progressWeight, setProgressWeight] = useState("");
   const [progressNote, setProgressNote] = useState("");
-  const [progressDate, setProgressDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [progressDate, setProgressDate] = useState(() => {
+    const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch { return "UTC"; } })();
+    return new Date().toLocaleDateString("en-CA", { timeZone: tz });
+  });
   const [addingCheckIn, setAddingCheckIn] = useState(false);
 
   // Plan completion detection

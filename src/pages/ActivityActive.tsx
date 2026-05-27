@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { getTodayLocal } from "@/lib/dateLocal";
 import {
   type ActivityType,
   formatDuration,
@@ -301,7 +302,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
     const calories = calcCalories(activity, weightKg, durationSec / 3600);
     const session = {
       activity_type: activity,
-      date: new Date().toISOString().slice(0, 10),
+      date: getTodayLocal(),
       distance_km: Number(distanceFinal.toFixed(3)),
       duration_seconds: durationSec,
       avg_pace_seconds_per_km: avgPace,

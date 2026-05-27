@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ALL_MEDALS, TIER_COLOR, tierGradient } from "@/lib/medalCatalog";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import { downloadMedalPng } from "@/lib/medalImage";
+import { fmtLocal } from "@/lib/dateLocal";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPlanProgress } from "@/lib/planProgress";
@@ -88,7 +89,7 @@ export default function Medals() {
 
       // Streak shown for STREAK_* medals = historical best across all plans (monotonic).
       void workouts; // kept for future use; no longer needed for streak.
-      const fmt = (d: Date) => d.toISOString().slice(0, 10);
+      const fmt = fmtLocal;
       const streak = Number(bestStreak || 0);
 
       // Check-in consecutive streak
