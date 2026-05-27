@@ -35,8 +35,10 @@ const afternoonMessages = {
   },
 };
 
+import { getTodayLocal } from "@/lib/dateLocal";
+
 function getTodayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  return getTodayLocal();
 }
 
 function getLang(): "en" | "id" | "zh" {

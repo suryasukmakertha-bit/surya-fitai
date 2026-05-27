@@ -34,7 +34,10 @@ export default function Progress() {
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [weight, setWeight] = useState("");
   const [note, setNote] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => {
+    const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch { return "UTC"; } })();
+    return new Date().toLocaleDateString("en-CA", { timeZone: tz });
+  });
   const [loadingData, setLoadingData] = useState(true);
   const [adding, setAdding] = useState(false);
 
