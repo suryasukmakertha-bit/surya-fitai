@@ -301,7 +301,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
     const calories = calcCalories(activity, weightKg, durationSec / 3600);
     const session = {
       activity_type: activity,
-      date: (await import("@/lib/dateLocal")).getTodayLocal(),
+      date: getTodayLocal(),
       distance_km: Number(distanceFinal.toFixed(3)),
       duration_seconds: durationSec,
       avg_pace_seconds_per_km: avgPace,
