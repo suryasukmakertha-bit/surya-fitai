@@ -242,7 +242,7 @@ export default function ChallengeTimerPopup(props: Props) {
     }
   }, [phase, kind]);
 
-  // Auto-increment rep counter every 0.5s during active reps phase
+  // Auto-increment rep counter every 1.25s during active reps phase
   useEffect(() => {
     if (phase !== "active" || kind !== "reps") return;
     const id = window.setInterval(() => {
@@ -258,7 +258,7 @@ export default function ChallengeTimerPopup(props: Props) {
         }
         return next;
       });
-    }, 500);
+    }, 1250);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, kind, target, lang]);
