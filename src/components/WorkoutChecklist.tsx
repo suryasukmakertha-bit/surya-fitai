@@ -16,6 +16,7 @@ import { usePreloadExerciseMedia } from "@/hooks/usePreloadExerciseMedia";
 import { checkWorkoutStreakMedals, checkProgramCompleteMedal } from "@/lib/dailyChallenge";
 import { emitMedalsEarned } from "@/lib/medalEvents";
 import { getPlanProgress } from "@/lib/planProgress";
+import { syncLongestStreak } from "@/lib/longestStreak";
 
 function getRIRText(rir: number | string | undefined, tempo: string | undefined, lang: string): string | null {
   let n: number | null = null;
@@ -273,6 +274,11 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
           emitMedalsEarned(programMedals);
         }
       } catch (e) { /* swallow */ }
+      // Bump the historical-best streak server-side whenever a workout day is
+      // checked off. Server validates and only raises profiles.longest_streak;
+      // client cannot supply a value. Trigger lives here (not on page load)
+      // so the stored value always reflects the highest streak achieved.
+      try { await syncLongestStreak(user.id); } catch { /* swallow */ }
     }
   };
 

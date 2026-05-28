@@ -12,7 +12,7 @@ import { fmtLocal } from "@/lib/dateLocal";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getPlanProgress } from "@/lib/planProgress";
-import { syncLongestStreak } from "@/lib/longestStreak";
+import { readLongestStreak } from "@/lib/longestStreak";
 import {
   checkPlanCompletionMedal,
   checkAndAwardMedals,
@@ -82,7 +82,7 @@ export default function Medals() {
         sb.from("activity_sessions").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("activity_type", "cycling"),
         sb.from("saved_plans").select("id, plan_completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
         sb.from("progress_checkins").select("date").eq("user_id", user.id).order("date", { ascending: false }).limit(60),
-        syncLongestStreak(user.id),
+        readLongestStreak(user.id),
       ]);
 
       const challengeCount = challenges.count || 0;
