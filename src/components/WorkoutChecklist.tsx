@@ -16,6 +16,7 @@ import { usePreloadExerciseMedia } from "@/hooks/usePreloadExerciseMedia";
 import { checkWorkoutStreakMedals, checkProgramCompleteMedal } from "@/lib/dailyChallenge";
 import { emitMedalsEarned } from "@/lib/medalEvents";
 import { getPlanProgress } from "@/lib/planProgress";
+import { syncLongestStreak } from "@/lib/longestStreak";
 
 function getRIRText(rir: number | string | undefined, tempo: string | undefined, lang: string): string | null {
   let n: number | null = null;
