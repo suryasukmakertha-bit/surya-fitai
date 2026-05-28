@@ -16,7 +16,7 @@ import FeedbackModal from "@/components/FeedbackModal";
 import NotificationSettingsPopup from "@/components/pwa/NotificationSettingsPopup";
 import SubscriptionPopup from "@/components/subscription/SubscriptionPopup";
 import MedalsList from "@/components/medals/MedalsList";
-import { syncLongestStreak } from "@/lib/longestStreak";
+import { readLongestStreak } from "@/lib/longestStreak";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -84,7 +84,8 @@ export default function Profile() {
       const total = dates.length;
       const dateSet = new Set<string>(dates);
       // Longest streak = historical best across ALL plans, monotonic (never decreases).
-      const longest = await syncLongestStreak(user.id);
+      // Read-only: longest_streak is bumped server-side on workout completion.
+      const longest = await readLongestStreak(user.id);
       setStats({
         total,
         longestStreak: longest,
