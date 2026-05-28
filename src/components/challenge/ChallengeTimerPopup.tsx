@@ -485,7 +485,7 @@ export default function ChallengeTimerPopup(props: Props) {
               background: "hsl(var(--background))",
             }}>
               <button
-                onClick={() => setPhase("countdown")}
+                onClick={() => { requestWakeLock(); setPhase("countdown"); }}
                 style={{
                   width: "100%",
                   background: "linear-gradient(90deg,#ff6b00,#ff3d7f)",
