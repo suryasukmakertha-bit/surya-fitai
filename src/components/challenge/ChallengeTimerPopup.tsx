@@ -344,7 +344,7 @@ export default function ChallengeTimerPopup(props: Props) {
           }}
         >
           <button
-            onClick={() => { cancelSpeech(); props.onClose(); }}
+            onClick={() => { cancelSpeech(); releaseWakeLock(); props.onClose(); }}
             aria-label="Close"
             style={{
               position: "absolute", top: 10, right: 10, zIndex: 2,
