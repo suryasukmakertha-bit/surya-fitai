@@ -464,7 +464,7 @@ export default function ChallengeTimerPopup(props: Props) {
                 {tt("dailyChallenge.cta.done")}
               </p>
               <button
-                onClick={() => { cancelSpeech(); props.onClose(); }}
+                onClick={() => { cancelSpeech(); releaseWakeLock(); props.onClose(); }}
                 style={{
                   marginTop: 16, width: "100%",
                   background: "linear-gradient(90deg,#10b981,#0ea371)",
