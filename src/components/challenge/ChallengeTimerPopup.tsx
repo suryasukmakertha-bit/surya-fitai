@@ -122,6 +122,39 @@ export default function ChallengeTimerPopup(props: Props) {
   const [medalQueue, setMedalQueue] = useState<NewMedal[]>([]);
   const timerRef = useRef<number | null>(null);
   const pausedRef = useRef<boolean>(false);
+  const wakeLockRef = useRef<any>(null);
+
+  const requestWakeLock = async () => {
+    try {
+      if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+      }
+    } catch {}
+  };
+  const releaseWakeLock = () => {
+    try {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release?.();
+        wakeLockRef.current = null;
+      }
+    } catch {}
+  };
+
+  // Re-acquire wake lock when tab becomes visible again during active challenge
+  useEffect(() => {
+    const onVis = () => {
+      if (!document.hidden && (phase === "countdown" || phase === "active") && !wakeLockRef.current) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [phase]);
+
+  // Release wake lock on unmount
+  useEffect(() => {
+    return () => releaseWakeLock();
+  }, []);
 
   const gifUrl = entry && ASSET_FILE[entry.key] ? ASSET_BASE + ASSET_FILE[entry.key] : null;
 
@@ -137,6 +170,7 @@ export default function ChallengeTimerPopup(props: Props) {
     } else {
       cancelSpeech();
       if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+      releaseWakeLock();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open]);
@@ -208,8 +242,30 @@ export default function ChallengeTimerPopup(props: Props) {
     }
   }, [phase, kind]);
 
+  // Auto-increment rep counter every 0.5s during active reps phase
+  useEffect(() => {
+    if (phase !== "active" || kind !== "reps") return;
+    const id = window.setInterval(() => {
+      if (pausedRef.current) return;
+      setCount((c) => {
+        const next = c + 1;
+        if (next > target) return c;
+        speak(repWord(next, lang), lang);
+        if (target - next <= 5 && target - next > 0) setMood("struggle");
+        if (next >= target) {
+          clearInterval(id);
+          setTimeout(() => finish(), 100);
+        }
+        return next;
+      });
+    }, 500);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, kind, target, lang]);
+
   async function finish() {
     cancelSpeech();
+    releaseWakeLock();
     setMood("celebrate");
     setPhase("done");
     const msg =
@@ -288,7 +344,7 @@ export default function ChallengeTimerPopup(props: Props) {
           }}
         >
           <button
-            onClick={() => { cancelSpeech(); props.onClose(); }}
+            onClick={() => { cancelSpeech(); releaseWakeLock(); props.onClose(); }}
             aria-label="Close"
             style={{
               position: "absolute", top: 10, right: 10, zIndex: 2,
@@ -408,7 +464,7 @@ export default function ChallengeTimerPopup(props: Props) {
                 {tt("dailyChallenge.cta.done")}
               </p>
               <button
-                onClick={() => { cancelSpeech(); props.onClose(); }}
+                onClick={() => { cancelSpeech(); releaseWakeLock(); props.onClose(); }}
                 style={{
                   marginTop: 16, width: "100%",
                   background: "linear-gradient(90deg,#10b981,#0ea371)",
@@ -429,7 +485,7 @@ export default function ChallengeTimerPopup(props: Props) {
               background: "hsl(var(--background))",
             }}>
               <button
-                onClick={() => setPhase("countdown")}
+                onClick={() => { requestWakeLock(); setPhase("countdown"); }}
                 style={{
                   width: "100%",
                   background: "linear-gradient(90deg,#ff6b00,#ff3d7f)",
