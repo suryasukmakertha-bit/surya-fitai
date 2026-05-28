@@ -434,18 +434,6 @@ export default function ChallengeTimerPopup(props: Props) {
                   <div style={{ fontSize: 60, fontWeight: 900, color: "#FF6A00", lineHeight: 1, marginTop: 8 }}>
                     {count} <span style={{ fontSize: 28, color: "hsl(var(--muted-foreground))" }}>/ {target}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: "hsl(var(--muted-foreground))", marginTop: 4 }}>{tapToCount}</p>
-                  <button
-                    onClick={onRepTap}
-                    style={{
-                      marginTop: 14, width: "100%",
-                      background: "linear-gradient(90deg,#ff6b00,#ff3d7f)",
-                      color: "#fff", fontWeight: 900, fontSize: 22,
-                      padding: 22, borderRadius: 14, border: "none",
-                    }}
-                  >
-                    +1
-                  </button>
                 </>
               )}
             </div>
