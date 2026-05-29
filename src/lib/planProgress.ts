@@ -66,9 +66,10 @@ export async function getPlanProgress(
     .eq("user_id", userId)
     .eq("plan_id", plan.id)
     .eq("completed", true);
-  if (plan.plan_started_at) {
-    q = q.gte("completed_at", plan.plan_started_at);
-  }
+  // Workouts Done = cumulative count of distinct workout days completed for
+  // this plan_id. Scoping by plan_id is sufficient — do NOT filter by
+  // completed_at vs plan_started_at, which can drop legitimate completions
+  // when the user backfills or when timestamps cross the start boundary.
   const { data } = await q;
 
   const completedDays = new Set((data || []).map((r: any) => r.workout_date)).size;
