@@ -43,10 +43,17 @@ export interface DailyChallenge {
 
 export async function getOrCreateDailyChallenge(): Promise<DailyChallenge | null> {
   const sb = supabase as any;
-  const { data, error } = await sb.rpc("get_or_create_daily_challenge");
+  const localDate = todayDateStr();
+  // Pass the user's local date so the challenge rotates by local-day, not UTC.
+  let { data, error } = await sb.rpc("get_or_create_daily_challenge", { p_local_date: localDate });
+  if (error) {
+    // Backward compat: older deployments may not accept the parameter yet.
+    const retry = await sb.rpc("get_or_create_daily_challenge");
+    data = retry.data; error = retry.error;
+  }
   if (error || !data) {
     // Fallback: read-only fetch (no client insert allowed)
-    const date = todayDateStr();
+    const date = localDate;
     const { data: existing } = await sb
       .from("daily_challenges")
       .select("*")
