@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getPlanProgress } from "@/lib/planProgress";
 import { computeCurrentStreak, getRestDayIndices } from "@/lib/streak";
-import { readLongestStreak } from "@/lib/longestStreak";
+import { readLongestStreak, recalculateLongestStreak } from "@/lib/longestStreak";
 import DailyChallengeCard from "@/components/DailyChallengeCard";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import FeaturedMedalChip from "@/components/medals/FeaturedMedalChip";
@@ -78,6 +78,9 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
+    // Recalculate stored longest_streak across ALL saved plans on Dashboard
+    // mount (monotonic; never decreases). Errors are logged inside.
+    recalculateLongestStreak(user.id).catch((e) => console.error("recalculateLongestStreak failed:", e));
     (async () => {
       try {
         const [{ data: planData, count }, { data: profile }] = await Promise.all([
