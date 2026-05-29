@@ -27,11 +27,8 @@ function pickInt(seed: string, min: number, max: number): number {
 }
 
 export function todayDateStr(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  // Always use the device's local timezone — never UTC.
+  return getTodayLocal();
 }
 
 export interface DailyChallenge {
