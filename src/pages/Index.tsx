@@ -78,6 +78,9 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
+    // Recalculate stored longest_streak across ALL saved plans on Dashboard
+    // mount (monotonic; never decreases). Errors are logged inside.
+    recalculateLongestStreak(user.id).catch((e) => console.error("recalculateLongestStreak failed:", e));
     (async () => {
       try {
         const [{ data: planData, count }, { data: profile }] = await Promise.all([
