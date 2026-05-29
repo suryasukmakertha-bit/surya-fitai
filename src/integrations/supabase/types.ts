@@ -791,24 +791,43 @@ export type Database = {
         Returns: number
       }
       complete_daily_challenge: { Args: never; Returns: Json }
-      get_or_create_daily_challenge: {
-        Args: never
-        Returns: {
-          challenge_date: string
-          created_at: string | null
-          difficulty: string
-          exercise_name: string
-          id: string
-          target_reps: number
-          xp_reward: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "daily_challenges"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      get_or_create_daily_challenge:
+        | {
+            Args: never
+            Returns: {
+              challenge_date: string
+              created_at: string | null
+              difficulty: string
+              exercise_name: string
+              id: string
+              target_reps: number
+              xp_reward: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "daily_challenges"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { p_local_date: string }
+            Returns: {
+              challenge_date: string
+              created_at: string | null
+              difficulty: string
+              exercise_name: string
+              id: string
+              target_reps: number
+              xp_reward: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "daily_challenges"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       increment_user_xp: {
         Args: { p_user_id: string; p_xp: number }
         Returns: undefined
