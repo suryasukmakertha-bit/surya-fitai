@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getTodayLocal } from "@/lib/dateLocal";
 
 const POOL = [
   "Push-up",
