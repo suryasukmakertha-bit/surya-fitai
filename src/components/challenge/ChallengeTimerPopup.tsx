@@ -47,6 +47,29 @@ function cancelSpeech() {
   } catch {}
 }
 
+let _tickCtx: AudioContext | null = null;
+function playTick() {
+  try {
+    if (typeof window === "undefined") return;
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    if (!_tickCtx) _tickCtx = new Ctx();
+    const ctx = _tickCtx!;
+    if (ctx.state === "suspended") ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 800;
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.09);
+  } catch {}
+}
+
 const REP_WORDS: Record<string, string[]> = {
   id: ["satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh"],
   en: ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"],
@@ -253,6 +276,7 @@ export default function ChallengeTimerPopup(props: Props) {
         if (next > target) return c;
         const shouldSpeak = next % 5 === 0 || next >= target - 2;
         if (shouldSpeak) speak(repWord(next, lang), lang);
+        else playTick();
         if (target - next <= 5 && target - next > 0) setMood("struggle");
         if (next >= target) {
           clearInterval(id);
@@ -295,6 +319,7 @@ export default function ChallengeTimerPopup(props: Props) {
       const next = c + 1;
       const shouldSpeak = next % 5 === 0 || next >= target - 2;
       if (shouldSpeak) speak(repWord(next, lang), lang);
+      else playTick();
       if (target - next <= 5 && target - next > 0) setMood("struggle");
       if (next >= target) {
         setTimeout(() => finish(), 100);
