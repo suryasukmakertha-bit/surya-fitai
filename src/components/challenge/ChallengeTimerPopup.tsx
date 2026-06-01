@@ -30,6 +30,7 @@ const SPEECH_LANG: Record<string, string> = { id: "id-ID", en: "en-US", zh: "zh-
 function speak(text: string, lang: string) {
   try {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = SPEECH_LANG[lang] || "en-US";
     u.rate = 0.9;
@@ -250,7 +251,8 @@ export default function ChallengeTimerPopup(props: Props) {
       setCount((c) => {
         const next = c + 1;
         if (next > target) return c;
-        speak(repWord(next, lang), lang);
+        const shouldSpeak = next % 5 === 0 || next >= target - 2;
+        if (shouldSpeak) speak(repWord(next, lang), lang);
         if (target - next <= 5 && target - next > 0) setMood("struggle");
         if (next >= target) {
           clearInterval(id);
@@ -291,7 +293,8 @@ export default function ChallengeTimerPopup(props: Props) {
     if (phase !== "active" || kind !== "reps") return;
     setCount((c) => {
       const next = c + 1;
-      speak(repWord(next, lang), lang);
+      const shouldSpeak = next % 5 === 0 || next >= target - 2;
+      if (shouldSpeak) speak(repWord(next, lang), lang);
       if (target - next <= 5 && target - next > 0) setMood("struggle");
       if (next >= target) {
         setTimeout(() => finish(), 100);
