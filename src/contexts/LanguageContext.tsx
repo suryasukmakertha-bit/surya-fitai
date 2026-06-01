@@ -1589,7 +1589,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
     const saved = localStorage.getItem("fitai-lang");
     if (saved === "id" || saved === "en" || saved === "zh") return saved;
-    return "id";
+    return "en";
   });
 
   const handleSetLang = (newLang: Lang) => {
