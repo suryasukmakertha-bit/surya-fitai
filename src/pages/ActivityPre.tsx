@@ -5,6 +5,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Line,
   LineChart,
   ReferenceLine,
@@ -234,7 +235,7 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
                       <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", fontSize: 11 }} />
                       <Bar dataKey="km" radius={[4,4,0,0]}>
                         {stats.distanceData.map((d, i) => (
-                          <Bar key={i} dataKey="km" fill={d.current ? ORANGE : MUTED} />
+                          <Cell key={i} fill={d.current ? ORANGE : MUTED} />
                         ))}
                       </Bar>
                     </BarChart>
