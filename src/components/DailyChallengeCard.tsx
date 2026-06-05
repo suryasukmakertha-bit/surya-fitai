@@ -146,9 +146,9 @@ export default function DailyChallengeCard() {
     <>
       <div
         className="mt-5"
-        onClick={() => { if (!completed) setTimerOpen(true); }}
-        role="button"
-        tabIndex={0}
+        onClick={() => { if (!completed && !accepted) setTimerOpen(true); }}
+        role={completed ? undefined : "button"}
+        tabIndex={completed ? undefined : 0}
         style={{
           background: "hsl(var(--surface))",
           border: "0.5px solid rgba(255,107,0,0.2)",
@@ -156,7 +156,7 @@ export default function DailyChallengeCard() {
           padding: 16,
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 16px rgba(0,0,0,0.3)",
           position: "relative",
-          cursor: completed ? "default" : "pointer",
+          cursor: completed || accepted ? "default" : "pointer",
         }}
       >
         <div className="flex items-center justify-between mb-2">
@@ -225,7 +225,7 @@ export default function DailyChallengeCard() {
 
         {accepted && !completed && (
           <button
-            onClick={(e) => { e.stopPropagation(); setTimerOpen(true); }}
+            onClick={(e) => { e.stopPropagation(); onComplete(); }}
             disabled={busy}
             className="w-full font-bold inline-flex items-center justify-center gap-2"
             style={{
