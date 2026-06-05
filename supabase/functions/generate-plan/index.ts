@@ -19,7 +19,7 @@ function jsonResponse(body: unknown, status = 200) {
 function validateInput(data: any): string[] {
   const errors: string[] = [];
   if (!data.name || typeof data.name !== 'string') errors.push('Name is required');
-  else if (data.name.length > 100) errors.push('Name is too long (max 100 characters)');
+  else if (data.name.length > 60) errors.push('Name is too long (max 60 characters)');
   const age = parseInt(data.age);
   if (isNaN(age) || age < 13 || age > 120) errors.push('Age must be between 13 and 120');
   const weight = parseFloat(data.weight);
@@ -33,10 +33,48 @@ function validateInput(data: any): string[] {
   const trainingDays = parseInt(data.trainingDaysPerWeek);
   if (isNaN(trainingDays) || trainingDays < 2 || trainingDays > 7) errors.push('Training days per week must be between 2 and 7');
   if (data.goal && data.goal.length > 300) errors.push('Goal is too long');
-  if (data.limitations && data.limitations.length > 500) errors.push('Limitations is too long');
-  if (data.allergies && data.allergies.length > 500) errors.push('Allergies is too long');
+  if (data.limitations && data.limitations.length > 200) errors.push('Limitations is too long');
+  if (data.allergies && data.allergies.length > 200) errors.push('Allergies is too long');
   if (data.occupation && data.occupation.length > 200) errors.push('Occupation is too long');
   return errors;
+}
+
+// =====================================================================
+// PROMPT INJECTION DEFENSE
+// Strip/neutralize common injection patterns from free-text user inputs
+// before they ever reach the LLM prompt. This is layered with the
+// <user_provided_data> delimiter block in the user prompt below.
+// =====================================================================
+const INJECTION_PATTERNS: RegExp[] = [
+  /\bignore\b/gi,
+  /\bdisregard\b/gi,
+  /\bforget\b/gi,
+  /\boverride\b/gi,
+  /\byour\s+instructions?\b/gi,
+  /\bsystem\s+prompt\b/gi,
+  /\byou\s+are\s+now\b/gi,
+  /\bact\s+as\b/gi,
+  /\bpretend\b/gi,
+  /\bjailbreak\b/gi,
+  /\bprompt\s+injection\b/gi,
+  /\bnew\s+instructions?\b/gi,
+  /\bend\s+of\s+(prompt|system)\b/gi,
+];
+
+function sanitizeUserText(input: unknown, maxLen: number): string {
+  if (input === null || input === undefined) return '';
+  let s = String(input);
+  // Strip angle brackets, backticks, curly braces, and code-fence sequences
+  s = s.replace(/[<>`{}]/g, ' ');
+  s = s.replace(/```+/g, ' ');
+  // Neutralize role-style prefixes (system:, assistant:, user:, etc.)
+  s = s.replace(/\b(system|assistant|user|developer|tool)\s*:/gi, ' ');
+  // Remove known injection phrases
+  for (const re of INJECTION_PATTERNS) s = s.replace(re, ' ');
+  // Collapse whitespace and trim
+  s = s.replace(/\s+/g, ' ').trim();
+  if (s.length > maxLen) s = s.slice(0, maxLen);
+  return s;
 }
 
 function calculateBMR(weight: number, heightCm: number, age: number, gender: string): number {
