@@ -154,13 +154,21 @@ serve(async (req) => {
     }
 
     const {
-      name, age, gender, weight, height, goal, experience, limitations,
-      programType, language, allergies, occupation, restDays, trainingDaysPerWeek,
+      name: rawName, age, gender, weight, height, goal: rawGoal, experience, limitations: rawLimitations,
+      programType, language, allergies: rawAllergies, occupation: rawOccupation, restDays, trainingDaysPerWeek,
       startDate, startDay, foodStyle, dietType,
       sessionDuration, equipment, dailySteps, sleepHours, sleepQuality,
       stressLevel, nightShift, mealFrequency, intermittentFasting,
       extensionContext, // optional: { previousMonthNumber: number } — when set, generate a progressive-overload month
     } = body;
+
+    // Layer 1: sanitize all free-text user inputs to neutralize prompt injection
+    // before they are interpolated into any AI prompt.
+    const name = sanitizeUserText(rawName, 60);
+    const goal = sanitizeUserText(rawGoal, 300);
+    const limitations = sanitizeUserText(rawLimitations, 200);
+    const allergies = sanitizeUserText(rawAllergies, 200);
+    const occupation = sanitizeUserText(rawOccupation, 200);
 
     // ============================================================
     // GENERATE LIMIT GATE
