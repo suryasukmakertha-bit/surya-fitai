@@ -833,6 +833,20 @@ export type Database = {
         Returns: undefined
       }
       is_app_admin: { Args: never; Returns: boolean }
+      refund_generate_quota: {
+        Args: { p_tier: string; p_user_id: string }
+        Returns: undefined
+      }
+      reserve_generate_quota: {
+        Args: {
+          p_max: number
+          p_month_key?: string
+          p_period_start?: string
+          p_tier: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
