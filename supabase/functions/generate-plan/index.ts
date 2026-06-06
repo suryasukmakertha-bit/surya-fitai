@@ -44,6 +44,9 @@ function validateInput(data: any): string[] {
 // Strip/neutralize common injection patterns from free-text user inputs
 // before they ever reach the LLM prompt. This is layered with the
 // <user_provided_data> delimiter block in the user prompt below.
+// Security re-verification touch: sanitizeUserText() + <user_provided_data>
+// wrapper (prompt injection) and reserve_generate_quota RPC (atomic quota)
+// are both active. Do not remove either layer.
 // =====================================================================
 const INJECTION_PATTERNS: RegExp[] = [
   /\bignore\b/gi,
