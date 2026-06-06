@@ -48,7 +48,10 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
   useEffect(() => {
     if (!user || !session) return;
     getPersonalBest(user.id, activity).then((pb) => {
-      if (!pb || session.distance_km > Number(pb.distance_km)) setIsPB(true);
+      const curPace = Number(session.avg_pace_seconds_per_km);
+      if (!(session.distance_km >= 1.0) || !(curPace > 0)) return;
+      const pbPace = Number(pb?.avg_pace_seconds_per_km || 0);
+      if (!pb || !pbPace || curPace < pbPace) setIsPB(true);
     });
   }, [user, session, activity]);
 
@@ -149,7 +152,7 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
           <div className="rounded-card p-3 mb-4 flex items-center gap-3" style={{ background: "rgba(255,215,0,0.10)", border: "1px solid rgba(255,215,0,0.4)" }}>
             <Trophy className="w-5 h-5" style={{ color: "#ffd700" }} />
             <p className="text-sm font-bold" style={{ color: "#ffd700" }}>
-              {tt("activity.newRecord")} {tt("activity.personalBest")}: {session.distance_km.toFixed(2)} km
+              {tt("activity.newRecord")} {tt("activity.personalBest")}: {formatPace(session.avg_pace_seconds_per_km)} /km
             </p>
           </div>
         )}
