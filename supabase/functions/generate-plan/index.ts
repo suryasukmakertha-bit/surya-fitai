@@ -232,23 +232,40 @@ serve(async (req) => {
       const { data: profile } = await sbAdmin.from('profiles').select('period_generate_count, trial_generate_count, last_generate_reset, free_generate_count, free_generate_month').eq('user_id', userId).maybeSingle();
       const now = new Date();
 
-      // Helper for FREE tier (1x per calendar month). Used for both
-      // "no subscription row" and "expired trial/sub" fallbacks.
-      const checkFreeTierLimit = async () => {
-        const FREE_MAX = 1;
-        const storedMonth = (profile as any)?.free_generate_month ?? '';
-        const rawUsed = (profile as any)?.free_generate_count ?? 0;
-        const used = storedMonth === currentMonthKey ? rawUsed : 0;
-        if (used >= FREE_MAX) {
-          return jsonResponse({ error: 'free_limit_reached', message: 'Free monthly generate limit (1) reached.' }, 403);
+      // Atomic quota reservation — prevents concurrent requests from
+      // bypassing the limit via a read-then-write race. The RPC locks the
+      // profile row, checks the relevant counter, and increments it inside
+      // a single transaction. On AI failure we refund via refund_generate_quota.
+      const reserveQuota = async (
+        tier: 'trial' | 'period' | 'free',
+        max: number,
+        periodStart: string | null,
+        monthKey: string | null,
+        limitError: { error: string; message: string },
+      ) => {
+        const { data: ok, error } = await sbAdmin.rpc('reserve_generate_quota', {
+          p_user_id: userId,
+          p_tier: tier,
+          p_max: max,
+          p_period_start: periodStart,
+          p_month_key: monthKey,
+        });
+        if (error) {
+          console.error('[PlanGen] reserve_generate_quota failed', error);
+          return jsonResponse({ error: 'quota_check_failed', message: 'Could not verify generate quota.' }, 500);
         }
-        // Reset the month bucket if needed.
-        if (storedMonth !== currentMonthKey) {
-          await sbAdmin.from('profiles').update({ free_generate_count: 0, free_generate_month: currentMonthKey }).eq('user_id', userId);
+        if (ok !== true) {
+          return jsonResponse(limitError, 403);
         }
-        incrementCounter = 'free';
+        incrementCounter = tier;
         return null;
       };
+
+      const checkFreeTierLimit = async () =>
+        reserveQuota('free', 1, null, currentMonthKey, {
+          error: 'free_limit_reached',
+          message: 'Free monthly generate limit (1) reached.',
+        });
 
       if (!sub) {
         const blocked = await checkFreeTierLimit();
@@ -259,32 +276,31 @@ serve(async (req) => {
           const blocked = await checkFreeTierLimit();
           if (blocked) return blocked;
         } else {
-        const used = profile?.trial_generate_count ?? 0;
-        if (used >= MAX_GEN) return jsonResponse({ error: 'trial_limit_reached', message: 'Trial generate limit (3) reached.' }, 403);
-        incrementCounter = 'trial';
+          const blocked = await reserveQuota('trial', MAX_GEN, null, null, {
+            error: 'trial_limit_reached',
+            message: 'Trial generate limit (3) reached.',
+          });
+          if (blocked) return blocked;
         }
       } else if (sub.status === 'active' && sub.subscription_start && sub.subscription_end) {
         if (now >= new Date(sub.subscription_end)) {
           const blocked = await checkFreeTierLimit();
           if (blocked) return blocked;
         } else {
-        const subStart = new Date(sub.subscription_start);
-        const pStart = new Date(subStart);
-        while (true) {
-          const next = new Date(pStart);
-          next.setMonth(next.getMonth() + 1);
-          if (next > now) break;
-          pStart.setMonth(pStart.getMonth() + 1);
-        }
-        const pStartDate = pStart.toISOString().slice(0, 10);
-        const lastReset = profile?.last_generate_reset ? new Date(profile.last_generate_reset) : null;
-        let used = profile?.period_generate_count ?? 0;
-        if (!lastReset || lastReset < new Date(pStartDate)) {
-          used = 0;
-          await sbAdmin.from('profiles').update({ period_generate_count: 0, last_generate_reset: pStartDate }).eq('user_id', userId);
-        }
-        if (used >= MAX_GEN) return jsonResponse({ error: 'period_limit_reached', message: 'Monthly generate limit (3) reached.' }, 403);
-        incrementCounter = 'period';
+          const subStart = new Date(sub.subscription_start);
+          const pStart = new Date(subStart);
+          while (true) {
+            const next = new Date(pStart);
+            next.setMonth(next.getMonth() + 1);
+            if (next > now) break;
+            pStart.setMonth(pStart.getMonth() + 1);
+          }
+          const pStartDate = pStart.toISOString().slice(0, 10);
+          const blocked = await reserveQuota('period', MAX_GEN, pStartDate, null, {
+            error: 'period_limit_reached',
+            message: 'Monthly generate limit (3) reached.',
+          });
+          if (blocked) return blocked;
         }
       } else {
         // expired / cancelled / unknown → FREE fallback
