@@ -1000,21 +1000,8 @@ Generate the complete plan now.`;
       trainingDayCount,
     });
 
-    // Increment generate counter on success (skipped for admin and extensions).
-    if (incrementCounter === 'trial') {
-      const { data: p } = await sbAdmin.from('profiles').select('trial_generate_count').eq('user_id', userId).maybeSingle();
-      const next = (p?.trial_generate_count ?? 0) + 1;
-      await sbAdmin.from('profiles').update({ trial_generate_count: next }).eq('user_id', userId);
-    } else if (incrementCounter === 'period') {
-      const { data: p } = await sbAdmin.from('profiles').select('period_generate_count').eq('user_id', userId).maybeSingle();
-      const next = (p?.period_generate_count ?? 0) + 1;
-      await sbAdmin.from('profiles').update({ period_generate_count: next }).eq('user_id', userId);
-    } else if (incrementCounter === 'free') {
-      const { data: p } = await sbAdmin.from('profiles').select('free_generate_count, free_generate_month').eq('user_id', userId).maybeSingle();
-      const sameMonth = (p as any)?.free_generate_month === currentMonthKey;
-      const next = (sameMonth ? ((p as any)?.free_generate_count ?? 0) : 0) + 1;
-      await sbAdmin.from('profiles').update({ free_generate_count: next, free_generate_month: currentMonthKey }).eq('user_id', userId);
-    }
+    // Quota was already reserved atomically before AI generation via
+    // reserve_generate_quota. No post-success increment is needed.
 
     return jsonResponse(plan, 200);
     })();
