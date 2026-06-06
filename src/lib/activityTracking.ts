@@ -105,7 +105,9 @@ export async function getPersonalBest(userId: string, type: ActivityType): Promi
     .select("*")
     .eq("user_id", userId)
     .eq("activity_type", type)
-    .order("distance_km", { ascending: false })
+    .gte("distance_km", 1.0)
+    .gt("avg_pace_seconds_per_km", 0)
+    .order("avg_pace_seconds_per_km", { ascending: true })
     .limit(1)
     .maybeSingle();
   return data || null;

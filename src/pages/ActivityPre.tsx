@@ -181,8 +181,8 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
               <Trophy className="w-3 h-3" /> {tt("activity.pb")}
             </span>
             <div className="flex-1">
-              <p className="text-sm font-extrabold text-foreground">{pb.distance_km.toFixed(2)} km</p>
-              <p className="text-[11px] text-muted-foreground">{formatPace(pb.avg_pace_seconds_per_km)} /km · {formatDuration(pb.duration_seconds)}</p>
+              <p className="text-sm font-extrabold text-foreground">{formatPace(pb.avg_pace_seconds_per_km)} /km</p>
+              <p className="text-[11px] text-muted-foreground">{pb.distance_km.toFixed(2)} km · {formatDuration(pb.duration_seconds)}</p>
             </div>
           </div>
         )}
