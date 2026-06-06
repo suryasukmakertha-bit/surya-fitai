@@ -144,7 +144,7 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
     };
   }, [sessions, locale]);
 
-  const showCharts = sessions.length >= 2;
+  const showCharts = sessions.length >= 1;
   const ORANGE = "#ff6b00";
   const MUTED = "rgba(255,107,0,0.25)";
 
