@@ -484,43 +484,49 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
 
         {/* SECTION 2 — Stats Row */}
         <div className="mt-5 grid grid-cols-3 gap-3">
-          {[
-            { icon: CheckCircle2, label: tx("Latihan Selesai","Workouts Done","已完成训练"), value: String(planStats.completedDays) },
-            { icon: TrendingUp,   label: tx("Progress","Progress","进度"), value: `${planStats.totalDays > 0 ? Math.round((planStats.completedDays / planStats.totalDays) * 100) : 0}%` },
-            { icon: Calendar,     label: tx("Minggu","Week","周"), value: `${planStats.currentWeek}/${planStats.totalWeeks}` },
-          ].map((s) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={s.label}
-                className="rounded-card p-3 text-center surface-depth"
-                style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
-              >
-                <Icon className="w-4 h-4 mx-auto mb-1" style={{ color: "#ff6b00" }} />
-                <p className="text-[10px] text-muted-foreground">{s.label}</p>
-                <p className="text-base font-extrabold mt-0.5" style={{ color: "#ff6b00" }}>{s.value}</p>
-              </div>
-            );
-          })}
+          {(() => {
+            const progressPct = planStats.totalDays > 0 ? Math.round((planStats.completedDays / planStats.totalDays) * 100) : 0;
+            const items: Array<{ icon: any; label: string; node: React.ReactNode }> = [
+              { icon: CheckCircle2, label: tx("Latihan Selesai","Workouts Done","已完成训练"), node: <CountUp value={planStats.completedDays} /> },
+              { icon: TrendingUp,   label: tx("Progress","Progress","进度"), node: <CountUp value={progressPct} suffix="%" /> },
+              { icon: Calendar,     label: tx("Minggu","Week","周"), node: `${planStats.currentWeek}/${planStats.totalWeeks}` },
+            ];
+            return items.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <div
+                  key={s.label}
+                  className="rounded-card p-3 text-center animate-fade-in"
+                  style={{ ...glassSurface, animationDelay: `${i * 80}ms`, animationFillMode: "both" }}
+                >
+                  <Icon className="w-4 h-4 mx-auto mb-1" style={{ color: "#FF5E1A" }} />
+                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                  <p className="text-lg font-extrabold mt-0.5" style={{ color: "#FF5E1A" }}>{s.node}</p>
+                </div>
+              );
+            });
+          })()}
         </div>
 
         {/* SECTION 3 — Generate limit */}
         <div
-          className="mt-5 rounded-card p-4"
-          style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
+          className="mt-5 rounded-full px-4 py-2 inline-flex w-full animate-fade-in"
+          style={{ ...glassSurface, borderRadius: 999 }}
         >
           <GenerateLimitIndicator used={limit.used} max={limit.max} />
-          {showUpgrade && (
+        </div>
+        {showUpgrade && (
+          <div className="mt-3">
             <button
-              onClick={onGenerate /* opens flow that triggers upgrade gating */}
-              className="mt-3 w-full rounded-btn px-4 py-2.5 flex items-center justify-center gap-2 font-bold text-primary-foreground text-sm"
-              style={{ background: "linear-gradient(90deg,#ff6b00,#ff3d7f)" }}
+              onClick={onGenerate}
+              className="w-full rounded-btn px-4 py-2.5 flex items-center justify-center gap-2 font-bold text-primary-foreground text-sm"
+              style={{ background: "linear-gradient(90deg,#FF5E1A,#FF2D7A)", boxShadow: "0 4px 18px rgba(255,94,26,0.35)" }}
             >
               <Crown className="w-4 h-4" />
               {upgradeCta}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* SECTION 4 — Daily Challenge */}
         <DailyChallengeCard />
@@ -553,14 +559,14 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
               <button
                 key={c.kind}
                 onClick={() => navigate(c.path)}
-                className="rounded-card p-4 text-left transition-transform active:scale-[0.98]"
-                style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}
+                className="rounded-card p-4 text-left transition-transform active:scale-[0.97] animate-fade-in"
+                style={glassSurface}
               >
-                <I size={24} color="#ff6b00" style={{ marginBottom: 8 }} />
+                <I size={28} color="#FF5E1A" style={{ marginBottom: 10 }} />
                 <p className="text-sm font-bold text-foreground">{c.title}</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{lastText}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">{c.weeklyTpl.replace("{{km}}", c.weekly.toFixed(1))}</p>
-                <p className="text-[11px] font-bold mt-2" style={{ color: "#ff6b00" }}>{c.cta} →</p>
+                <p className="text-[11px] font-bold mt-2" style={{ color: "#FF5E1A" }}>{c.cta} →</p>
               </button>
             );
           })}
