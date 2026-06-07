@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Brain, Utensils, ChevronRight, ChevronDown, ShieldCheck, FolderOpen, Sparkles, ArrowRight, Flame, Trophy, CalendarDays, Crown, CheckCircle2, ChevronsUpDown, Check, Calendar, TrendingUp, Zap, BarChart2, Bike } from "lucide-react";
 import RunningIcon from "@/components/icons/RunningIcon";
@@ -44,7 +44,7 @@ function CountUp({ value, duration = 900, suffix = "" }: { value: number; durati
 }
 
 // Reusable glassmorphism surface style (works in both dark & light modes).
-const glassSurface: React.CSSProperties = {
+const glassSurface: CSSProperties = {
   background: "rgba(255,255,255,0.04)",
   border: "1px solid rgba(255,255,255,0.08)",
   backdropFilter: "blur(20px)",
@@ -486,7 +486,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         <div className="mt-5 grid grid-cols-3 gap-3">
           {(() => {
             const progressPct = planStats.totalDays > 0 ? Math.round((planStats.completedDays / planStats.totalDays) * 100) : 0;
-            const items: Array<{ icon: any; label: string; node: React.ReactNode }> = [
+            const items: Array<{ icon: any; label: string; node: ReactNode }> = [
               { icon: CheckCircle2, label: tx("Latihan Selesai","Workouts Done","已完成训练"), node: <CountUp value={planStats.completedDays} /> },
               { icon: TrendingUp,   label: tx("Progress","Progress","进度"), node: <CountUp value={progressPct} suffix="%" /> },
               { icon: Calendar,     label: tx("Minggu","Week","周"), node: `${planStats.currentWeek}/${planStats.totalWeeks}` },
