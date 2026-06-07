@@ -279,7 +279,17 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
   const showUpgrade = tier === "FREE" && Number.isFinite(limit.max) && limit.used >= (limit.max as number);
 
   return (
-    <section className="px-4 pt-4 pb-24 relative">
+    <section className="px-4 pt-4 pb-24 relative" style={{ background: "#0A0A0F" }}>
+      {/* Hero radial glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0"
+        style={{
+          height: 380,
+          background: "radial-gradient(60% 80% at 50% 0%, rgba(255,94,26,0.12) 0%, transparent 70%)",
+          zIndex: 0,
+        }}
+      />
       <div className="max-w-3xl mx-auto relative">
         {/* AI mascot companion */}
         <MascotCompanion
