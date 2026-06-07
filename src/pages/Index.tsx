@@ -352,12 +352,17 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
           />
         ) : activePlan ? (
           <div
-            className="w-full rounded-card p-5"
+            className="w-full rounded-card p-5 animate-fade-in relative overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, rgba(255,107,0,0.10), rgba(255,61,127,0.05))",
-              border: "1px solid rgba(255,107,0,0.25)",
+              ...glassSurface,
+              transition: "transform 200ms ease",
             }}
+            onPointerDown={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "scale(0.99)"; }}
+            onPointerUp={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "scale(1)"; }}
+            onPointerLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "scale(1)"; }}
           >
+            {/* Orange top accent line */}
+            <div aria-hidden className="absolute inset-x-0 top-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, #FF5E1A, #FF2D7A, transparent)" }} />
             <div className="flex items-center justify-between gap-3 mb-3">
               <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#ff6b00" }}>
                 {activeLabel}
@@ -413,7 +418,15 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
                   </span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-                  <div className="h-full rounded-full" style={{ width: `${planStats.totalDays > 0 ? Math.min(100, Math.round((planStats.completedDays / planStats.totalDays) * 100)) : 0}%`, background: "linear-gradient(90deg,#ff6b00,#ff3d7f)" }} />
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${planStats.totalDays > 0 ? Math.min(100, Math.round((planStats.completedDays / planStats.totalDays) * 100)) : 0}%`,
+                      background: "linear-gradient(90deg,#FF5E1A,#FF2D7A)",
+                      boxShadow: "0 0 12px rgba(255,94,26,0.5)",
+                      transition: "width 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+                    }}
+                  />
                 </div>
               </div>
             </button>
@@ -422,7 +435,7 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
                 onClick={() => onOpenPlan(activePlan.id, activePlan)}
                 size="sm"
                 className="flex-1 font-bold text-primary-foreground"
-                style={{ background: "linear-gradient(90deg, #ff6b00, #ff3d7f)" }}
+                style={{ background: "linear-gradient(90deg, #FF5E1A, #FF2D7A)", boxShadow: "0 4px 18px rgba(255,94,26,0.35)" }}
               >
                 {viewProgramCta}
               </Button>
@@ -431,7 +444,13 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
                 size="sm"
                 variant="outline"
                 className="flex-1 font-semibold"
-                style={{ borderColor: "rgba(255,107,0,0.4)", color: "#ff6b00" }}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  borderColor: "rgba(255,107,0,0.4)",
+                  color: "#ff6b00",
+                }}
               >
                 {generateNewCta}
               </Button>
