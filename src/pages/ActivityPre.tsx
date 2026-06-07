@@ -250,22 +250,42 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
         ) : showCharts ? (
           <div className="rounded-card p-3 mb-4" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}>
             <Tabs defaultValue="distance" className="w-full">
-              <TabsList className="grid grid-cols-3 w-full mb-2">
-                <TabsTrigger value="distance">Distance</TabsTrigger>
-                <TabsTrigger value="pace">Pace</TabsTrigger>
-                <TabsTrigger value="calories">Calories</TabsTrigger>
+              <TabsList className="grid grid-cols-3 w-full mb-2 bg-transparent p-0 h-auto gap-1">
+                {[
+                  { v: "distance", l: "Distance" },
+                  { v: "pace", l: "Pace" },
+                  { v: "calories", l: "Calories" },
+                ].map((tab) => (
+                  <TabsTrigger
+                    key={tab.v}
+                    value={tab.v}
+                    className="rounded-[10px] h-9 text-xs font-semibold transition-opacity duration-200 bg-transparent text-white/40 data-[state=active]:text-white data-[state=active]:shadow-none data-[state=active]:bg-[linear-gradient(90deg,#FF5E1A,#FF2D7A)]"
+                  >
+                    {tab.l}
+                  </TabsTrigger>
+                ))}
               </TabsList>
               <TabsContent value="distance">
                 <div style={{ width: "100%", height: 120 }}>
                   <ResponsiveContainer>
-                    <BarChart data={stats.distanceData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.2)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                      <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", fontSize: 11 }} />
-                      <Bar dataKey="km" radius={[4,4,0,0]}>
+                    <BarChart data={stats.distanceData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="barGradDist" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FF5E1A" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="barGradDistMuted" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FF5E1A" stopOpacity={0.4} />
+                          <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ fill: "rgba(255,94,26,0.08)" }} content={<GlassTooltip suffix=" km" />} />
+                      <Bar dataKey="km" radius={[4, 4, 0, 0]} animationDuration={600} animationEasing="ease-out">
                         {stats.distanceData.map((d, i) => (
-                          <Cell key={i} fill={d.current ? ORANGE : MUTED} />
+                          <Cell key={i} fill={d.current ? "url(#barGradDist)" : "url(#barGradDistMuted)"} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -275,13 +295,36 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
               <TabsContent value="pace">
                 <div style={{ width: "100%", height: 120 }}>
                   <ResponsiveContainer>
-                    <LineChart data={stats.paceData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.2)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis reversed tickFormatter={paceTickFmt} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                      <Tooltip formatter={(v: any) => [paceTickFmt(Number(v)) + " /km", "Pace"]} contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", fontSize: 11 }} />
-                      {stats.avgPace > 0 && <ReferenceLine y={stats.avgPace} stroke={ORANGE} strokeDasharray="4 4" />}
-                      <Line type="monotone" dataKey="pace" stroke={ORANGE} strokeWidth={2} dot={{ r: 3, fill: ORANGE }} connectNulls />
+                    <LineChart data={stats.paceData} margin={{ top: 8, right: 4, left: -10, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="paceArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FF5E1A" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0} />
+                        </linearGradient>
+                        <filter id="paceGlow" x="-20%" y="-20%" width="140%" height="140%">
+                          <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#FF5E1A" floodOpacity="0.7" />
+                        </filter>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <YAxis reversed tickFormatter={paceTickFmt} tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ stroke: "rgba(255,94,26,0.3)" }} content={<GlassTooltip valueFmt={(v: number) => paceTickFmt(v)} suffix=" /km" />} />
+                      {stats.avgPace > 0 && (
+                        <ReferenceLine y={stats.avgPace} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
+                      )}
+                      <Area type="monotone" dataKey="pace" stroke="none" fill="url(#paceArea)" connectNulls isAnimationActive={false} />
+                      <Line
+                        type="monotone"
+                        dataKey="pace"
+                        stroke={ORANGE}
+                        strokeWidth={2.5}
+                        dot={{ r: 3, fill: "#fff", stroke: ORANGE, strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: "#fff", stroke: ORANGE, strokeWidth: 2, filter: "url(#paceGlow)" }}
+                        connectNulls
+                        style={{ filter: "drop-shadow(0 0 6px rgba(255,94,26,0.7))" }}
+                        animationDuration={800}
+                        animationEasing="ease-out"
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -289,12 +332,26 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
               <TabsContent value="calories">
                 <div style={{ width: "100%", height: 120 }}>
                   <ResponsiveContainer>
-                    <BarChart data={stats.caloriesData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.2)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                      <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", fontSize: 11 }} />
-                      <Bar dataKey="kcal" fill={ORANGE} radius={[4,4,0,0]} />
+                    <BarChart data={stats.caloriesData} margin={{ top: 8, right: 4, left: -10, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="barGradKcal" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FF5E1A" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="barGradKcalMuted" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FF5E1A" stopOpacity={0.4} />
+                          <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ fill: "rgba(255,94,26,0.08)" }} content={<GlassTooltip suffix=" kcal" />} />
+                      <Bar dataKey="kcal" radius={[4, 4, 0, 0]} animationDuration={600} animationEasing="ease-out">
+                        {stats.caloriesData.map((d, i) => (
+                          <Cell key={i} fill={d.current ? "url(#barGradKcal)" : "url(#barGradKcalMuted)"} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
