@@ -22,6 +22,36 @@ import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import FeaturedMedalChip from "@/components/medals/FeaturedMedalChip";
 import { getWeeklyTotalKm, loadSessions } from "@/lib/activityTracking";
 
+// Lightweight count-up animation (CSS-free, requestAnimationFrame).
+// Logic-free: only animates the visual presentation of an already-computed number.
+function CountUp({ value, duration = 900, suffix = "" }: { value: number; duration?: number; suffix?: string }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now();
+    const from = 0;
+    const to = Number.isFinite(value) ? value : 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(from + (to - from) * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+  return <>{display}{suffix}</>;
+}
+
+// Reusable glassmorphism surface style (works in both dark & light modes).
+const glassSurface: React.CSSProperties = {
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.25)",
+};
+
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
 
