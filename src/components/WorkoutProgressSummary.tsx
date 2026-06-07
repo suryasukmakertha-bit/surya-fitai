@@ -20,6 +20,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  Cell,
 } from "recharts";
 
 interface DailyCount {
@@ -172,6 +173,30 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
   if (!user || loading) return null;
 
   const hasData = totalCompleted > 0;
+  const todayLabel = format(new Date(), "EEE");
+  const GlassTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) return null;
+    return (
+      <div
+        style={{
+          background: "rgba(10,10,18,0.9)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,94,26,0.3)",
+          borderRadius: 10,
+          padding: "6px 10px",
+          color: "#fff",
+          fontSize: 12,
+          lineHeight: 1.3,
+        }}
+      >
+        <div style={{ opacity: 0.6, fontSize: 10 }}>{label}</div>
+        <div style={{ fontWeight: 700 }}>
+          {payload[0].value} {t.exercises}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="card-gradient rounded-lg p-5 border border-border/50 mb-8">
@@ -200,17 +225,35 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         <div className="h-44">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={weeklyData} barSize={24}>
+              <defs>
+                <linearGradient id="wpsBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#FF5E1A" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0.2} />
+                </linearGradient>
+                <filter id="wpsBarGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#FF5E1A" floodOpacity="0.8" />
+                </filter>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: "#555555", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis allowDecimals={false} tick={{ fill: "#555555", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip
-                cursor={{ fill: "rgba(255,61,127,0.10)" }}
-                contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "#ffffff" }}
-                labelStyle={{ color: "#ffffff" }}
-                itemStyle={{ color: "#ff6b00" }}
-                formatter={(value: number) => [`${value} ${t.exercises}`, t.completed]}
-              />
-              <Bar dataKey="count" fill="#ff6b00" radius={[4, 4, 0, 0]} fillOpacity={0.95} />
+              <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip cursor={{ fill: "rgba(255,94,26,0.08)" }} content={<GlassTooltip />} />
+              <Bar
+                dataKey="count"
+                radius={[4, 4, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+                animationBegin={0}
+                background={{ fill: "rgba(255,255,255,0.05)", radius: 4 } as any}
+              >
+                {weeklyData.map((d, i) => (
+                  <Cell
+                    key={i}
+                    fill="url(#wpsBarGrad)"
+                    style={d.date === todayLabel ? { filter: "url(#wpsBarGlow)" } : undefined}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
