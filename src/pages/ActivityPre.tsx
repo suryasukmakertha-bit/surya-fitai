@@ -13,6 +13,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Area,
 } from "recharts";
 import RunningIcon from "@/components/icons/RunningIcon";
 import { useAuth } from "@/contexts/AuthContext";
