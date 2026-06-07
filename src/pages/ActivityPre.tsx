@@ -145,14 +145,44 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
   }, [sessions, locale]);
 
   const showCharts = sessions.length >= 1;
-  const ORANGE = "#ff6b00";
-  const MUTED = "rgba(255,107,0,0.25)";
+  const ORANGE = "#FF5E1A";
+  const MUTED = "rgba(255,94,26,0.4)";
+  const GRID = "rgba(255,255,255,0.06)";
+  const AXIS = "rgba(255,255,255,0.3)";
 
   const paceTickFmt = (v: number) => {
     if (!v || !Number.isFinite(v)) return "";
     const m = Math.floor(v / 60);
     const s = Math.floor(v % 60);
     return `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  // Shared glassmorphism tooltip
+  const GlassTooltip = ({ active, payload, label, valueFmt, suffix }: any) => {
+    if (!active || !payload || !payload.length) return null;
+    const raw = payload[0].value;
+    const display = valueFmt ? valueFmt(raw) : raw;
+    return (
+      <div
+        style={{
+          background: "rgba(10,10,18,0.9)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,94,26,0.3)",
+          borderRadius: 10,
+          padding: "6px 10px",
+          color: "#fff",
+          fontSize: 12,
+          lineHeight: 1.3,
+        }}
+      >
+        <div style={{ opacity: 0.6, fontSize: 10 }}>{label}</div>
+        <div style={{ fontWeight: 700 }}>
+          {display}
+          {suffix || ""}
+        </div>
+      </div>
+    );
   };
 
   return (
