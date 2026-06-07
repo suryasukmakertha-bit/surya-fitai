@@ -145,19 +145,17 @@ export default function DailyChallengeCard() {
   return (
     <>
       <div
-        className="mt-5 animate-fade-in relative overflow-hidden"
+        className="mt-5"
         onClick={() => { if (!completed && !accepted) setTimerOpen(true); }}
         role={completed ? undefined : "button"}
         tabIndex={completed ? undefined : 0}
         style={{
-          background: "rgba(255,255,255,0.04)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderLeft: "3px solid #FF5E1A",
+          background: "hsl(var(--surface))",
+          border: "0.5px solid rgba(255,107,0,0.2)",
           borderRadius: 16,
           padding: 16,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.25), -8px 0 24px -10px rgba(255,94,26,0.35)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 16px rgba(0,0,0,0.3)",
+          position: "relative",
           cursor: completed || accepted ? "default" : "pointer",
         }}
       >
