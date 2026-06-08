@@ -148,8 +148,10 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
   const showCharts = sessions.length >= 1;
   const ORANGE = "#FF5E1A";
   const MUTED = "rgba(255,94,26,0.4)";
-  const GRID = "rgba(255,255,255,0.06)";
-  const AXIS = "rgba(255,255,255,0.3)";
+  const GRID = "hsl(var(--border))";
+  const AXIS = "hsl(var(--foreground))";
+  const AXIS_OPACITY = 0.5;
+  const GRID_OPACITY = 0.4;
 
   const paceTickFmt = (v: number) => {
     if (!v || !Number.isFinite(v)) return "";
@@ -260,7 +262,7 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
                   <TabsTrigger
                     key={tab.v}
                     value={tab.v}
-                    className="rounded-[10px] h-9 text-xs font-semibold transition-opacity duration-200 bg-transparent text-white/40 data-[state=active]:text-white data-[state=active]:shadow-none data-[state=active]:bg-[linear-gradient(90deg,#FF5E1A,#FF2D7A)]"
+                    className="rounded-[10px] h-9 text-xs font-semibold transition-opacity duration-200 bg-transparent text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-none data-[state=active]:bg-[linear-gradient(90deg,#FF5E1A,#FF2D7A)]"
                   >
                     {tab.l}
                   </TabsTrigger>
