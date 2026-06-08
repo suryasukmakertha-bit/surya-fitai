@@ -22,6 +22,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import AppHeader from "@/components/AppHeader";
 import {
   type ActivityType,
   type ActivitySession,
@@ -190,6 +191,7 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
 
   return (
     <div className="min-h-screen page-bg pb-24">
+      <AppHeader />
       <header className="px-4 pt-4 pb-2 flex items-center gap-3">
         <button onClick={() => nav("/")} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "hsl(var(--surface))" }} aria-label="Back">
           <ArrowLeft className="w-5 h-5 text-foreground" />
