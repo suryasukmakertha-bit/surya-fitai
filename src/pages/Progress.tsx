@@ -105,10 +105,36 @@ export default function Progress() {
   const bmi = lastWeight ? (lastWeight / ((heightCm / 100) ** 2)).toFixed(1) : "—";
   const progressPercent = sorted.length >= 2 ? Math.min(100, Math.round((sorted.length / 12) * 100)) : 0;
 
-  const chartData = sorted.map((c) => ({
-    date: new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  const eightWeeksAgo = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 56);
+    return d.toISOString().slice(0, 10);
+  })();
+  const recentSorted = sorted.filter((c) => c.date >= eightWeeksAgo);
+  const chartSource = recentSorted.length >= 2 ? recentSorted : sorted;
+  const chartData = chartSource.map((c) => ({
+    date: new Date(c.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     weight: c.weight,
   }));
+
+  const WeightTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) return null;
+    return (
+      <div
+        className="rounded-lg px-3 py-2 text-xs text-white"
+        style={{
+          background: "rgba(0,0,0,0.75)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,107,0,0.3)",
+        }}
+      >
+        <span className="font-semibold">{label}</span>
+        <span className="opacity-70"> — </span>
+        <span style={{ color: "#ff6b00" }}>{payload[0].value} kg</span>
+      </div>
+    );
+  };
 
   if (loadingData) {
     return (
@@ -171,20 +197,20 @@ export default function Progress() {
               <Activity className="w-4 h-4 text-primary shrink-0 mt-0.5" />
               <p className="text-primary text-xs">{(t as any).coachWeightChartSub}</p>
             </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: "100%", height: 220 }}>
+              <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.35} />
+                      <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="#ff6b00" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="date" tick={{ fill: "#555555", fontSize: 12 }} />
-                  <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "#555555", fontSize: 12 }} />
-                  <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "#ffffff" }} labelStyle={{ color: "#ffffff" }} itemStyle={{ color: "#ff6b00" }} />
-                  <Area type="monotone" dataKey="weight" stroke="#ff6b00" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "#ff6b00", r: 4 }} activeDot={{ fill: "#ff3d7f", r: 5 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                  <XAxis dataKey="date" tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<WeightTooltip />} />
+                  <Area type="monotone" dataKey="weight" stroke="#ff6b00" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "#ff6b00", r: 4 }} activeDot={{ fill: "#ff6b00", r: 6 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -194,7 +220,7 @@ export default function Progress() {
         {chartData.length < 2 && (
           <div className="card-gradient rounded-lg p-8 border border-border/50 mb-8 text-center">
             <Scale className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">{t.logAtLeast2}</p>
+            <p className="text-muted-foreground text-sm">{(t as any).weightChartNotEnoughData}</p>
           </div>
         )}
 
