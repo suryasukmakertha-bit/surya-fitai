@@ -234,9 +234,9 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
                   <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#FF5E1A" floodOpacity="0.8" />
                 </filter>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip cursor={{ fill: "rgba(255,94,26,0.08)" }} content={<GlassTooltip />} />
               <Bar
                 dataKey="count"
