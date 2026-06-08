@@ -282,9 +282,9 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
                           <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} strokeOpacity={GRID_OPACITY} vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS, fillOpacity: AXIS_OPACITY }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS, fillOpacity: AXIS_OPACITY }} axisLine={false} tickLine={false} />
                       <Tooltip cursor={{ fill: "rgba(255,94,26,0.08)" }} content={<GlassTooltip suffix=" km" />} />
                       <Bar dataKey="km" radius={[4, 4, 0, 0]} animationDuration={600} animationEasing="ease-out">
                         {stats.distanceData.map((d, i) => (
@@ -308,9 +308,9 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
                           <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#FF5E1A" floodOpacity="0.7" />
                         </filter>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
-                      <YAxis reversed tickFormatter={paceTickFmt} tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} strokeOpacity={GRID_OPACITY} vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS, fillOpacity: AXIS_OPACITY }} axisLine={false} tickLine={false} />
+                      <YAxis reversed tickFormatter={paceTickFmt} tick={{ fontSize: 10, fill: AXIS, fillOpacity: AXIS_OPACITY }} axisLine={false} tickLine={false} />
                       <Tooltip cursor={{ stroke: "rgba(255,94,26,0.3)" }} content={<GlassTooltip valueFmt={(v: number) => paceTickFmt(v)} suffix=" /km" />} />
                       {stats.avgPace > 0 && (
                         <ReferenceLine y={stats.avgPace} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
@@ -346,9 +346,9 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
                           <stop offset="100%" stopColor="#FF5E1A" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: AXIS }} axisLine={false} tickLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID} strokeOpacity={GRID_OPACITY} vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: AXIS, fillOpacity: AXIS_OPACITY }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: AXIS, fillOpacity: AXIS_OPACITY }} axisLine={false} tickLine={false} />
                       <Tooltip cursor={{ fill: "rgba(255,94,26,0.08)" }} content={<GlassTooltip suffix=" kcal" />} />
                       <Bar dataKey="kcal" radius={[4, 4, 0, 0]} animationDuration={600} animationEasing="ease-out">
                         {stats.caloriesData.map((d, i) => (
@@ -360,7 +360,7 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
                 </div>
               </TabsContent>
             </Tabs>
-            <div className="flex justify-between text-[10px] text-muted-foreground mt-2 px-1">
+            <div className="flex justify-between text-[10px] text-foreground mt-2 px-1">
               <span>Total: {stats.totalKm.toFixed(1)} km</span>
               <span>{stats.totalCount} sessions</span>
             </div>
