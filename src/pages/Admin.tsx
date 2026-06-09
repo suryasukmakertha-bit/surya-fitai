@@ -208,6 +208,28 @@ function StarsDisplay({ rating }: { rating: number | null }) {
   );
 }
 
+function GlassTooltip({ active, payload, label }: any) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div
+      className="rounded-lg px-3 py-2 text-xs text-white"
+      style={{
+        background: "rgba(0,0,0,0.75)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        border: "1px solid rgba(255,107,0,0.3)",
+      }}
+    >
+      <div className="font-semibold">{label}</div>
+      <div style={{ color: "#ff6b00" }}>{payload[0].value}</div>
+    </div>
+  );
+}
+
+function formatWeekLabel(iso: string, locale: string) {
+  return new Date(iso + "T00:00:00").toLocaleDateString(locale, { month: "short", day: "numeric" });
+}
+
 export default function Admin() {
   const { user, loading: authLoading } = useAuth();
   const { lang } = useLanguage();
