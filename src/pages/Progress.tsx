@@ -202,15 +202,23 @@ export default function Progress() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ff6b00" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#ff6b00" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#ff6b00" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#ff6b00" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
                   <XAxis dataKey="date" tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis domain={["dataMin - 2", "dataMax + 2"]} tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<WeightTooltip />} />
-                  <Area type="monotone" dataKey="weight" stroke="#ff6b00" fill="url(#weightGradient)" strokeWidth={2} dot={{ fill: "#ff6b00", r: 4 }} activeDot={{ fill: "#ff6b00", r: 6 }} />
+                  <Area
+                    type="monotone"
+                    dataKey="weight"
+                    stroke="#ff6b00"
+                    fill="url(#weightGradient)"
+                    strokeWidth={2}
+                    dot={{ fill: "#ff6b00", stroke: "#ff6b00", r: 4 }}
+                    activeDot={{ fill: "#ff6b00", stroke: "#ff6b00", r: 6, style: { filter: "drop-shadow(0 0 4px #ff6b00)" } }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
