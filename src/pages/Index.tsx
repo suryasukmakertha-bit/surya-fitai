@@ -21,6 +21,7 @@ import DailyChallengeCard from "@/components/DailyChallengeCard";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import FeaturedMedalChip from "@/components/medals/FeaturedMedalChip";
 import { getWeeklyTotalKm, loadSessions } from "@/lib/activityTracking";
+import PlanExtendBanner from "@/components/PlanExtendBanner";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
@@ -305,6 +306,25 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
         <div className="relative" style={{ zIndex: 1 }}>
 
         {/* SECTION 1 — Active plan card or empty state */}
+        {activePlan && planStats.totalDays > 0 &&
+          Math.round((planStats.completedDays / planStats.totalDays) * 100) >= 80 && (
+          <div className="mb-3">
+            <PlanExtendBanner
+              monthNumber={activePlan.plan_month_number || 1}
+              onExtend={() => {
+                navigate("/results", {
+                  state: {
+                    plan: activePlan.plan_data,
+                    userInfo: activePlan.user_info,
+                    programType: activePlan.program_type,
+                    planId: activePlan.id,
+                    openExtend: true,
+                  },
+                });
+              }}
+            />
+          </div>
+        )}
         {loadingPlans ? (
           <div
             className="rounded-card p-6 animate-pulse"
