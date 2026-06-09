@@ -7,21 +7,9 @@ interface PlanExtendBannerProps {
 }
 
 export default function PlanExtendBanner({ monthNumber, onExtend }: PlanExtendBannerProps) {
-  const { lang } = useLanguage();
-
-  const message =
-    lang === "id"
-      ? `Bulan ${monthNumber} hampir selesai! Siap lanjut?`
-      : lang === "zh"
-        ? `第${monthNumber}个月快完成了！准备好继续了吗？`
-        : `Month ${monthNumber} almost done! Ready to continue?`;
-
-  const buttonLabel =
-    lang === "id"
-      ? `Lanjut ke Bulan ${monthNumber + 1}`
-      : lang === "zh"
-        ? `继续第${monthNumber + 1}个月`
-        : `Continue to Month ${monthNumber + 1}`;
+  const { t } = useLanguage();
+  const message = (t as any)["extendMonth.prompt"];
+  const buttonLabel = (t as any)["extendMonth.button"];
 
   return (
     <div
