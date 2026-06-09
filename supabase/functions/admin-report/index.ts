@@ -64,6 +64,54 @@ Deno.serve(async (req) => {
 
     const monthRevenue = activeSubs * 19900;
 
+    // ---- Weekly charts (last 12 weeks, Monday-aligned) ----
+    const mondayOf = (d: Date) => {
+      const x = new Date(d);
+      const day = (x.getUTCDay() + 6) % 7; // 0 = Monday
+      x.setUTCDate(x.getUTCDate() - day);
+      x.setUTCHours(0, 0, 0, 0);
+      return x;
+    };
+    const weekKeys: string[] = [];
+    const thisMonday = mondayOf(new Date(now));
+    for (let i = 11; i >= 0; i--) {
+      const wk = new Date(thisMonday);
+      wk.setUTCDate(wk.getUTCDate() - i * 7);
+      weekKeys.push(wk.toISOString().slice(0, 10));
+    }
+    const weekStartMs = new Date(weekKeys[0]).getTime();
+    const keyForDate = (iso: string) => {
+      const m = mondayOf(new Date(iso));
+      return m.toISOString().slice(0, 10);
+    };
+    const initWeekly = () => {
+      const o: Record<string, number> = {};
+      weekKeys.forEach((k) => (o[k] = 0));
+      return o;
+    };
+
+    const newUsersWeekly = initWeekly();
+    const generatesWeekly = initWeekly();
+    const activeSubsWeekly = initWeekly();
+
+    const [{ data: profilesWeekly }, { data: plansWeekly }, { data: subsWeekly }] = await Promise.all([
+      admin.from("profiles").select("created_at").gte("created_at", new Date(weekStartMs).toISOString()),
+      admin.from("saved_plans").select("created_at").gte("created_at", new Date(weekStartMs).toISOString()),
+      admin.from("subscriptions").select("created_at, status").eq("status", "active").gte("created_at", new Date(weekStartMs).toISOString()),
+    ]);
+    (profilesWeekly ?? []).forEach((p: any) => {
+      const k = keyForDate(p.created_at);
+      if (k in newUsersWeekly) newUsersWeekly[k]++;
+    });
+    (plansWeekly ?? []).forEach((p: any) => {
+      const k = keyForDate(p.created_at);
+      if (k in generatesWeekly) generatesWeekly[k]++;
+    });
+    (subsWeekly ?? []).forEach((s: any) => {
+      const k = keyForDate(s.created_at);
+      if (k in activeSubsWeekly) activeSubsWeekly[k]++;
+    });
+
     // ---- Charts: signups (profiles.created_at) per day last 30d ----
     const { data: profileDates } = await admin
       .from("profiles")
@@ -154,6 +202,9 @@ Deno.serve(async (req) => {
         signups: Object.entries(signupsByDay).map(([date, count]) => ({ date, count })),
         generates: Object.entries(generatesByDay).map(([date, count]) => ({ date, count })),
         programDistribution: Object.entries(programDist).map(([name, value]) => ({ name, value })),
+        weeklyNewUsers: weekKeys.map((k) => ({ week: k, count: newUsersWeekly[k] })),
+        weeklyActiveSubs: weekKeys.map((k) => ({ week: k, count: activeSubsWeekly[k] })),
+        weeklyGenerates: weekKeys.map((k) => ({ week: k, count: generatesWeekly[k] })),
       },
       feedback: feedback ?? [],
       avgRating,
