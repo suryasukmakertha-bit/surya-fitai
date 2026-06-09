@@ -52,6 +52,10 @@ const I18N = {
     none: "Tidak ada laporan",
     dash: "—",
     error: "Galat",
+    reportsTitle: "Laporan Admin",
+    weeklyNewUsers: "Pengguna Baru / Minggu",
+    weeklyActiveSubs: "Pelanggan Aktif Seiring Waktu",
+    weeklyGenerates: "Volume Generate Program",
   },
   en: {
     title: "Admin Report",
@@ -91,6 +95,10 @@ const I18N = {
     none: "None reported",
     dash: "—",
     error: "Error",
+    reportsTitle: "Admin Reports",
+    weeklyNewUsers: "New Users Per Week",
+    weeklyActiveSubs: "Active Subscribers Over Time",
+    weeklyGenerates: "Plan Generation Volume",
   },
   zh: {
     title: "管理员报告",
@@ -130,6 +138,10 @@ const I18N = {
     none: "未报告",
     dash: "—",
     error: "错误",
+    reportsTitle: "管理员报告",
+    weeklyNewUsers: "每周新用户",
+    weeklyActiveSubs: "活跃订阅者趋势",
+    weeklyGenerates: "计划生成量",
   },
 } as const;
 
@@ -146,6 +158,9 @@ interface ReportData {
     signups: { date: string; count: number }[];
     generates: { date: string; count: number }[];
     programDistribution: { name: string; value: number }[];
+    weeklyNewUsers?: { week: string; count: number }[];
+    weeklyActiveSubs?: { week: string; count: number }[];
+    weeklyGenerates?: { week: string; count: number }[];
   };
   feedback: Array<{
     id: string;
