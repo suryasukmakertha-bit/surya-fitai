@@ -21,6 +21,7 @@ import DailyChallengeCard from "@/components/DailyChallengeCard";
 import { useFeaturedMedal } from "@/hooks/useFeaturedMedal";
 import FeaturedMedalChip from "@/components/medals/FeaturedMedalChip";
 import { getWeeklyTotalKm, loadSessions } from "@/lib/activityTracking";
+import PlanExtendBanner from "@/components/PlanExtendBanner";
 
 function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
