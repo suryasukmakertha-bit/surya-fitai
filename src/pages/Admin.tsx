@@ -52,6 +52,10 @@ const I18N = {
     none: "Tidak ada laporan",
     dash: "—",
     error: "Galat",
+    reportsTitle: "Laporan Admin",
+    weeklyNewUsers: "Pengguna Baru / Minggu",
+    weeklyActiveSubs: "Pelanggan Aktif Seiring Waktu",
+    weeklyGenerates: "Volume Generate Program",
   },
   en: {
     title: "Admin Report",
@@ -91,6 +95,10 @@ const I18N = {
     none: "None reported",
     dash: "—",
     error: "Error",
+    reportsTitle: "Admin Reports",
+    weeklyNewUsers: "New Users Per Week",
+    weeklyActiveSubs: "Active Subscribers Over Time",
+    weeklyGenerates: "Plan Generation Volume",
   },
   zh: {
     title: "管理员报告",
@@ -130,6 +138,10 @@ const I18N = {
     none: "未报告",
     dash: "—",
     error: "错误",
+    reportsTitle: "管理员报告",
+    weeklyNewUsers: "每周新用户",
+    weeklyActiveSubs: "活跃订阅者趋势",
+    weeklyGenerates: "计划生成量",
   },
 } as const;
 
@@ -146,6 +158,9 @@ interface ReportData {
     signups: { date: string; count: number }[];
     generates: { date: string; count: number }[];
     programDistribution: { name: string; value: number }[];
+    weeklyNewUsers?: { week: string; count: number }[];
+    weeklyActiveSubs?: { week: string; count: number }[];
+    weeklyGenerates?: { week: string; count: number }[];
   };
   feedback: Array<{
     id: string;
@@ -191,6 +206,28 @@ function StarsDisplay({ rating }: { rating: number | null }) {
       ))}
     </span>
   );
+}
+
+function GlassTooltip({ active, payload, label }: any) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div
+      className="rounded-lg px-3 py-2 text-xs text-white"
+      style={{
+        background: "rgba(0,0,0,0.75)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        border: "1px solid rgba(255,107,0,0.3)",
+      }}
+    >
+      <div className="font-semibold">{label}</div>
+      <div style={{ color: "#ff6b00" }}>{payload[0].value}</div>
+    </div>
+  );
+}
+
+function formatWeekLabel(iso: string, locale: string) {
+  return new Date(iso + "T00:00:00").toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
 export default function Admin() {
@@ -355,6 +392,73 @@ export default function Admin() {
             </div>
           </div>
         </section>
+
+        {/* SECTION B2: Admin Reports — weekly trends */}
+        {isAdmin && (
+          <section>
+            <h2 className="text-xl font-semibold text-foreground mb-4">{t.reportsTitle}</h2>
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-3">{t.weeklyNewUsers}</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={(charts.weeklyNewUsers ?? []).map((d) => ({ ...d, label: formatWeekLabel(d.week, localeForDate) }))}>
+                    <defs>
+                      <linearGradient id="adminBarA" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ff6b00" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#ff6b00" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                    <XAxis dataKey="label" tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip content={<GlassTooltip />} cursor={{ fill: "rgba(255,107,0,0.08)" }} />
+                    <Bar dataKey="count" fill="url(#adminBarA)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-3">{t.weeklyActiveSubs}</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={(charts.weeklyActiveSubs ?? []).map((d) => ({ ...d, label: formatWeekLabel(d.week, localeForDate) }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                    <XAxis dataKey="label" tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip content={<GlassTooltip />} />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#ff6b00"
+                      strokeWidth={2}
+                      dot={{ fill: "#ff6b00", stroke: "#ff6b00", r: 3 }}
+                      activeDot={{ fill: "#ff6b00", stroke: "#ff6b00", r: 5, style: { filter: "drop-shadow(0 0 4px #ff6b00)" } }}
+                      style={{ filter: "drop-shadow(0 0 4px rgba(255,107,0,0.6))" }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-5 lg:col-span-2">
+                <h3 className="text-sm font-semibold text-foreground mb-3">{t.weeklyGenerates}</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={(charts.weeklyGenerates ?? []).map((d) => ({ ...d, label: formatWeekLabel(d.week, localeForDate) }))}>
+                    <defs>
+                      <linearGradient id="adminBarB" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ff6b00" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#ff6b00" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                    <XAxis dataKey="label" tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "hsl(var(--foreground))", fillOpacity: 0.5, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip content={<GlassTooltip />} cursor={{ fill: "rgba(255,107,0,0.08)" }} />
+                    <Bar dataKey="count" fill="url(#adminBarB)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* SECTION D: Form analytics */}
         <section>
