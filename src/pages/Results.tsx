@@ -455,6 +455,19 @@ export default function Results() {
     return () => { cancelled = true; };
   }, [user, planId, plan, planStartedAt]);
 
+  // Auto-trigger extend flow when arriving from another page (e.g. Home banner).
+  useEffect(() => {
+    if (!stateOpenExtend || !planId) return;
+    if (access.isFreeTier && !access.isUnlimited) {
+      openPopup('extend_plan' as any);
+    } else {
+      setShowCompletionModal(true);
+    }
+    // Clear the flag from history so refresh / back doesn't re-trigger.
+    navigate(location.pathname, { replace: true, state: { ...(location.state || {}), openExtend: false } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stateOpenExtend, planId, access.isFreeTier, access.isUnlimited]);
+
   useEffect(() => {
     setCheckIns([]);
     if (planId && user) {
