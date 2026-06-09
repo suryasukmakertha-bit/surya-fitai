@@ -386,6 +386,11 @@ const translations = {
     activeBadgeLabel: "In Progress",
     completedBadgeLabel: "Completed",
 
+    "extendMonth.prompt": "You're almost done! Extend your plan to keep the momentum.",
+    "extendMonth.button": "Extend Month",
+    "extendMonth.confirm": "Confirm Extend",
+    "extendMonth.upgradeRequired": "Subscribe to extend your plan and unlock full access.",
+
     // Daily Challenge
     "dailyChallenge.label": "DAILY CHALLENGE",
     "dailyChallenge.doX": "Do {{count}} {{exercise}}",
@@ -915,6 +920,11 @@ const translations = {
     activeBadgeLabel: "Sedang Berjalan",
     completedBadgeLabel: "Selesai",
 
+    "extendMonth.prompt": "Hampir selesai! Perpanjang planmu untuk menjaga momentum.",
+    "extendMonth.button": "Perpanjang Bulan",
+    "extendMonth.confirm": "Konfirmasi Perpanjang",
+    "extendMonth.upgradeRequired": "Berlangganan untuk memperpanjang plan dan akses penuh.",
+
     "dailyChallenge.label": "TANTANGAN HARIAN",
     "dailyChallenge.doX": "Lakukan {{count}} {{exercise}}",
     "dailyChallenge.holdX": "Tahan {{exercise}} selama {{count}} detik",
@@ -1436,6 +1446,11 @@ const translations = {
     extendError: "延续计划失败。请重试。",
     activeBadgeLabel: "进行中",
     completedBadgeLabel: "已完成",
+
+    "extendMonth.prompt": "即将完成！延长您的计划以保持势头。",
+    "extendMonth.button": "延长月份",
+    "extendMonth.confirm": "确认延长",
+    "extendMonth.upgradeRequired": "订阅以延长您的计划并解锁完整访问权限。",
 
     "dailyChallenge.label": "每日挑战",
     "dailyChallenge.doX": "完成 {{count}} 个{{exercise}}",
