@@ -1346,8 +1346,8 @@ export default function Results() {
           </TabsList>
 
           <TabsContent value="workout" className="space-y-4">
-            {/* Persistent Extend Banner — shows when current month is ≥80% complete and not yet extended */}
-            {planCompletedAt && (
+            {/* Persistent Extend Banner — shows when current month is ≥80% complete or completed */}
+            {(planCompletedAt || (planProgress && planProgress.percentage >= 80)) && (
               <PlanExtendBanner
                 monthNumber={planMonthNumber}
                 onExtend={() => {
@@ -1358,6 +1358,31 @@ export default function Results() {
                   }
                 }}
               />
+            )}
+
+            {/* Always-visible compact Extend button when a plan exists */}
+            {planId && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (access.isFreeTier && !access.isUnlimited) {
+                      openPopup('extend_plan' as any);
+                    } else {
+                      setShowCompletionModal(true);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-opacity hover:opacity-90"
+                  style={{
+                    background: "rgba(255,107,0,0.10)",
+                    color: "#ff6b00",
+                    border: "1px solid rgba(255,107,0,0.30)",
+                  }}
+                >
+                  <Flame className="w-3.5 h-3.5" strokeWidth={2} />
+                  {(t as any)["extendMonth.button"]}
+                </button>
+              </div>
             )}
 
             {/* Week Selector */}
