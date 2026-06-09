@@ -342,6 +342,7 @@ export default function Results() {
   const stateProgramType = location.state?.programType;
   const stateClientGeneratedId: string | undefined = location.state?.clientGeneratedId;
   const statePlanId: string | undefined = location.state?.planId;
+  const stateOpenExtend: boolean | undefined = location.state?.openExtend;
 
   const [plan, setPlan] = useState<PlanData | undefined>(stateplan);
   const [userInfo, setUserInfo] = useState(stateUserInfo);
