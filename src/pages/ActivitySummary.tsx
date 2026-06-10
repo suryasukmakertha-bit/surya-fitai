@@ -173,14 +173,9 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
           ))}
         </div>
 
-        <div className="mt-4 rounded-card p-3 relative" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">{tt("activity.splits")}</p>
-          {isFree ? (
-            <div className="flex items-center justify-center gap-2 py-6">
-              <Lock className="w-4 h-4 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">{tt("activity.mapLockedFree")}</p>
-            </div>
-          ) : (session.splits_json && session.splits_json.length) ? (
+        {session.splits_json && session.splits_json.length > 0 && (
+          <div className="mt-4 rounded-card p-3 relative" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">{tt("activity.splits")}</p>
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-muted-foreground">
@@ -199,10 +194,8 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
                 ))}
               </tbody>
             </table>
-          ) : (
-            <p className="text-xs text-muted-foreground py-2">—</p>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="mt-6 space-y-2">
           <button onClick={onSave} disabled={saved || saving}
