@@ -84,24 +84,24 @@ function drawRouteMap(
   const lngs = pts.map((p) => p.lng);
   const minLat = Math.min(...lats), maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-  const dLat = maxLat - minLat;
-  const dLng = maxLng - minLng;
 
-  if (dLat < 1e-7 && dLng < 1e-7) {
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.font = "600 13px Inter, system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(indoorText, x + w / 2, y + h / 2);
+  // Degenerate: all points identical (or single-axis collapsed) → single dot at center
+  if (maxLat === minLat || maxLng === minLng) {
+    ctx.fillStyle = "#FF6B00";
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y + h / 2, 5, 0, Math.PI * 2);
+    ctx.fill();
     return;
   }
 
-  const pad = 20;
-  const innerW = w - pad * 2;
-  const innerH = h - pad * 2;
-  const sx = (lng: number) => x + pad + (dLng > 0 ? ((lng - minLng) / dLng) * innerW : innerW / 2);
+  // Deterministic normalization with 10% padding of range on each side
+  const latPad = (maxLat - minLat) * 0.1;
+  const lngPad = (maxLng - minLng) * 0.1;
+  const lat0 = minLat - latPad, lat1 = maxLat + latPad;
+  const lng0 = minLng - lngPad, lng1 = maxLng + lngPad;
+  const sx = (lng: number) => x + ((lng - lng0) / (lng1 - lng0)) * w;
   // Y inverted: higher latitude → smaller y
-  const sy = (lat: number) => y + pad + (dLat > 0 ? (1 - (lat - minLat) / dLat) * innerH : innerH / 2);
+  const sy = (lat: number) => y + h - ((lat - lat0) / (lat1 - lat0)) * h;
 
   if (pts.length >= 3) {
     ctx.strokeStyle = "#FF6B00";
