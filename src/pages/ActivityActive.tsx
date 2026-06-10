@@ -258,9 +258,19 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
     const lats = points.map(p => p.lat), lngs = points.map(p => p.lng);
     const minLat = Math.min(...lats), maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
-    const pad = 16;
-    const sx = (lng: number) => pad + ((lng - minLng) / Math.max(1e-9, maxLng - minLng)) * (w - pad * 2);
-    const sy = (lat: number) => h - pad - ((lat - minLat) / Math.max(1e-9, maxLat - minLat)) * (h - pad * 2);
+    if (maxLat === minLat || maxLng === minLng) {
+      ctx.fillStyle = "#ff6b00";
+      ctx.beginPath();
+      ctx.arc(w / 2, h / 2, 5, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+    const latPad = (maxLat - minLat) * 0.1;
+    const lngPad = (maxLng - minLng) * 0.1;
+    const lat0 = minLat - latPad, lat1 = maxLat + latPad;
+    const lng0 = minLng - lngPad, lng1 = maxLng + lngPad;
+    const sx = (lng: number) => ((lng - lng0) / (lng1 - lng0)) * w;
+    const sy = (lat: number) => h - ((lat - lat0) / (lat1 - lat0)) * h;
     ctx.strokeStyle = "rgba(255,107,0,0.8)";
     ctx.lineWidth = 2;
     ctx.beginPath();
