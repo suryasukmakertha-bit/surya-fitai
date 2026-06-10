@@ -247,7 +247,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
   // Draw map
   useEffect(() => {
     const c = canvasRef.current;
-    if (!c || isFree || points.length === 0) return;
+    if (!c || points.length === 0) return;
     const dpr = window.devicePixelRatio || 1;
     const w = c.clientWidth, h = c.clientHeight;
     c.width = w * dpr; c.height = h * dpr;
@@ -380,12 +380,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
         </div>
 
         <div className="mt-4 rounded-card overflow-hidden relative" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)", height: 180 }}>
-          {isFree ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2" style={{ background: "rgba(15,15,17,0.85)", backdropFilter: "blur(6px)" }}>
-              <Lock className="w-6 h-6 text-muted-foreground" />
-              <p className="text-xs font-semibold text-muted-foreground">{tt("activity.mapLockedFree")}</p>
-            </div>
-          ) : hasGeo === false ? (
+          {hasGeo === false ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <p className="text-xs text-muted-foreground">{tt("activity.noMapPermission")}</p>
             </div>
@@ -394,7 +389,7 @@ export default function ActivityActive({ activity }: { activity: ActivityType })
           )}
         </div>
 
-        {!isFree && splits.length > 0 && (
+        {splits.length > 0 && (
           <div className="mt-3 rounded-card p-3" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}>
             <p className="text-[11px] font-bold text-foreground">
               KM {splits[splits.length - 1].km}: {formatPace(splits[splits.length - 1].pace_seconds)} pace
