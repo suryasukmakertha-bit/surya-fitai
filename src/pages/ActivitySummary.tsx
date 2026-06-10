@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bike, Trophy, Lock } from "lucide-react";
+import { ArrowLeft, Bike, Trophy } from "lucide-react";
 import RunningIcon from "@/components/icons/RunningIcon";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
