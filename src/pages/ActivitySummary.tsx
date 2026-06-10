@@ -173,29 +173,63 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
           ))}
         </div>
 
-        {session.splits_json && session.splits_json.length > 0 && (
-          <div className="mt-4 rounded-card p-3 relative" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">{tt("activity.splits")}</p>
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="text-muted-foreground">
-                  <th className="text-left font-semibold py-1">KM</th>
-                  <th className="text-left font-semibold py-1">{tt("activity.pace")}</th>
-                  <th className="text-right font-semibold py-1">{tt("activity.time")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {session.splits_json.map((s) => (
-                  <tr key={s.km} className="text-foreground">
-                    <td className="py-1">{s.km}</td>
-                    <td className="py-1">{formatPace(s.pace_seconds)}/km</td>
-                    <td className="py-1 text-right">{formatDuration(s.duration_seconds)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {session.distance_km >= 1.0 && (() => {
+          const fullSplits = (session.splits_json || []).map((s) => ({
+            label: String(s.km),
+            pace: s.pace_seconds,
+            partial: false,
+          }));
+          const partialKm = session.distance_km - fullSplits.length;
+          const bars = [...fullSplits];
+          if (partialKm >= 0.1 && Number(session.avg_pace_seconds_per_km) > 0) {
+            bars.push({
+              label: session.distance_km.toFixed(1),
+              pace: Number(session.avg_pace_seconds_per_km),
+              partial: true,
+            });
+          }
+          if (bars.length === 0) return null;
+          const paces = bars.map((b) => b.pace).filter((p) => p > 0);
+          const minPace = Math.min(...paces);
+          const maxPace = Math.max(...paces);
+          const fastestIdx = bars.findIndex((b) => b.pace === minPace);
+          const MIN_H = 20, MAX_H = 52;
+          const heightFor = (pace: number) => {
+            if (maxPace === minPace) return MAX_H;
+            // faster (lower pace) = taller
+            const norm = (maxPace - pace) / (maxPace - minPace);
+            return MIN_H + norm * (MAX_H - MIN_H);
+          };
+          return (
+            <div className="mt-4 rounded-card p-3" style={{ background: "hsl(var(--surface))", border: "1px solid hsl(var(--border) / 0.12)" }}>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                {tt("activity.splitsPerKm") !== "activity.splitsPerKm" ? tt("activity.splitsPerKm") : "SPLITS PER KM"}
+              </p>
+              <div className="flex items-end gap-1.5 overflow-x-auto pb-1" style={{ minHeight: MAX_H + 24 }}>
+                {bars.map((b, i) => {
+                  const h = heightFor(b.pace);
+                  const isFastest = i === fastestIdx;
+                  const color = isFastest ? "#ff3d7f" : "#ff6b00";
+                  return (
+                    <div key={i} className="flex flex-col items-center flex-1" style={{ minWidth: 18 }}>
+                      <div
+                        title={`${formatPace(b.pace)}/km`}
+                        style={{
+                          width: "100%",
+                          height: h,
+                          borderRadius: 4,
+                          background: `linear-gradient(180deg, ${color} 0%, ${color}00 100%)`,
+                          boxShadow: isFastest ? "0 0 6px rgba(255,61,127,0.5)" : "none",
+                        }}
+                      />
+                      <span className="text-[10px] mt-1 text-muted-foreground">{b.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="mt-6 space-y-2">
           <button onClick={onSave} disabled={saved || saving}
