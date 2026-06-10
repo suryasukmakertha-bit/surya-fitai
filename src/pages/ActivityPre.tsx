@@ -373,13 +373,6 @@ export default function ActivityPre({ activity }: { activity: ActivityType }) {
           </div>
         )}
 
-        {isFree && (
-          <div className="rounded-card p-3 mb-4 flex items-center gap-2" style={{ background: "hsl(var(--surface))", border: "1px dashed hsl(var(--border) / 0.3)" }}>
-            <Lock className="w-4 h-4 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">{tt("activity.locationLocked")}</p>
-          </div>
-        )}
-
         <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">{tt("activity.lastSessions")}</h2>
         {loading ? (
           <div className="space-y-2">
