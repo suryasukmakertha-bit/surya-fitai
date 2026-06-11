@@ -1375,30 +1375,6 @@ export default function Results() {
             )}
 
             {/* Always-visible compact Extend button when a plan exists */}
-            {planId && planProgress && planProgress.percentage >= 80 && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (access.isFreeTier && !access.isUnlimited) {
-                      openPopup('extend_plan' as any);
-                    } else {
-                      setShowCompletionModal(true);
-                    }
-                  }}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-opacity hover:opacity-90"
-                  style={{
-                    background: "rgba(255,107,0,0.10)",
-                    color: "#ff6b00",
-                    border: "1px solid rgba(255,107,0,0.30)",
-                  }}
-                >
-                  <Flame className="w-3.5 h-3.5" strokeWidth={2} />
-                  {(t as any)["extendMonth.button"]}
-                </button>
-              </div>
-            )}
-
             {/* Week Selector */}
             {totalWeeks > 1 && (
               <div className="card-gradient rounded-lg p-4 border border-primary/30">
