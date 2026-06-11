@@ -1375,7 +1375,7 @@ export default function Results() {
             )}
 
             {/* Always-visible compact Extend button when a plan exists */}
-            {planId && (
+            {planId && planProgress && planProgress.percentage >= 80 && (
               <div className="flex justify-end">
                 <button
                   type="button"
