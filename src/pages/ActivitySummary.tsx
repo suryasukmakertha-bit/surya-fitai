@@ -108,6 +108,8 @@ export default function ActivitySummary({ activity }: { activity: ActivityType }
       await downloadActivityPng({
         session: { ...session, created_at: new Date().toISOString() },
         userName,
+        isPB,
+        showPremium: !isFree,
         i18n: {
           title, distance: tt("activity.distance"), time: tt("activity.time"),
           pace: tt("activity.avgPace"), calories: tt("activity.calories"),
