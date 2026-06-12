@@ -62,6 +62,7 @@ function drawRouteMap(
   ctx: CanvasRenderingContext2D,
   pts: { lat: number; lng: number }[],
   x: number, y: number, w: number, h: number,
+  endpoints?: { start: { lat: number; lng: number }; end: { lat: number; lng: number } },
 ) {
   roundRect(ctx, x, y, w, h, 10);
   ctx.fillStyle = "rgba(0,0,0,0.5)";
@@ -114,7 +115,8 @@ function drawRouteMap(
     });
   }
 
-  const start = pts[0], end = pts[pts.length - 1];
+  const start = endpoints?.start ?? pts[0];
+  const end = endpoints?.end ?? pts[pts.length - 1];
   ctx.fillStyle = "#4ade80";
   ctx.beginPath(); ctx.arc(sx(start.lng), sy(start.lat), 5, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = "#ef4444";
@@ -324,7 +326,13 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   ctx.fillText("ROUTE", PAD_X, cy + 12);
   clearShadow();
   cy += ROUTE_LABEL_H + 6;
-  drawRouteMap(ctx, cleanRoute(session.route_json), PAD_X, cy, INNER_W, ROUTE_H);
+  const rawPts = (Array.isArray(session.route_json) ? session.route_json : []).filter(
+    (p) => p && typeof p.lat === "number" && typeof p.lng === "number" && Number.isFinite(p.lat) && Number.isFinite(p.lng),
+  ) as { lat: number; lng: number }[];
+  const endpoints = rawPts.length >= 2
+    ? { start: rawPts[0], end: rawPts[rawPts.length - 1] }
+    : undefined;
+  drawRouteMap(ctx, cleanRoute(session.route_json), PAD_X, cy, INNER_W, ROUTE_H, endpoints);
   cy += ROUTE_H + GAP;
 
   // SPLITS
