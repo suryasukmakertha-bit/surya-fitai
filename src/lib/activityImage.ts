@@ -64,10 +64,10 @@ function drawRouteMap(
   x: number, y: number, w: number, h: number,
 ) {
   roundRect(ctx, x, y, w, h, 10);
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.fill();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(255,107,0,0.12)";
+  ctx.strokeStyle = "rgba(255,107,0,0.2)";
   ctx.stroke();
 
   if (pts.length === 0) return;
@@ -173,28 +173,20 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   ctx.textBaseline = "alphabetic";
   ctx.clearRect(0, 0, W, H);
 
-  // Card bg gradient + glow
-  ctx.save();
-  roundRect(ctx, 0, 0, W, H, RADIUS);
-  ctx.clip();
-  const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, "#1c1008");
-  bg.addColorStop(0.5, "#0d0d0d");
-  bg.addColorStop(1, "#1a0a00");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-  const glow = ctx.createRadialGradient(100, 80, 0, 100, 80, 180);
-  glow.addColorStop(0, "rgba(255,107,0,0.18)");
-  glow.addColorStop(1, "rgba(255,107,0,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, 280, 280);
-  ctx.restore();
+  // Transparent background — no fill, no border
 
-  // Outer border
-  roundRect(ctx, 0.5, 0.5, W - 1, H - 1, RADIUS);
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(255,107,0,0.2)";
-  ctx.stroke();
+  const setTextShadow = (strong = false) => {
+    ctx.shadowColor = strong ? "rgba(0,0,0,0.9)" : "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = strong ? 8 : 6;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 1;
+  };
+  const clearShadow = () => {
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  };
 
   // Logo
   const logo =
@@ -223,11 +215,13 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   ctx.strokeStyle = "rgba(255,107,0,0.3)";
   ctx.lineWidth = 1;
   ctx.stroke();
+  setTextShadow(true);
   ctx.fillStyle = "#ff6b00";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2 + 0.5);
   ctx.textBaseline = "alphabetic";
+  clearShadow();
   cy += HEADER_H + GAP;
 
   // PB BANNER
@@ -299,41 +293,47 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   for (let i = 0; i < 4; i++) {
     const cxs = PAD_X + i * (cellW + cellGap);
     roundRect(ctx, cxs, cy, cellW, STATS_H, 10);
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.07)";
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
     ctx.lineWidth = 1;
     ctx.stroke();
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(255,255,255,0.38)";
+    setTextShadow();
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
     ctx.font = "700 8px Inter, system-ui, sans-serif";
     ctx.fillText(stats[i].label.toUpperCase(), cxs + cellW / 2, cy + 16);
 
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#FFFFFF";
     ctx.font = "700 16px Inter, system-ui, sans-serif";
     ctx.fillText(stats[i].value, cxs + cellW / 2, cy + 38);
 
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
     ctx.font = "400 9px Inter, system-ui, sans-serif";
     ctx.fillText(stats[i].unit, cxs + cellW / 2, cy + 54);
+    clearShadow();
   }
   ctx.textAlign = "left";
   cy += STATS_H + GAP;
 
   // ROUTE
-  ctx.fillStyle = "rgba(255,255,255,0.35)";
+  setTextShadow();
+  ctx.fillStyle = "rgba(255,255,255,0.7)";
   ctx.font = "700 9px Inter, system-ui, sans-serif";
   ctx.fillText("ROUTE", PAD_X, cy + 12);
+  clearShadow();
   cy += ROUTE_LABEL_H + 6;
   drawRouteMap(ctx, cleanRoute(session.route_json), PAD_X, cy, INNER_W, ROUTE_H);
   cy += ROUTE_H + GAP;
 
   // SPLITS
   if (showSplits) {
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    setTextShadow();
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
     ctx.font = "700 9px Inter, system-ui, sans-serif";
     ctx.fillText("SPLITS PER KM", PAD_X, cy + 12);
+    clearShadow();
     cy += SPLITS_LABEL_H + 6;
 
     const paces = bars.map((b) => b.pace).filter((p) => p > 0);
@@ -366,11 +366,13 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      ctx.fillStyle = "rgba(255,255,255,0.28)";
+      setTextShadow();
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
       ctx.font = "400 8px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(b.label, bx + barW / 2, baseY + 12);
       ctx.textAlign = "left";
+      clearShadow();
     });
     cy += SPLITS_BARS_H + SPLITS_X_H + GAP;
   }
@@ -384,15 +386,17 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   ctx.lineTo(W - PAD_X, footerY - 14);
   ctx.stroke();
 
-  ctx.fillStyle = "rgba(255,255,255,0.3)";
+  setTextShadow();
+  ctx.fillStyle = "rgba(255,255,255,0.8)";
   ctx.font = "400 10px Inter, system-ui, sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(dateStr, PAD_X, footerY);
 
-  ctx.fillStyle = "rgba(255,107,0,0.7)";
+  ctx.fillStyle = "rgba(255,255,255,0.8)";
   ctx.font = "700 10px Inter, system-ui, sans-serif";
   ctx.textAlign = "right";
   ctx.fillText("surya-fitai.com", W - PAD_X, footerY);
+  clearShadow();
 
   // Export
   const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, "image/png"));
