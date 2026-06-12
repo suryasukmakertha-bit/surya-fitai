@@ -64,10 +64,10 @@ function drawRouteMap(
   x: number, y: number, w: number, h: number,
 ) {
   roundRect(ctx, x, y, w, h, 10);
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.fill();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(255,107,0,0.12)";
+  ctx.strokeStyle = "rgba(255,107,0,0.2)";
   ctx.stroke();
 
   if (pts.length === 0) return;
