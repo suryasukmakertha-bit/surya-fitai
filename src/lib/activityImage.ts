@@ -178,16 +178,32 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   // Transparent background — no fill, no border
 
   const setTextShadow = (strong = false) => {
-    ctx.shadowColor = strong ? "rgba(0,0,0,0.9)" : "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = strong ? 8 : 6;
+    ctx.shadowColor = "rgba(0,0,0,0.95)";
+    ctx.shadowBlur = 12;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 1;
+    ctx.shadowOffsetY = 2;
   };
   const clearShadow = () => {
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
+  };
+
+  const drawText = (text: string, x: number, y: number) => {
+    ctx.fillText(text, x, y);
+    ctx.fillText(text, x, y);
+  };
+
+  const drawLabelPill = (text: string, x: number, y: number) => {
+    // y is the baseline used by fillText with current font
+    const w = ctx.measureText(text).width;
+    const padX = 8;
+    const padY = 4;
+    const h = 16;
+    roundRect(ctx, x - padX, y - h + padY, w + padX * 2, h, 6);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fill();
   };
 
   // Logo
