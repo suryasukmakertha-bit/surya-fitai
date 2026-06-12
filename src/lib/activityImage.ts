@@ -65,7 +65,7 @@ function drawRouteMap(
   endpoints?: { start: { lat: number; lng: number }; end: { lat: number; lng: number } },
 ) {
   roundRect(ctx, x, y, w, h, 10);
-  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillStyle = "rgba(0,0,0,0.65)";
   ctx.fill();
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(255,107,0,0.2)";
