@@ -65,7 +65,7 @@ function drawRouteMap(
   endpoints?: { start: { lat: number; lng: number }; end: { lat: number; lng: number } },
 ) {
   roundRect(ctx, x, y, w, h, 10);
-  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillStyle = "rgba(0,0,0,0.65)";
   ctx.fill();
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(255,107,0,0.2)";
@@ -178,16 +178,32 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   // Transparent background — no fill, no border
 
   const setTextShadow = (strong = false) => {
-    ctx.shadowColor = strong ? "rgba(0,0,0,0.9)" : "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = strong ? 8 : 6;
+    ctx.shadowColor = "rgba(0,0,0,0.95)";
+    ctx.shadowBlur = 12;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 1;
+    ctx.shadowOffsetY = 2;
   };
   const clearShadow = () => {
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
+  };
+
+  const drawText = (text: string, x: number, y: number) => {
+    ctx.fillText(text, x, y);
+    ctx.fillText(text, x, y);
+  };
+
+  const drawLabelPill = (text: string, x: number, y: number) => {
+    // y is the baseline used by fillText with current font
+    const w = ctx.measureText(text).width;
+    const padX = 8;
+    const padY = 4;
+    const h = 16;
+    roundRect(ctx, x - padX, y - h + padY, w + padX * 2, h, 6);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fill();
   };
 
   // Logo
@@ -222,6 +238,7 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2 + 0.5);
+  ctx.fillText(badgeText, badgeX + badgeW / 2, badgeY + badgeH / 2 + 0.5);
   ctx.textBaseline = "alphabetic";
   clearShadow();
   cy += HEADER_H + GAP;
@@ -229,6 +246,9 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   // PB BANNER
   if (showPB) {
     const x = PAD_X, y = cy, w = INNER_W, h = PB_H;
+    roundRect(ctx, x, y, w, h, 12);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fill();
     roundRect(ctx, x, y, w, h, 12);
     const g = ctx.createLinearGradient(x, y, x + w, y);
     g.addColorStop(0, "rgba(255,107,0,0.2)");
@@ -239,6 +259,7 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
     ctx.lineWidth = 1;
     ctx.stroke();
 
+    setTextShadow();
     ctx.font = "18px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',system-ui,sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
@@ -248,20 +269,21 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
     ctx.textBaseline = "alphabetic";
     ctx.fillStyle = "#ff6b00";
     ctx.font = "700 9px Inter, system-ui, sans-serif";
-    ctx.fillText("PERSONAL BEST", tx, y + 22);
+    drawText("PERSONAL BEST", tx, y + 22);
 
     const pace = formatPace(session.avg_pace_seconds_per_km);
     ctx.fillStyle = "#ffffff";
     ctx.font = "800 20px Inter, system-ui, sans-serif";
-    ctx.fillText(pace, tx, y + 44);
+    drawText(pace, tx, y + 44);
     const paceW = ctx.measureText(pace).width;
     ctx.fillStyle = "rgba(255,255,255,0.45)";
     ctx.font = "500 12px Inter, system-ui, sans-serif";
-    ctx.fillText(" /km", tx + paceW, y + 44);
+    drawText(" /km", tx + paceW, y + 44);
 
     ctx.fillStyle = "rgba(255,255,255,0.45)";
     ctx.font = "400 10px Inter, system-ui, sans-serif";
-    ctx.fillText("Fastest pace ever recorded", tx, y + 60);
+    drawText("Fastest pace ever recorded", tx, y + 60);
+    clearShadow();
 
     ctx.font = "700 11px Inter, system-ui, sans-serif";
     const pillTextW = ctx.measureText("PB").width;
@@ -275,11 +297,14 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
     pillG.addColorStop(1, "#ff3d7f");
     ctx.fillStyle = pillG;
     ctx.fill();
+    setTextShadow();
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("PB", pillX + pillW / 2, pillY + pillH / 2 + 0.5);
+    ctx.fillText("PB", pillX + pillW / 2, pillY + pillH / 2 + 0.5);
     ctx.textBaseline = "alphabetic";
+    clearShadow();
     cy += PB_H + GAP;
   }
 
@@ -295,7 +320,7 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
   for (let i = 0; i < 4; i++) {
     const cxs = PAD_X + i * (cellW + cellGap);
     roundRect(ctx, cxs, cy, cellW, STATS_H, 10);
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillStyle = "rgba(0,0,0,0.72)";
     ctx.fill();
     ctx.strokeStyle = "rgba(255,255,255,0.15)";
     ctx.lineWidth = 1;
@@ -305,25 +330,26 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
     setTextShadow();
     ctx.fillStyle = "rgba(255,255,255,0.7)";
     ctx.font = "700 8px Inter, system-ui, sans-serif";
-    ctx.fillText(stats[i].label.toUpperCase(), cxs + cellW / 2, cy + 16);
+    drawText(stats[i].label.toUpperCase(), cxs + cellW / 2, cy + 16);
 
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "700 16px Inter, system-ui, sans-serif";
-    ctx.fillText(stats[i].value, cxs + cellW / 2, cy + 38);
+    drawText(stats[i].value, cxs + cellW / 2, cy + 38);
 
     ctx.fillStyle = "rgba(255,255,255,0.6)";
     ctx.font = "400 9px Inter, system-ui, sans-serif";
-    ctx.fillText(stats[i].unit, cxs + cellW / 2, cy + 54);
+    drawText(stats[i].unit, cxs + cellW / 2, cy + 54);
     clearShadow();
   }
   ctx.textAlign = "left";
   cy += STATS_H + GAP;
 
   // ROUTE
-  setTextShadow();
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
   ctx.font = "700 9px Inter, system-ui, sans-serif";
-  ctx.fillText("ROUTE", PAD_X, cy + 12);
+  drawLabelPill("ROUTE", PAD_X, cy + 12);
+  setTextShadow();
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  drawText("ROUTE", PAD_X, cy + 12);
   clearShadow();
   cy += ROUTE_LABEL_H + 6;
   const rawPts = (Array.isArray(session.route_json) ? session.route_json : []).filter(
@@ -337,10 +363,11 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
 
   // SPLITS
   if (showSplits) {
-    setTextShadow();
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
     ctx.font = "700 9px Inter, system-ui, sans-serif";
-    ctx.fillText("SPLITS PER KM", PAD_X, cy + 12);
+    drawLabelPill("SPLITS PER KM", PAD_X, cy + 12);
+    setTextShadow();
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    drawText("SPLITS PER KM", PAD_X, cy + 12);
     clearShadow();
     cy += SPLITS_LABEL_H + 6;
 
@@ -378,7 +405,7 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
       ctx.fillStyle = "rgba(255,255,255,0.7)";
       ctx.font = "400 8px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(b.label, bx + barW / 2, baseY + 12);
+      drawText(b.label, bx + barW / 2, baseY + 12);
       ctx.textAlign = "left";
       clearShadow();
     });
@@ -396,14 +423,14 @@ export async function downloadActivityPng(opts: PngOpts): Promise<void> {
 
   setTextShadow();
   ctx.fillStyle = "rgba(255,255,255,0.8)";
-  ctx.font = "400 10px Inter, system-ui, sans-serif";
+  ctx.font = "700 10px Inter, system-ui, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText(dateStr, PAD_X, footerY);
+  drawText(dateStr, PAD_X, footerY);
 
   ctx.fillStyle = "rgba(255,255,255,0.8)";
   ctx.font = "700 10px Inter, system-ui, sans-serif";
   ctx.textAlign = "right";
-  ctx.fillText("surya-fitai.com", W - PAD_X, footerY);
+  drawText("surya-fitai.com", W - PAD_X, footerY);
   clearShadow();
 
   // Export
