@@ -112,6 +112,35 @@ function LoggedInDashboard({ onGenerate, onOpenPlans, onOpenPrograms, onOpenPlan
     return () => { cancelled = true; };
   }, [user]);
 
+  // Refresh saved plans on focus/visibility and on the global refetch event so
+  // that after extending a plan elsewhere (Results page), the active plan row
+  // here picks up the new plan_started_at — which in turn hides the extend
+  // banner and resets the progress bar to 0%.
+  useEffect(() => {
+    if (!user) return;
+    const refetch = async () => {
+      const { data } = await supabase
+        .from("saved_plans")
+        .select("id, plan_name, program_type, plan_month_number, plan_data, user_info, created_at, plan_started_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      const plans = data || [];
+      setAllPlans(plans);
+      const storedId = activePlanStorageKey ? localStorage.getItem(activePlanStorageKey) : null;
+      const stored = storedId ? plans.find((p: any) => p.id === storedId) : null;
+      setActivePlan(stored || plans[0] || null);
+    };
+    const onVisible = () => { if (document.visibilityState === "visible") refetch(); };
+    window.addEventListener("surya-fitai:saved-plans-refetch", refetch);
+    window.addEventListener("focus", refetch);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("surya-fitai:saved-plans-refetch", refetch);
+      window.removeEventListener("focus", refetch);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [user, activePlanStorageKey]);
+
   const setAsActive = (planId: string) => {
     if (activePlanStorageKey) localStorage.setItem(activePlanStorageKey, planId);
     const p = allPlans.find((x) => x.id === planId);
