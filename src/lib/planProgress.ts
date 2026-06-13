@@ -66,10 +66,13 @@ export async function getPlanProgress(
     .eq("user_id", userId)
     .eq("plan_id", plan.id)
     .eq("completed", true);
-  // Workouts Done = cumulative count of distinct workout days completed for
-  // this plan_id. Scoping by plan_id is sufficient — do NOT filter by
-  // completed_at vs plan_started_at, which can drop legitimate completions
-  // when the user backfills or when timestamps cross the start boundary.
+  // Scope to the CURRENT month: only count completions made on/after
+  // plan_started_at. This makes progress reset to 0% immediately when the
+  // user extends their plan (plan_started_at is bumped to NOW()), while
+  // older completion rows remain in the DB for history.
+  if (plan.plan_started_at) {
+    q = q.gte("completed_at", plan.plan_started_at);
+  }
   const { data } = await q;
 
   const completedDays = new Set((data || []).map((r: any) => r.workout_date)).size;
