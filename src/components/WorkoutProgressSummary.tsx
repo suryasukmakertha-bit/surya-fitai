@@ -71,41 +71,44 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     // 1) Last-7-days chart + today's count (local-day buckets).
     let chartQuery = supabase
       .from("workout_completions")
-      .select("workout_date, exercise_id")
+      .select("workout_date, exercise_id, completed_at")
       .eq("completed", true)
       .gte("workout_date", fmtLocal(sevenDaysAgo))
       .lte("workout_date", todayKey);
     if (planId) chartQuery = chartQuery.eq("plan_id", planId);
-    // Scope to the CURRENT month so the "Today" tile and last-7-days bars
-    // reset when the user extends their plan (plan_started_at = NOW()).
-    if (planId && planStartedAt) {
-      chartQuery = chartQuery.gte("workout_date", planStartedAt.slice(0, 10));
-    }
     const { data: chartRows } = await chartQuery;
 
     const countMap = new Map<string, number>();
+    // Today count: scope to active plan_id + completed_at >= plan_started_at
+    // (timestamp). This disambiguates same-day completions when a user
+    // extends a plan today — old-month rows have completed_at < the new
+    // plan_started_at and are excluded, even though workout_date matches.
+    const planStartTs = planStartedAt ? new Date(planStartedAt).getTime() : 0;
+    let todayCnt = 0;
     (chartRows || []).forEach((d: any) => {
       countMap.set(d.workout_date, (countMap.get(d.workout_date) || 0) + 1);
+      if (d.workout_date === todayKey) {
+        const ts = d.completed_at ? new Date(d.completed_at).getTime() : 0;
+        if (!planStartTs || ts >= planStartTs) todayCnt += 1;
+      }
     });
     const days = eachDayOfInterval({ start: sevenDaysAgo, end: today });
     setWeeklyData(days.map((d) => ({
       date: format(d, "EEE"),
       count: countMap.get(fmtLocal(d)) || 0,
     })));
-    setTodayCount(countMap.get(todayKey) || 0);
+    setTodayCount(planId ? todayCnt : (countMap.get(todayKey) || 0));
 
     // 2) "This Week" → ALL completions for the active plan since plan_started_at
     //    (not calendar week). Falls back to last-7-day count when no plan.
     if (planId && planStartedAt) {
-      const startKey = planStartedAt.slice(0, 10);
       const { data: planAll } = await sb
         .from("workout_completions")
-        .select("workout_date", { count: "exact", head: false })
+        .select("workout_date, completed_at")
         .eq("user_id", user!.id)
         .eq("plan_id", planId)
         .eq("completed", true)
-        .gte("workout_date", startKey)
-        .lte("workout_date", todayKey)
+        .gte("completed_at", planStartedAt)
         .limit(5000);
       setTotalCompleted((planAll || []).length);
     } else {
