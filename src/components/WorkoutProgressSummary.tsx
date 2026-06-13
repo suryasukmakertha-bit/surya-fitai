@@ -79,6 +79,11 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       .gte("workout_date", fmtLocal(sevenDaysAgo))
       .lte("workout_date", todayKey);
     if (planId) chartQuery = chartQuery.eq("plan_id", planId);
+    // Scope to the CURRENT month so the "Today" tile and last-7-days bars
+    // reset when the user extends their plan (plan_started_at = NOW()).
+    if (planId && planStartedAt) {
+      chartQuery = chartQuery.gte("workout_date", planStartedAt.slice(0, 10));
+    }
     const { data: chartRows } = await chartQuery;
 
     const countMap = new Map<string, number>();
@@ -110,7 +115,9 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       setTotalCompleted((chartRows || []).length);
     }
 
-    // 3) Streak = CURRENT streak for the active plan, respecting its rest days.
+    // 3) Streak = CURRENT streak (walks BACKWARD from today). Anchor-
+    //    independent so extending a plan (which resets plan_started_at to
+    //    today) does NOT reset the streak — old completions still count.
     if (user && planId) {
       const { data: planCompletions } = await sb
         .from("workout_completions")
@@ -120,18 +127,8 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         .eq("completed", true)
         .limit(2000);
       const dates = new Set<string>((planCompletions || []).map((r: any) => r.workout_date));
-      // Authoritative rest pattern comes from the plan's workout_plan template
-      // (positional, indexed from plan_started_at). Falls back to weekday-name
-      // parsing only if no workout_plan is present.
-      const restOffsets = getRestOffsetsFromPlan(planData);
       const restDays = getRestDayIndices(planData);
-      if (planStartedAt && restOffsets.size > 0) {
-        setStreak(computeForwardStreakByOffsets(dates, restOffsets, planStartedAt));
-      } else if (planStartedAt) {
-        setStreak(computeForwardStreak(dates, restDays, planStartedAt));
-      } else {
-        setStreak(computeCurrentStreak(dates, restDays));
-      }
+      setStreak(computeCurrentStreak(dates, restDays));
     } else {
       setStreak(0);
     }
