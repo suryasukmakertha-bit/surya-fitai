@@ -703,6 +703,35 @@ export default function Results() {
       // This keeps user_info unchanged but swaps plan_data and bumps the month counter.
       const newPlanName = `${ui?.name || "User"} - ${(programType || "custom").charAt(0).toUpperCase() + (programType || "custom").slice(1)} (Month ${nextMonth})`;
 
+      // Carry over the streak from the month being extended so the new month
+      // starts at (previous carry + consecutive count) instead of 0.
+      // Reuses the existing forward streak logic indirectly via
+      // computeCurrentStreak (same algorithm used by WorkoutProgressSummary).
+      let nextCarry = 0;
+      try {
+        const { computeCurrentStreak, getRestDayIndices } = await import("@/lib/streak");
+        const { data: prevRow } = await supabase
+          .from("saved_plans")
+          .select("plan_data, streak_carry_over")
+          .eq("id", planId)
+          .maybeSingle();
+        const prevCarry = Number((prevRow as any)?.streak_carry_over ?? 0);
+        let prevCompQ = supabase
+          .from("workout_completions")
+          .select("workout_date")
+          .eq("user_id", user.id)
+          .eq("plan_id", planId)
+          .eq("completed", true);
+        if (planStartedAt) prevCompQ = prevCompQ.gte("completed_at", planStartedAt);
+        const { data: prevComps } = await prevCompQ;
+        const dates = new Set<string>((prevComps || []).map((r: any) => r.workout_date));
+        const restDays = getRestDayIndices((prevRow as any)?.plan_data);
+        const consecutive = computeCurrentStreak(dates, restDays);
+        nextCarry = prevCarry + consecutive;
+      } catch (e) {
+        console.warn("streak carry-over compute failed", e);
+      }
+
       const { data: fresh, error: updErr } = await supabase
         .from("saved_plans")
         .update({
@@ -711,6 +740,7 @@ export default function Results() {
           plan_month_number: nextMonth,
           plan_started_at: nowIso,
           plan_completed_at: null,
+          streak_carry_over: nextCarry,
         } as any)
         .eq("id", planId)
         .eq("user_id", user.id)
