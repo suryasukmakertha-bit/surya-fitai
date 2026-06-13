@@ -6,10 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { format, subDays, eachDayOfInterval } from "date-fns";
 import {
   computeCurrentStreak,
-  computeForwardStreak,
-  computeForwardStreakByOffsets,
   getRestDayIndices,
-  getRestOffsetsFromPlan,
 } from "@/lib/streak";
 import { getTodayLocal, fmtLocal } from "@/lib/dateLocal";
 import {
