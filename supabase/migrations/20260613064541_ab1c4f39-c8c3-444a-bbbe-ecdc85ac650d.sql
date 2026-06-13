@@ -1,0 +1,1 @@
+ALTER TABLE public.saved_plans ADD COLUMN IF NOT EXISTS streak_carry_over INTEGER NOT NULL DEFAULT 0;
