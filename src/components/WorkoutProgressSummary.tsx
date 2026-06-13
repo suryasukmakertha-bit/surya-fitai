@@ -58,14 +58,16 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     // / streak are all scoped correctly to the active plan's lifecycle.
     let planData: any = null;
     let planStartedAt: string | null = null;
+    let streakCarryOver = 0;
     if (planId) {
       const { data: planRow } = await sb
         .from("saved_plans")
-        .select("plan_data, plan_started_at")
+        .select("plan_data, plan_started_at, streak_carry_over")
         .eq("id", planId)
         .maybeSingle();
       planData = (planRow as any)?.plan_data || null;
       planStartedAt = (planRow as any)?.plan_started_at || null;
+      streakCarryOver = Number((planRow as any)?.streak_carry_over ?? 0);
     }
 
     // 1) Last-7-days chart + today's count (local-day buckets).
@@ -128,7 +130,9 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         .limit(2000);
       const dates = new Set<string>((planCompletions || []).map((r: any) => r.workout_date));
       const restDays = getRestDayIndices(planData);
-      setStreak(computeCurrentStreak(dates, restDays));
+      // True cumulative streak = carry-over from previous months + current
+      // consecutive count walked forward from this month's plan_started_at.
+      setStreak(streakCarryOver + computeCurrentStreak(dates, restDays));
     } else {
       setStreak(0);
     }

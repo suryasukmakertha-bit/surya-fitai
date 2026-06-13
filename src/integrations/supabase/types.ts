@@ -413,6 +413,7 @@ export type Database = {
           plan_name: string | null
           plan_started_at: string
           program_type: string
+          streak_carry_over: number
           user_id: string
           user_info: Json
         }
@@ -429,6 +430,7 @@ export type Database = {
           plan_name?: string | null
           plan_started_at?: string
           program_type: string
+          streak_carry_over?: number
           user_id: string
           user_info?: Json
         }
@@ -445,6 +447,7 @@ export type Database = {
           plan_name?: string | null
           plan_started_at?: string
           program_type?: string
+          streak_carry_over?: number
           user_id?: string
           user_info?: Json
         }
