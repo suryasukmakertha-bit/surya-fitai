@@ -1,0 +1,1 @@
+UPDATE public.saved_plans SET streak_carry_over = 20 WHERE id = 'f41d87da-10e4-489d-9bdc-cdae094f262c';
