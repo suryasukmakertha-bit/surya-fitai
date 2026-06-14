@@ -80,9 +80,6 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       .gte("workout_date", fmtLocal(sevenDaysAgo))
       .lte("workout_date", todayKey);
     if (planId) chartQuery = chartQuery.eq("plan_id", planId);
-    // Extend-month safety: same plan_id is reused, so also gate by completed_at >= plan_started_at
-    // to exclude Month 1 rows.
-    if (planStartedAt) chartQuery = chartQuery.gte("completed_at", planStartedAt);
     const { data: chartRows } = await chartQuery;
 
     const countMap = new Map<string, number>();
@@ -101,19 +98,9 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     // 2) "This Week" → completions for the active plan from this calendar
     //    week's Monday → today. Plan_id scope keeps it isolated per plan.
     if (planId) {
-      // Extend-month safety: filter by workout_date (date-only), not completed_at
-      // timestamp. Use plan_started_at::date + 1 as the lower bound so Month 1's
-      // last calendar day cannot leak into Month 2 due to sub-day timestamp drift.
-      // Same-day completions with plan_id = new plan are still counted via the
-      // plan_id scope (workout_date on the extend day will only match if the
-      // user logged it under the new plan).
-      let weekLowerBound = fmtLocal(weekStart);
-      if (planStartedAt) {
-        const ps = new Date(planStartedAt);
-        const psNext = new Date(ps.getFullYear(), ps.getMonth(), ps.getDate() + 1);
-        const psNextKey = fmtLocal(psNext);
-        if (psNextKey > weekLowerBound) weekLowerBound = psNextKey;
-      }
+      // This Week = current calendar week (Mon → today), scoped to active plan_id only.
+      // No plan_started_at boundary — plan_id scope already isolates the extend month.
+      const weekLowerBound = fmtLocal(weekStart);
       const { data: planAll } = await sb
         .from("workout_completions")
         .select("workout_date")
