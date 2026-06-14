@@ -101,15 +101,27 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     // 2) "This Week" → completions for the active plan from this calendar
     //    week's Monday → today. Plan_id scope keeps it isolated per plan.
     if (planId) {
+      // Extend-month safety: filter by workout_date (date-only), not completed_at
+      // timestamp. Use plan_started_at::date + 1 as the lower bound so Month 1's
+      // last calendar day cannot leak into Month 2 due to sub-day timestamp drift.
+      // Same-day completions with plan_id = new plan are still counted via the
+      // plan_id scope (workout_date on the extend day will only match if the
+      // user logged it under the new plan).
+      let weekLowerBound = fmtLocal(weekStart);
+      if (planStartedAt) {
+        const ps = new Date(planStartedAt);
+        const psNext = new Date(ps.getFullYear(), ps.getMonth(), ps.getDate() + 1);
+        const psNextKey = fmtLocal(psNext);
+        if (psNextKey > weekLowerBound) weekLowerBound = psNextKey;
+      }
       const { data: planAll } = await sb
         .from("workout_completions")
         .select("workout_date")
         .eq("user_id", user!.id)
         .eq("plan_id", planId)
         .eq("completed", true)
-        .gte("workout_date", fmtLocal(weekStart))
+        .gte("workout_date", weekLowerBound)
         .lte("workout_date", todayKey)
-        .gte("completed_at", planStartedAt || "1970-01-01")
         .limit(5000);
       setTotalCompleted((planAll || []).length);
     } else {
