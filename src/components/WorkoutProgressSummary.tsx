@@ -129,7 +129,11 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       const restOffsets = getRestOffsetsFromPlan(planData);
       // True cumulative streak = carry-over from previous months + current
       // consecutive count walked forward from this month's plan_started_at.
-      setStreak(streakCarryOver + computeForwardStreakByOffsets(dates, restOffsets, planStartedAt));
+      const displayStreak = streakCarryOver + computeForwardStreakByOffsets(dates, restOffsets, planStartedAt);
+      setStreak(displayStreak);
+      // Bump profiles.longest_streak server-side with the candidate value.
+      // RPC only raises (never lowers) and clamps to candidate > current.
+      try { await sb.rpc("bump_longest_streak", { p_candidate: displayStreak }); } catch { /* swallow */ }
     } else {
       setStreak(0);
     }
