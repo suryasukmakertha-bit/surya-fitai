@@ -280,6 +280,10 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
       // so the stored value always reflects the highest streak achieved.
       try { await syncLongestStreak(user.id); } catch { /* swallow */ }
     }
+    // Recompute profile-wide totals (total_workouts, active_days) server-side
+    // on every toggle (on or off) so the counters always match
+    // workout_completions across ALL plans, ALL time.
+    try { await (supabase as any).rpc("sync_workout_counters"); } catch { /* swallow */ }
   };
 
   const getDayProgress = (day: DayPlan) => {
