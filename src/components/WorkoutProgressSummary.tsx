@@ -3,10 +3,10 @@ import { Flame, Calendar, Trophy, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { format, subDays, eachDayOfInterval } from "date-fns";
+import { format, subDays, eachDayOfInterval, startOfWeek } from "date-fns";
 import {
-  computeCurrentStreak,
-  getRestDayIndices,
+  computeForwardStreakByOffsets,
+  getRestOffsetsFromPlan,
 } from "@/lib/streak";
 import { getTodayLocal, fmtLocal } from "@/lib/dateLocal";
 import {
@@ -51,6 +51,8 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sevenDaysAgo = subDays(today, 6);
+    // This Week = calendar week (Mon-based per project rules), scoped to active plan_id.
+    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
 
     const sb = supabase as any;
 
@@ -70,10 +72,10 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       streakCarryOver = Number((planRow as any)?.streak_carry_over ?? 0);
     }
 
-    // 1) Last-7-days chart + today's count (local-day buckets).
+    // 1) Last-7-days chart + today's count (local-day buckets), scoped to active plan_id.
     let chartQuery = supabase
       .from("workout_completions")
-      .select("workout_date, exercise_id, completed_at")
+      .select("workout_date, exercise_id")
       .eq("completed", true)
       .gte("workout_date", fmtLocal(sevenDaysAgo))
       .lte("workout_date", todayKey);
@@ -81,46 +83,38 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     const { data: chartRows } = await chartQuery;
 
     const countMap = new Map<string, number>();
-    // Today count: scope to active plan_id + completed_at >= plan_started_at
-    // (timestamp). This disambiguates same-day completions when a user
-    // extends a plan today — old-month rows have completed_at < the new
-    // plan_started_at and are excluded, even though workout_date matches.
-    const planStartTs = planStartedAt ? new Date(planStartedAt).getTime() : 0;
-    let todayCnt = 0;
+    // Today count = rows for the active plan_id with workout_date = today.
+    // Extend-month safety is handled by plan_id scoping (Month 2 is a new plan_id).
     (chartRows || []).forEach((d: any) => {
       countMap.set(d.workout_date, (countMap.get(d.workout_date) || 0) + 1);
-      if (d.workout_date === todayKey) {
-        const ts = d.completed_at ? new Date(d.completed_at).getTime() : 0;
-        if (!planStartTs || ts >= planStartTs) todayCnt += 1;
-      }
     });
     const days = eachDayOfInterval({ start: sevenDaysAgo, end: today });
     setWeeklyData(days.map((d) => ({
       date: format(d, "EEE"),
       count: countMap.get(fmtLocal(d)) || 0,
     })));
-    setTodayCount(planId ? todayCnt : (countMap.get(todayKey) || 0));
+    setTodayCount(countMap.get(todayKey) || 0);
 
-    // 2) "This Week" → ALL completions for the active plan since plan_started_at
-    //    (not calendar week). Falls back to last-7-day count when no plan.
-    if (planId && planStartedAt) {
+    // 2) "This Week" → completions for the active plan from this calendar
+    //    week's Monday → today. Plan_id scope keeps it isolated per plan.
+    if (planId) {
       const { data: planAll } = await sb
         .from("workout_completions")
-        .select("workout_date, completed_at")
+        .select("workout_date")
         .eq("user_id", user!.id)
         .eq("plan_id", planId)
         .eq("completed", true)
-        .gte("completed_at", planStartedAt)
+        .gte("workout_date", fmtLocal(weekStart))
+        .lte("workout_date", todayKey)
         .limit(5000);
       setTotalCompleted((planAll || []).length);
     } else {
       setTotalCompleted((chartRows || []).length);
     }
 
-    // 3) Streak = CURRENT streak (walks BACKWARD from today). Anchor-
-    //    independent so extending a plan (which resets plan_started_at to
-    //    today) does NOT reset the streak — old completions still count.
-    if (user && planId) {
+    // 3) Streak = forward-walk from plan_started_at for the ACTIVE plan only,
+    //    plus streak_carry_over inherited from previous month on extend.
+    if (user && planId && planStartedAt) {
       const { data: planCompletions } = await sb
         .from("workout_completions")
         .select("workout_date")
@@ -129,10 +123,10 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         .eq("completed", true)
         .limit(2000);
       const dates = new Set<string>((planCompletions || []).map((r: any) => r.workout_date));
-      const restDays = getRestDayIndices(planData);
+      const restOffsets = getRestOffsetsFromPlan(planData);
       // True cumulative streak = carry-over from previous months + current
       // consecutive count walked forward from this month's plan_started_at.
-      setStreak(streakCarryOver + computeCurrentStreak(dates, restDays));
+      setStreak(streakCarryOver + computeForwardStreakByOffsets(dates, restOffsets, planStartedAt));
     } else {
       setStreak(0);
     }
