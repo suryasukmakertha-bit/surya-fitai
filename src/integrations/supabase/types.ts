@@ -783,7 +783,12 @@ export type Database = {
         }
         Returns: Json
       }
-      bump_longest_streak: { Args: { p_tz?: string }; Returns: number }
+      bump_longest_streak:
+        | { Args: { p_tz?: string }; Returns: number }
+        | {
+            Args: { p_streak_carry_over?: number; p_tz?: string }
+            Returns: number
+          }
       calculate_workout_progress: {
         Args: {
           p_date: string
