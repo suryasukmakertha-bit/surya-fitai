@@ -790,6 +790,7 @@ export type Database = {
         Returns: Json
       }
       bump_longest_streak:
+        | { Args: { p_candidate: number }; Returns: number }
         | { Args: { p_tz?: string }; Returns: number }
         | {
             Args: { p_streak_carry_over?: number; p_tz?: string }
