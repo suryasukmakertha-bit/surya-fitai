@@ -273,6 +273,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_days: number
           avatar_url: string | null
           created_at: string
           display_name: string | null
@@ -282,11 +283,13 @@ export type Database = {
           last_generate_reset: string | null
           longest_streak: number
           period_generate_count: number
+          total_workouts: number
           trial_generate_count: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          active_days?: number
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -296,11 +299,13 @@ export type Database = {
           last_generate_reset?: string | null
           longest_streak?: number
           period_generate_count?: number
+          total_workouts?: number
           trial_generate_count?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          active_days?: number
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -310,6 +315,7 @@ export type Database = {
           last_generate_reset?: string | null
           longest_streak?: number
           period_generate_count?: number
+          total_workouts?: number
           trial_generate_count?: number
           updated_at?: string
           user_id?: string
@@ -855,6 +861,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      sync_workout_counters: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
