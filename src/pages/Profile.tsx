@@ -61,8 +61,11 @@ export default function Profile() {
     if (!user) return;
     let cancelled = false;
     (async () => {
+      // Refresh server-side cross-plan counters (total_workouts, active_days) before reading.
+      try { await (supabase as any).rpc("sync_workout_counters"); } catch { /* swallow */ }
+
       const [{ data: profile }, { data: completions }, { data: plans, count: planCount }] = await Promise.all([
-        supabase.from("profiles").select("display_name, avatar_url, created_at").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("display_name, avatar_url, created_at, total_workouts, active_days").eq("user_id", user.id).maybeSingle(),
         supabase.from("workout_completions").select("workout_date, plan_id, completed_at").eq("user_id", user.id).eq("completed", true).order("workout_date", { ascending: false }).limit(1000),
         supabase.from("saved_plans").select("id, plan_data, plan_started_at", { count: "exact" }).eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
@@ -73,23 +76,14 @@ export default function Profile() {
       setAvatarUrl(p?.avatar_url || null);
       setMemberSince(p?.created_at || user.created_at || "");
 
-      // Stats
-      const activePlanKey = `surya:activePlanId:${user.id}`;
-      const storedPlanId = localStorage.getItem(activePlanKey);
-      const activePlan = storedPlanId ? (plans || []).find((p: any) => p.id === storedPlanId) : (plans || [])[0];
-      const activeCompletions = activePlan
-        ? (completions || []).filter((r: any) => r.plan_id === activePlan.id && (!activePlan.plan_started_at || !r.completed_at || r.completed_at >= activePlan.plan_started_at))
-        : (completions || []);
-      const dates = activeCompletions.map((r: any) => r.workout_date);
-      const total = dates.length;
-      const dateSet = new Set<string>(dates);
+      // Stats — total_workouts and active_days come from server-side counters
+      // (profiles table, computed across ALL plans / all time via sync_workout_counters).
       // Longest streak = historical best across ALL plans, monotonic (never decreases).
-      // Read-only: longest_streak is bumped server-side on workout completion.
       const longest = await readLongestStreak(user.id);
       setStats({
-        total,
+        total: Number(p?.total_workouts ?? 0),
         longestStreak: longest,
-        activeDays: dateSet.size,
+        activeDays: Number(p?.active_days ?? 0),
         plans: planCount ?? 0,
       });
     })();
