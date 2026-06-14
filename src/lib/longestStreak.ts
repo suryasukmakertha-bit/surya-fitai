@@ -14,7 +14,9 @@ export async function syncLongestStreak(userId: string): Promise<number> {
   try {
     tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   } catch { /* keep UTC */ }
-  const { data: bumped, error } = await sb.rpc("bump_longest_streak", { p_tz: tz });
+  // Use the carry-aware overload so per-plan streak_carry_over (inherited on extend)
+  // is folded into the per-plan effective streak before comparing to longest_streak.
+  const { data: bumped, error } = await sb.rpc("bump_longest_streak", { p_tz: tz, p_streak_carry_over: null });
   if (error) {
     console.error("bump_longest_streak RPC failed:", error);
     const { data } = await sb.from("profiles").select("longest_streak").eq("user_id", userId).maybeSingle();
