@@ -75,11 +75,14 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     // 1) Last-7-days chart + today's count (local-day buckets), scoped to active plan_id.
     let chartQuery = supabase
       .from("workout_completions")
-      .select("workout_date, exercise_id")
+      .select("workout_date, exercise_id, completed_at")
       .eq("completed", true)
       .gte("workout_date", fmtLocal(sevenDaysAgo))
       .lte("workout_date", todayKey);
     if (planId) chartQuery = chartQuery.eq("plan_id", planId);
+    // Extend-month safety: same plan_id is reused, so also gate by completed_at >= plan_started_at
+    // to exclude Month 1 rows.
+    if (planStartedAt) chartQuery = chartQuery.gte("completed_at", planStartedAt);
     const { data: chartRows } = await chartQuery;
 
     const countMap = new Map<string, number>();
@@ -106,6 +109,7 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
         .eq("completed", true)
         .gte("workout_date", fmtLocal(weekStart))
         .lte("workout_date", todayKey)
+        .gte("completed_at", planStartedAt || "1970-01-01")
         .limit(5000);
       setTotalCompleted((planAll || []).length);
     } else {
