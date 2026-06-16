@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Download, Share2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
+import { getPlanProgress } from "@/lib/planProgress";
 
 interface ProgressDownloadProps {
   userName: string;
@@ -19,6 +21,12 @@ interface ProgressDownloadProps {
   totalDays?: number;
   /** Total weeks in the plan, used in PNG "DURASI" right-side label. */
   totalWeeks?: number;
+  /** Plan id — when provided, fresh progress is re-fetched from DB at download time. */
+  planId?: string;
+  /** plan_data — used together with planId to recompute total workout days. */
+  planData?: any;
+  /** plan_started_at — scopes recompute to current month (extend-aware). */
+  planStartedAt?: string | null;
 }
 
 interface DownloadProgressData {
@@ -396,6 +404,9 @@ export default function ProgressDownloadCard({
   completedDays: completedDaysProp,
   totalDays: totalDaysProp,
   totalWeeks: totalWeeksProp,
+  planId,
+  planData,
+  planStartedAt,
 }: ProgressDownloadProps) {
   const { t, lang } = useLanguage();
   const [showShare, setShowShare] = useState(false);
@@ -418,17 +429,20 @@ export default function ProgressDownloadCard({
     ? "I just completed my training program with Surya-FitAi.\nConsistency. Discipline. Results.\n#SuryaFitAi #ProgressComplete #FitnessJourney"
     : "Making progress every day with Surya-FitAi\n#SuryaFitAi #FitnessJourney";
 
-  const buildData = (): DownloadProgressData => {
-    const pctClamped = Math.max(0, Math.min(pct, 100));
-    const totalDays = realTotalDays;
-    const completedDays = totalDaysProp && totalDaysProp > 0
-      ? realCompletedDays
-      : Math.round((pctClamped / 100) * totalDays);
+  const buildData = (override?: { completedDays: number; totalDays: number; pct: number; totalWeeks?: number }): DownloadProgressData => {
+    const pctClamped = Math.max(0, Math.min(override?.pct ?? pct, 100));
+    const totalDays = override?.totalDays ?? realTotalDays;
+    const completedDays = override
+      ? override.completedDays
+      : totalDaysProp && totalDaysProp > 0
+        ? realCompletedDays
+        : Math.round((pctClamped / 100) * totalDays);
     const now = new Date();
     const dateStr = `${String(now.getDate()).padStart(2, "0")}/${String(
       now.getMonth() + 1
     ).padStart(2, "0")}/${now.getFullYear()}`;
 
+    const effectiveTotalWeeks = override?.totalWeeks ?? totalWeeksProp;
     return {
       name: userName,
       program: programName,
@@ -443,13 +457,34 @@ export default function ProgressDownloadCard({
       language: lang,
       dateStr,
       // Pass through totalWeeks for the DURASI right label (consumed via cast).
-      ...(totalWeeksProp ? { totalWeeks: totalWeeksProp } as any : {}),
+      ...(effectiveTotalWeeks ? { totalWeeks: effectiveTotalWeeks } as any : {}),
     };
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
-      downloadProgressReport(buildData());
+      let override: { completedDays: number; totalDays: number; pct: number; totalWeeks?: number } | undefined;
+      if (planId) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user?.id) {
+            const fresh = await getPlanProgress(user.id, {
+              id: planId,
+              plan_data: planData,
+              plan_started_at: planStartedAt ?? null,
+            });
+            override = {
+              completedDays: fresh.completedDays,
+              totalDays: fresh.totalDays,
+              pct: fresh.percentage,
+              totalWeeks: fresh.totalWeeks,
+            };
+          }
+        } catch (err) {
+          console.warn("Fresh progress fetch failed, using prop values:", err);
+        }
+      }
+      downloadProgressReport(buildData(override));
       setShowShare(true);
     } catch (e) {
       console.error("Download failed:", e);
