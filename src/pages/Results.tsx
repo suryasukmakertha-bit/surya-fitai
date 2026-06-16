@@ -1686,6 +1686,9 @@ export default function Results() {
                     totalWeeks={planProgress?.totalWeeks}
                     weeklyAdherence={Math.min(100, Math.round((sorted.length / 12) * 100))}
                     monthNumber={planMonthNumber}
+                    planId={plan.id}
+                    planData={plan.plan_data}
+                    planStartedAt={plan.plan_started_at}
                   />
                 </>
               )}
