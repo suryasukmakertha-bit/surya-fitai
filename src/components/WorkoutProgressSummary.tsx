@@ -50,7 +50,6 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     const todayKey = getTodayLocal();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const sevenDaysAgo = subDays(today, 6);
 
     const sb = supabase as any;
 
@@ -70,13 +69,37 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
       streakCarryOver = Number((planRow as any)?.streak_carry_over ?? 0);
     }
 
-    // 1) Last-7-days chart + today's count (local-day buckets), scoped to active plan_id.
+    // 1) Chart window:
+    //    - plan-scoped (planId + planStartedAt): plan-anchored rolling week
+    //      (same math as "This Week" counter below) so the bar chart matches
+    //      the counter exactly.
+    //    - unscoped (Progress.tsx aggregate view): last 7 calendar days.
+    let chartStart: Date;
+    let chartEnd: Date;
+    if (planId && planStartedAt) {
+      const pStart = new Date(planStartedAt);
+      pStart.setHours(0, 0, 0, 0);
+      const msPerDay = 86_400_000;
+      const daysSinceStart = Math.max(
+        0,
+        Math.floor((today.getTime() - pStart.getTime()) / msPerDay),
+      );
+      const weekIndex = Math.floor(daysSinceStart / 7);
+      chartStart = new Date(pStart);
+      chartStart.setDate(pStart.getDate() + weekIndex * 7);
+      chartEnd = new Date(chartStart);
+      chartEnd.setDate(chartStart.getDate() + 6);
+    } else {
+      chartStart = subDays(today, 6);
+      chartEnd = today;
+    }
+
     let chartQuery = supabase
       .from("workout_completions")
       .select("workout_date, exercise_id, completed_at")
       .eq("completed", true)
-      .gte("workout_date", fmtLocal(sevenDaysAgo))
-      .lte("workout_date", todayKey);
+      .gte("workout_date", fmtLocal(chartStart))
+      .lte("workout_date", fmtLocal(chartEnd));
     if (planId) chartQuery = chartQuery.eq("plan_id", planId);
     const { data: chartRows } = await chartQuery;
 
@@ -86,7 +109,7 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     (chartRows || []).forEach((d: any) => {
       countMap.set(d.workout_date, (countMap.get(d.workout_date) || 0) + 1);
     });
-    const days = eachDayOfInterval({ start: sevenDaysAgo, end: today });
+    const days = eachDayOfInterval({ start: chartStart, end: chartEnd });
     setWeeklyData(days.map((d) => ({
       date: format(d, "EEE"),
       count: countMap.get(fmtLocal(d)) || 0,
