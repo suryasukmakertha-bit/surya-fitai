@@ -66,12 +66,14 @@ export async function getPlanProgress(
     .eq("user_id", userId)
     .eq("plan_id", plan.id)
     .eq("completed", true);
-  // Scope to the CURRENT month: only count completions made on/after
-  // plan_started_at. This makes progress reset to 0% immediately when the
-  // user extends their plan (plan_started_at is bumped to NOW()), while
-  // older completion rows remain in the DB for history.
+  // Scope to the CURRENT month: only count completions whose workout_date
+  // is on/after plan_started_at's calendar date. Compare DATEs (not full
+  // timestamps) so completions logged earlier in the day than
+  // plan_started_at's time-of-day are still counted. Older completion rows
+  // from previous months remain in the DB for history but are excluded.
   if (plan.plan_started_at) {
-    q = q.gte("completed_at", plan.plan_started_at);
+    const startDate = String(plan.plan_started_at).slice(0, 10);
+    q = q.gte("workout_date", startDate);
   }
   const { data } = await q;
 
