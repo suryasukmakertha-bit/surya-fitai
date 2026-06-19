@@ -3,7 +3,7 @@ import { Flame, Calendar, Trophy, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { format, subDays, eachDayOfInterval, startOfWeek } from "date-fns";
+import { format, subDays, eachDayOfInterval } from "date-fns";
 import {
   computeForwardStreakByOffsets,
   getRestOffsetsFromPlan,
@@ -51,8 +51,6 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sevenDaysAgo = subDays(today, 6);
-    // This Week = calendar week (Mon-based per project rules), scoped to active plan_id.
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
 
     const sb = supabase as any;
 
@@ -95,20 +93,30 @@ export default function WorkoutProgressSummary({ planId }: WorkoutProgressSummar
     })));
     setTodayCount(countMap.get(todayKey) || 0);
 
-    // 2) "This Week" → completions for the active plan from this calendar
-    //    week's Monday → today. Plan_id scope keeps it isolated per plan.
-    if (planId) {
-      // This Week = current calendar week (Mon → today), scoped to active plan_id only.
-      // No plan_started_at boundary — plan_id scope already isolates the extend month.
-      const weekLowerBound = fmtLocal(weekStart);
+    // 2) "This Week" → completions for the active plan within the plan's
+    //    rolling 7-day week anchored to plan_started_at's weekday (not a
+    //    Mon/Sun calendar week). Counts exercise rows, not distinct days.
+    if (planId && planStartedAt) {
+      const pStart = new Date(planStartedAt);
+      pStart.setHours(0, 0, 0, 0);
+      const msPerDay = 86_400_000;
+      const daysSinceStart = Math.max(
+        0,
+        Math.floor((today.getTime() - pStart.getTime()) / msPerDay),
+      );
+      const weekIndex = Math.floor(daysSinceStart / 7);
+      const wkStart = new Date(pStart);
+      wkStart.setDate(pStart.getDate() + weekIndex * 7);
+      const wkEnd = new Date(wkStart);
+      wkEnd.setDate(wkStart.getDate() + 6);
       const { data: planAll } = await sb
         .from("workout_completions")
         .select("workout_date")
         .eq("user_id", user!.id)
         .eq("plan_id", planId)
         .eq("completed", true)
-        .gte("workout_date", weekLowerBound)
-        .lte("workout_date", todayKey)
+        .gte("workout_date", fmtLocal(wkStart))
+        .lte("workout_date", fmtLocal(wkEnd))
         .limit(5000);
       setTotalCompleted((planAll || []).length);
     } else {
