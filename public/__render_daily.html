@@ -1,5 +1,7 @@
-<!DOCTYPE html><html><head><style>body{margin:0;background:repeating-conic-gradient(#2a2a2a 0% 25%,#383838 0% 50%) 50% / 24px 24px;padding:40px;}</style></head>
-<body><div id="out"></div><script type="module">
+<!DOCTYPE html><html><head><style>body{margin:0;background:repeating-conic-gradient(#2a2a2a 0% 25%,#383838 0% 50%) 50% / 24px 24px;padding:40px;color:#fff;font-family:sans-serif;}</style></head>
+<body><div id="out"></div><pre id="log" style="color:#ff8c3d;font-size:11px;"></pre><script type="module">
+const log = (m) => { document.getElementById('log').textContent += m + '\n'; };
+window.addEventListener('error', e => log('ERR: ' + e.message));
 const opts = {
   dayLabel: "2026-06-20",
   exercises: [
@@ -15,10 +17,10 @@ const opts = {
   planMonthNumber: 2,
   lang: "en",
 };
-// override download to instead append canvas
 const origCreate = document.createElement.bind(document);
 let theCanvas;
 document.createElement = (t) => { const e = origCreate(t); if(t==='canvas'){theCanvas=e;} return e; };
-const orig = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function(){ document.getElementById('out').appendChild(theCanvas); theCanvas.style.width='360px'; };
-import('/src/lib/dailyProgressDownload.ts?v=1782048435').then(m=>m.downloadDailyProgress(opts));
+HTMLAnchorElement.prototype.click = function(){ document.getElementById('out').appendChild(theCanvas); theCanvas.style.width='360px'; log('canvas size '+theCanvas.width+'x'+theCanvas.height); };
+const bust = Date.now() + '-' + Math.random();
+import('/src/lib/dailyProgressDownload.ts?b=' + bust).then(m=>{ log('module loaded'); m.downloadDailyProgress(opts); log('rendered'); }).catch(e=>log('IMPORT ERR: '+e.message));
 </script></body></html>
