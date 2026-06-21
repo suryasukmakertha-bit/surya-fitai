@@ -20,5 +20,5 @@ const origCreate = document.createElement.bind(document);
 let theCanvas;
 document.createElement = (t) => { const e = origCreate(t); if(t==='canvas'){theCanvas=e;} return e; };
 const orig = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function(){ document.getElementById('out').appendChild(theCanvas); theCanvas.style.width='360px'; };
-import('/src/lib/dailyProgressDownload.ts?v=1782048359').then(m=>m.downloadDailyProgress(opts));
+import('/src/lib/dailyProgressDownload.ts?v=1782048403').then(m=>m.downloadDailyProgress(opts));
 </script></body></html>
