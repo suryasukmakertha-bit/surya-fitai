@@ -1,6 +1,6 @@
 # SURYA-FITAI SYSTEM KNOWLEDGE
 > Single source of truth. Read this before making ANY change.
-> Last updated: 19 Jun 2026
+> Last updated: 21 Jun 2026
 
 ---
 
@@ -256,13 +256,28 @@ Reference if similar symptoms reappear (e.g. in PNG share card, which reuses pro
 
 ---
 
-## 11. DOWNLOAD PROGRESS PNG (Results page)
+## 11. DOWNLOAD PROGRESS PNG (Results page) — UPDATED 21 Jun 2026
 
+**Data rules (unchanged):**
 - Re-fetches fresh workout_completions from DB at moment of download click
 - NEVER uses cached React state for progress calculation
 - Computes: completions WHERE plan_id = this plan AND completed_at >= plan_started_at
 - Progress % = (fresh completions / total workout days) x 100
 - Circular ring and % text must match dashboard and saved plans page
+
+**Visual transparency rules (NEW 21 Jun 2026) — applies to BOTH PNG cards below:**
+Same transparency pattern as the Running/Cycling PNG share card (Section 10) — canvas base fully transparent, every content block keeps its own `rgba(0,0,0,0.72)` background, all text uses strong drop shadow (`shadowColor rgba(0,0,0,0.95)`, `shadowBlur 12`, `shadowOffsetY 2`, painted twice).
+
+**⚠️ Renderer mismatch lesson (21 Jun 2026):** there can be MORE than one canvas renderer for visually-similar cards (e.g. a separate "celebration popup" renderer vs. the actual download-button renderer). Before editing, always confirm with Lovable which renderer is actually wired to the specific button/trigger being changed — do not assume there's only one. After any change, require a freshly generated PNG for visual comparison before accepting "done." Do not accept a text description of changes as proof they were applied to the live code path.
+
+**Card A — "Download Daily Progress" (exercise checklist, triggered from workout plan / exercises section):**
+- Layout: centered eyebrow (brand + "·" + "Month N" pill) → centered title "YOU VS YOU." (white/white/orange) → centered thin orange accent rule (48px wide, 3px tall) → centered subtitle (e.g. "6 of 6 exercises done · [date]") → 2-column exercise grid at 88% width, centered (intentional inset, NOT full width) → thin divider line (rgba(255,255,255,0.12)) → centered footer, fraction (e.g. "6/6") stacked above "surya-fitai.com"
+- Each exercise item is its own `rgba(0,0,0,0.72)` box with an orange checkmark circle + exercise name (left-aligned inside the box)
+- Verified working and visually confirmed by Coach (manual check, not just Lovable's claim) — 21 Jun 2026
+
+**Card B — "Download Progress" (overall plan progress, triggered from Progress section):**
+- Layout: dots eyebrow + "SURYA-FITAI · PROGRESS REPORT" label → large plan/user name (no box, shadow only) → thin orange rule → meta line (e.g. "cutting · Month 2") → stats row box (Weight/BMI/Kcal, `rgba(0,0,0,0.72)`) → duration row box (`rgba(0,0,0,0.72)`) → completion box (`rgba(0,0,0,0.72)` + orange border) containing % text and the existing donut/ring chart (ring visual itself unchanged — only its background became transparent) → italic quote with orange left border → footer
+- Verified working and visually confirmed by Coach (manual check, not just Lovable's claim) — 21 Jun 2026
 
 ---
 
@@ -307,8 +322,13 @@ Reference if similar symptoms reappear (e.g. in PNG share card, which reuses pro
 **Tamper protection:**
 - prevent_profile_counter_tampering trigger: blocks direct profile counter updates
 - bump_longest_streak() uses scoped bypass flag — DO NOT REMOVE
+- guard_ucp_writes trigger (BEFORE INSERT/UPDATE on user_challenge_progress): forces xp_earned:=0 and completed_at:=NULL on client writes — only complete_daily_challenge() RPC can legitimately set completed_at, via session bypass flag app.bypass_ucp_guard
+- guard_saved_plan_completion trigger (BEFORE UPDATE on saved_plans, fixed 20 Jun 2026): client cannot set plan_completed_at directly — non-NULL value triggers server-side recompute of real progress (mirrors Results.tsx:575-595 formula); if real completion < 80%, silently reverts to OLD value. Setting to NULL is allowed (required for Extend Month flow — short-circuits, does not interfere)
+- guard_activity_session_distance trigger (BEFORE INSERT/UPDATE on activity_sessions, fixed 20 Jun 2026): rejects rows with missing/invalid route_json (must have ≥2 GPS points); recomputes distance from route_json using the same haversine formula + noise filter as the client recorder; silently overwrites distance_km if it differs from GPS-derived distance by more than ±15% (or ±0.2km, whichever is larger); hard ceiling 300km (running) / 500km (cycling) as defense-in-depth
+- FIRST_GENERATE medal (award_medal_if_earned, fixed 20 Jun 2026): no longer grants on row-existence alone — requires plan_data->'workout_plan' (or workoutPlan) to be a JSONB array with length >= 3, AND at least one day entry with a non-empty exercises array
 - SECURITY DEFINER functions: PUBLIC EXECUTE revoked
 - Edge functions: return generic 500 errors, never raw exceptions
+- Full mechanism details and active/accepted-risk vulnerabilities tracked separately in the Lovable Security Memory document (Security tab → Edit security memory) — keep both documents in sync when fixing security issues
 
 ---
 
@@ -419,7 +439,7 @@ Reference if similar symptoms reappear (e.g. in PNG share card, which reuses pro
 
 ---
 
-## 18. BACKLOG (as of 19 Jun 2026)
+## 18. BACKLOG (as of 21 Jun 2026)
 
 **RESOLVED since 17 Jun:**
 - ✅ Push notification fix (evening branch + test mode) — deployed
@@ -427,6 +447,8 @@ Reference if similar symptoms reappear (e.g. in PNG share card, which reuses pro
 - ✅ Saved Plans fraction off-by-one (timestamp vs date comparison) — fixed 19 Jun
 - ✅ "This Week" counter wrong week boundary (Monday ISO vs plan-anchored) — fixed 19 Jun
 - ✅ Bar chart window mismatch on Results.tsx — fixed 19 Jun
+- ✅ Security audit cluster (3 fixed: saved_plans.plan_completed_at client-trust, activity_sessions.distance_km client-trust, FIRST_GENERATE row-existence-only; 2 verified already-fixed) — 20 Jun
+- ✅ PNG share card transparency redesign for "Download Daily Progress" and "Download Progress" cards — fixed & manually verified 21 Jun
 
 **HIGH PRIORITY:**
 - Swap Workout Days feature
@@ -443,6 +465,7 @@ Reference if similar symptoms reappear (e.g. in PNG share card, which reuses pro
 - SEO optimization
 - Workout Timer
 - Add regression tests covering the 19 Jun date-window fix cluster (Section 6a) — not yet implemented, consider batching into one test-writing prompt rather than one per bug
-- Audit PNG share card for the same timestamp-vs-date / week-boundary issues (uses progress data, not re-checked during 19 Jun fix)
+- bump_longest_streak client-trusted value and unlimited XP via increment_user_xp — both accepted risks, deprioritized (see Security Memory doc for full reasoning)
+
 
 
