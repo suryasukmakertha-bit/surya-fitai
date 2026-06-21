@@ -77,15 +77,16 @@ export function downloadDailyProgress(opts: {
   ctx.scale(SCALE, SCALE);
 
   const anyCtx = ctx as CanvasRenderingContext2D & { roundRect?: (x:number,y:number,w:number,h:number,r:number)=>void };
-  if (!anyCtx.roundRect) {
-    anyCtx.roundRect = function (x, y, w, h, r) {
-      ctx.beginPath();
-      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-      ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-      ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-      ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
-    };
-  }
+  // Always use our own beginPath-first rounded-rect helper. The native
+  // CanvasRenderingContext2D.roundRect() does NOT call beginPath(), so
+  // accumulated sub-paths bleed into subsequent fill()/stroke() calls.
+  const roundRect = (x: number, y: number, w: number, h: number, r: number) => {
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  };
 
   // FULLY TRANSPARENT base canvas — paint nothing on the canvas itself.
   ctx.clearRect(0, 0, W, CARD_H);
@@ -142,7 +143,7 @@ export function downloadDailyProgress(opts: {
   // month pill
   const pillX = eyeX;
   const pillY = eyeCY - pillH / 2;
-  anyCtx.roundRect!(pillX, pillY, pillW, pillH, pillH / 2);
+  roundRect(pillX, pillY, pillW, pillH, pillH / 2);
   ctx.fillStyle = "rgba(0,0,0,0.72)"; ctx.fill();
   ctx.strokeStyle = "rgba(255,107,0,0.4)"; ctx.lineWidth = 1; ctx.stroke();
   ctx.font = '700 10px Inter, "Space Grotesk", system-ui, sans-serif';
@@ -160,7 +161,7 @@ export function downloadDailyProgress(opts: {
   drawTextShadowed(s.line3, CX, TITLE_Y + TITLE_LINE_H * 2);
 
   // accent rule
-  anyCtx.roundRect!(CX - 24, RULE_Y, 48, 3, 2);
+  roundRect(CX - 24, RULE_Y, 48, 3, 2);
   ctx.fillStyle = ORANGE; ctx.fill();
 
   // ===== SUBTITLE =====
@@ -178,7 +179,7 @@ export function downloadDailyProgress(opts: {
     const w = isLastOdd ? GRID_W : PILL_W;
     const h = PILL_H;
 
-    anyCtx.roundRect!(x, y, w, h, 12);
+    roundRect(x, y, w, h, 12);
     ctx.fillStyle = "rgba(0,0,0,0.72)"; ctx.fill();
 
     // orange check circle
