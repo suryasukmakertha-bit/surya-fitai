@@ -76,7 +76,6 @@ export function downloadDailyProgress(opts: {
   if (!ctx) return;
   ctx.scale(SCALE, SCALE);
 
-  const anyCtx = ctx as CanvasRenderingContext2D & { roundRect?: (x:number,y:number,w:number,h:number,r:number)=>void };
   // Always use our own beginPath-first rounded-rect helper. The native
   // CanvasRenderingContext2D.roundRect() does NOT call beginPath(), so
   // accumulated sub-paths bleed into subsequent fill()/stroke() calls.
