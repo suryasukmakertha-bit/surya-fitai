@@ -148,6 +148,7 @@ export function downloadDailyProgress(opts: {
   ctx.font = '700 10px Inter, "Space Grotesk", system-ui, sans-serif';
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillStyle = ORANGE_SOFT;
+  console.log("[daily-png] pill", { pillX, pillY, pillW, pillH, text: s.month, font: ctx.font, fillStyle: ctx.fillStyle });
   drawTextShadowed(s.month, pillX + pillW / 2, pillY + pillH / 2);
 
   // ===== TITLE (centered 3 lines, line3 orange) =====
