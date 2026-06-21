@@ -1,0 +1,24 @@
+<!DOCTYPE html><html><head><style>body{margin:0;background:repeating-conic-gradient(#2a2a2a 0% 25%,#383838 0% 50%) 50% / 24px 24px;padding:40px;}</style></head>
+<body><div id="out"></div><script type="module">
+const opts = {
+  dayLabel: "2026-06-20",
+  exercises: [
+    {name:"Barbell Bench Press",sets:"4",reps:"8",rest:"90s"},
+    {name:"Seated Dumbbell Press",sets:"3",reps:"10",rest:"60s"},
+    {name:"Cable Crossover",sets:"3",reps:"12",rest:"60s"},
+    {name:"Lateral Raise (Dumbbell)",sets:"3",reps:"15",rest:"45s"},
+    {name:"Tricep Pushdown (Cable)",sets:"3",reps:"12",rest:"60s"},
+    {name:"Forearm Plank",sets:"3",reps:"45s",rest:"30s"},
+  ],
+  completedExercises: ["Barbell Bench Press","Seated Dumbbell Press","Cable Crossover","Lateral Raise (Dumbbell)","Tricep Pushdown (Cable)","Forearm Plank"],
+  totalExercises: 6,
+  planMonthNumber: 2,
+  lang: "en",
+};
+// override download to instead append canvas
+const origCreate = document.createElement.bind(document);
+let theCanvas;
+document.createElement = (t) => { const e = origCreate(t); if(t==='canvas'){theCanvas=e;} return e; };
+const orig = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function(){ document.getElementById('out').appendChild(theCanvas); theCanvas.style.width='360px'; };
+import('/src/lib/dailyProgressDownload.ts').then(m=>m.downloadDailyProgress(opts));
+</script></body></html>
