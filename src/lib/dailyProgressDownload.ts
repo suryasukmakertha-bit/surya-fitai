@@ -146,8 +146,9 @@ export function downloadDailyProgress(opts: {
   ctx.fillStyle = "rgba(0,0,0,0.72)"; ctx.fill();
   ctx.strokeStyle = "rgba(255,107,0,0.4)"; ctx.lineWidth = 1; ctx.stroke();
   ctx.font = '700 10px Inter, "Space Grotesk", system-ui, sans-serif';
-  ctx.fillStyle = ORANGE_SOFT; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  drawTextShadowed(s.month, pillX + pillW / 2, pillY + pillH / 2 + 0.5);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = ORANGE_SOFT;
+  drawTextShadowed(s.month, pillX + pillW / 2, pillY + pillH / 2);
 
   // ===== TITLE (centered 3 lines, line3 orange) =====
   ctx.font = '900 38px Inter, "Space Grotesk", system-ui, sans-serif';
