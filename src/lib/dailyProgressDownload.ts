@@ -148,7 +148,7 @@ export function downloadDailyProgress(opts: {
   ctx.font = '700 10px Inter, "Space Grotesk", system-ui, sans-serif';
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillStyle = ORANGE_SOFT;
-  ctx.fillText(s.month, pillX + pillW / 2, pillY + pillH / 2);
+  drawTextShadowed(s.month, pillX + pillW / 2, pillY + pillH / 2);
 
   // ===== TITLE (centered 3 lines, line3 orange) =====
   ctx.font = '900 38px Inter, "Space Grotesk", system-ui, sans-serif';
