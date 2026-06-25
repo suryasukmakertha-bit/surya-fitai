@@ -1,6 +1,6 @@
 # SURYA-FITAI SYSTEM KNOWLEDGE
 > Single source of truth. Read this before making ANY change.
-> Last updated: 21 Jun 2026
+> Last updated: 25 Jun 2026
 
 ---
 
@@ -334,16 +334,28 @@ Same transparency pattern as the Running/Cycling PNG share card (Section 10) —
 
 ## 14. MEDAL SYSTEM
 
-**Total medals:** 14 (no Platinum tier currently)
+**Total medals:** 14 in code catalog (`ALL_MEDALS` in `src/lib/medalCatalog.ts`), no Platinum tier currently.
+**Plus 1 orphan:** WEIGHT_GOAL is awarded by the RPC (`award_medal_if_earned` handles it, >= 1 completed saved_plan, grants 250 XP) but is NOT in `ALL_MEDALS` — UI gallery will never render it even though a user can have it in `user_medals`. Treat as a known legacy gap, not a bug to silently "fix" without a product decision (removing it from DB would lose a real user's earned medal).
 **Storage:** user_medals table (user_id x medal_id, unique constraint)
 **Progress:** computed on-the-fly at Medals page mount — NOT stored in DB
 **XP:** granted atomically with medal award via RPC
 
+**⚠️ Naming mismatch — confirmed by code audit 23 Jun 2026:** The "Name" column below is the canonical/Indonesian-rooted name stored in `src/lib/medalCatalog.ts`. The actual EN string shown in the UI comes from `LanguageContext.tsx` key `medal.<ID>.name`, and several of these EN translations do NOT literally match the catalog name — they were intentionally renamed away from a literal translation. Always check `LanguageContext.tsx` for the live EN/ID/ZH strings; do not assume the catalog name is what EN users see. Known mismatches found so far:
+
+| Medal ID | Catalog name (this table) | Actual EN UI name |
+|----------|---------------------------|---------------------|
+| DAILY_1 | Pejuang Pertama | **First Warrior** (not "First Step" — that's FIRST_GENERATE) |
+| FIRST_RIDE | Pesepeda Baru | **First Rider** |
+| STREAK_7 | Minggu Penuh Api | **Full Week Blaze** (sometimes seen as "Week of Fire" — verify current string before quoting) |
+| RUN_10K | 10K Hero | **10K Legend** |
+
+If more mismatches are found during future work, add them here rather than re-discovering via a fresh investigation prompt each time.
+
 **Medal Catalog:**
 
-| Medal ID | Name | Tier | Unlock Condition | Data Source |
+| Medal ID | Name (catalog/ID-rooted) | Tier | Unlock Condition | Data Source |
 |----------|------|------|-----------------|-------------|
-| FIRST_GENERATE | Langkah Pertama | Bronze | >= 1 saved plan | saved_plans count |
+| FIRST_GENERATE | Langkah Pertama | Bronze | >= 1 saved plan, workout_plan array >= 3 days with >= 1 exercise in any day (tightened 20 Jun 2026) | saved_plans |
 | DAILY_1 | Pejuang Pertama | Bronze | >= 1 challenge completed | user_challenge_progress.completed_at |
 | DAILY_7 | Petarung Mingguan | Silver | >= 7 challenges cumulative all-time | user_challenge_progress.completed_at |
 | DAILY_30 | Gladiator | Gold | >= 30 challenges cumulative all-time | user_challenge_progress.completed_at |
@@ -351,7 +363,7 @@ Same transparency pattern as the Running/Cycling PNG share card (Section 10) —
 | STREAK_7 | Minggu Penuh Api | Silver | profiles.longest_streak >= 7 | profiles.longest_streak |
 | STREAK_30 | Unstoppable | Gold | profiles.longest_streak >= 30 | profiles.longest_streak |
 | PROGRAM_COMPLETE | Program Tamat | Silver | >= 1 plan with plan_completed_at IS NOT NULL | saved_plans.plan_completed_at |
-| WEIGHT_GOAL | Target Tercapai | Gold | weight within 0.5kg of target | progress_checkins |
+| WEIGHT_GOAL (orphan, not in ALL_MEDALS) | Target Tercapai | Gold | >= 1 completed saved_plan | saved_plans, grants 250 XP |
 | CHECKIN_14 | Konsisten | Silver | 14 consecutive progress_checkins ending today/yesterday | progress_checkins.date |
 | FIRST_RUN | Pelari Baru | Bronze | >= 1 running session any distance | activity_sessions WHERE activity_type='running' |
 | RUN_5K | 5K Finisher | Silver | single session distance_km >= 5 | activity_sessions.distance_km |
@@ -371,6 +383,8 @@ Same transparency pattern as the Running/Cycling PNG share card (Section 10) —
 - Functions: checkAndAwardMedals, checkWorkoutStreakMedals, checkPlanCompletionMedal, checkFirstGenerateMedal, checkActivityMedals, checkCheckinMedals
 - Each calls RPC: award_medal_if_earned(p_medal_id, name, tier, description)
 
+**⚠️ checkWorkoutStreakMedals — fixed 25 Jun 2026:** Previously had a redundant client-side gate (`consecutiveStreakEndingNow`, a strict backward-walk from today that ignores rest days and breaks on any gap) that decided whether to even call the RPC. This gate was STRICTER than the RPC's own correct check (`profiles.longest_streak >= N`), so STREAK_30 ("Unstoppable") could be stuck Locked forever even when longest_streak already reached 30 — because any single gap day in the trailing ~30 days zeroed the local `streak` variable before the RPC was ever invoked. Fix: the local gate was removed entirely. `awardIfNew(userId, t.medal)` is now called unconditionally for STREAK_3 / STREAK_7 / STREAK_30 every time `checkWorkoutStreakMedals` runs — the RPC's `longest_streak >= N` check plus `user_medals` idempotency is now the SOLE gate. This is intentional and aligned with product intent: STREAK_30 must be achievable via cross-plan accumulation (e.g. multiple Extend Month cycles), not only via one unbroken 30-day window. Do not reintroduce a client-side pre-check gate without re-confirming it reads the exact same source (`profiles.longest_streak`) as the RPC.
+
 **Server RPC rules:**
 - Re-checks qualifying condition against DB before awarding
 - Client-supplied claims are NOT trusted
@@ -381,7 +395,7 @@ Same transparency pattern as the Running/Cycling PNG share card (Section 10) —
 **Key rules:**
 - Distance medals (RUN_5K, RUN_10K, RIDE_20K): ONE qualifying session >= threshold, NOT cumulative
 - Locked tab progress bar shows cumulative km as UX hint only — actual unlock requires single session
-- Streak medals use profiles.longest_streak (monotonic) — streak_carry_over counts via bump_longest_streak()
+- Streak medals (STREAK_3/7/30) use profiles.longest_streak (monotonic) as the ONLY eligibility gate — no client-side pre-check (see fix above, 25 Jun 2026)
 - Daily challenge counter: cumulative all-time, no date window, never resets
 - Profile My Medals: earned medals only from user_medals ORDER BY earned_at DESC
 - Full gallery (/medals): earned + locked tabs, progress recomputed every visit
@@ -439,7 +453,7 @@ Same transparency pattern as the Running/Cycling PNG share card (Section 10) —
 
 ---
 
-## 18. BACKLOG (as of 21 Jun 2026)
+## 18. BACKLOG (as of 25 Jun 2026)
 
 **RESOLVED since 17 Jun:**
 - ✅ Push notification fix (evening branch + test mode) — deployed
@@ -449,6 +463,7 @@ Same transparency pattern as the Running/Cycling PNG share card (Section 10) —
 - ✅ Bar chart window mismatch on Results.tsx — fixed 19 Jun
 - ✅ Security audit cluster (3 fixed: saved_plans.plan_completed_at client-trust, activity_sessions.distance_km client-trust, FIRST_GENERATE row-existence-only; 2 verified already-fixed) — 20 Jun
 - ✅ PNG share card transparency redesign for "Download Daily Progress" and "Download Progress" cards — fixed & manually verified 21 Jun
+- ✅ STREAK_30 "Unstoppable" stuck Locked despite longest_streak already >= 30 — removed redundant client-side gate in checkWorkoutStreakMedals; RPC's longest_streak check is now the sole gate — fixed & verified 25 Jun (see Section 14)
 
 **HIGH PRIORITY:**
 - Swap Workout Days feature
