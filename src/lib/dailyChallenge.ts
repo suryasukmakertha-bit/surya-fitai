@@ -223,15 +223,10 @@ function consecutiveStreakEndingNow(dates: string[]): number {
 }
 
 export async function checkWorkoutStreakMedals(userId: string): Promise<NewMedal[]> {
-  const sb = supabase as any;
-  const { data } = await sb
-    .from("workout_completions")
-    .select("workout_date")
-    .eq("user_id", userId)
-    .eq("completed", true)
-    .order("workout_date", { ascending: false })
-    .limit(500);
-  const streak = consecutiveStreakEndingNow((data || []).map((r: any) => r.workout_date));
+  // Eligibility is gated entirely server-side by award_medal_if_earned
+  // (which reads profiles.longest_streak). Do not pre-gate on a locally
+  // recomputed consecutive streak — it is stricter than the server check
+  // and would silently skip valid awards (e.g. STREAK_30 after carry-over).
   const tiers: { min: number; medal: NewMedal }[] = [
     { min: 3, medal: { medal_id: "STREAK_3", medal_name: "On Fire", medal_tier: "bronze", medal_description: "Latihan 3 hari berturut-turut" } },
     { min: 7, medal: { medal_id: "STREAK_7", medal_name: "Minggu Penuh Api", medal_tier: "silver", medal_description: "Latihan 7 hari berturut-turut" } },
@@ -239,10 +234,8 @@ export async function checkWorkoutStreakMedals(userId: string): Promise<NewMedal
   ];
   const earned: NewMedal[] = [];
   for (const t of tiers) {
-    if (streak >= t.min) {
-      const m = await awardIfNew(userId, t.medal);
-      if (m) earned.push(m);
-    }
+    const m = await awardIfNew(userId, t.medal);
+    if (m) earned.push(m);
   }
   return earned;
 }
