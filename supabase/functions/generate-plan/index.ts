@@ -62,6 +62,13 @@ const INJECTION_PATTERNS: RegExp[] = [
   /\bprompt\s+injection\b/gi,
   /\bnew\s+instructions?\b/gi,
   /\bend\s+of\s+(prompt|system)\b/gi,
+  /\bprevious\s+instructions?\b/gi,
+  /\bdeveloper\s+mode\b/gi,
+  /\bverbatim\b/gi,
+  /\binstead\s+of\s+(generating|creating|producing|outputting)\b/gi,
+  /\braw\s+(system\s+)?prompt\b/gi,
+  /\breveal\s+(your\s+|the\s+)?(instructions?|prompt)\b/gi,
+  /\bprint\s+(your\s+|the\s+)?(instructions?|prompt)\b/gi,
 ];
 
 function sanitizeUserText(input: unknown, maxLen: number): string {
