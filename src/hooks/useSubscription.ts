@@ -8,6 +8,52 @@ const MAX_PLANS = 3;
 const FREE_MAX_PLANS = 1;
 const TRIAL_DAYS = 14;
 
+// Module-level singleton for realtime channel sharing across all hook instances.
+// @supabase/supabase-js >=2.108 forbids calling .on() on an already-subscribed
+// channel, and supabase.channel(topic) returns the existing channel for the
+// same topic. We share one channel per userId and fan out updates to all
+// registered subscriber callbacks.
+type SubPayloadHandler = (payload: any) => void;
+let sharedChannel: ReturnType<typeof supabase.channel> | null = null;
+let sharedChannelUserId: string | null = null;
+const subscriberHandlers = new Set<SubPayloadHandler>();
+
+function registerSubscriptionListener(userId: string, handler: SubPayloadHandler) {
+  if (!sharedChannel || sharedChannelUserId !== userId) {
+    if (sharedChannel) {
+      try { supabase.removeChannel(sharedChannel); } catch {}
+      sharedChannel = null;
+    }
+    sharedChannelUserId = userId;
+    sharedChannel = supabase
+      .channel(`subscription-changes-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'subscriptions',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: any) => {
+          subscriberHandlers.forEach((cb) => {
+            try { cb(payload); } catch (e) { console.error('[useSubscription handler]', e); }
+          });
+        }
+      )
+      .subscribe();
+  }
+  subscriberHandlers.add(handler);
+  return () => {
+    subscriberHandlers.delete(handler);
+    if (subscriberHandlers.size === 0 && sharedChannel) {
+      try { supabase.removeChannel(sharedChannel); } catch {}
+      sharedChannel = null;
+      sharedChannelUserId = null;
+    }
+  };
+}
+
 export function useSubscription() {
   const [subscription, setSubscription] = useState<any>(null);
   const [access, setAccess] = useState({
@@ -113,25 +159,12 @@ export function useSubscription() {
   // Realtime listener for subscription changes (e.g. webhook activates subscription)
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase
-      .channel('subscription-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'subscriptions',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: any) => {
-          const newSub = payload.new;
-          setSubscription(newSub);
-          setAccess(computeAccess(newSub, userEmail));
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    const unregister = registerSubscriptionListener(userId, (payload: any) => {
+      const newSub = payload.new;
+      setSubscription(newSub);
+      setAccess(computeAccess(newSub, userEmail));
+    });
+    return unregister;
   }, [userId, userEmail, computeAccess]);
 
   const openPopup = useCallback((trigger: SubscriptionTrigger) => {
