@@ -1,6 +1,6 @@
 # SURYA-FITAI SYSTEM KNOWLEDGE
 > Single source of truth. Read this before making ANY change.
-> Last updated: 25 Jun 2026
+> Last updated: 26 Jun 2026
 
 ---
 
@@ -309,6 +309,14 @@ Same transparency pattern as the Running/Cycling PNG share card (Section 10) —
 - Layer 2: all 5 fields wrapped in <user_provided_data>...</user_provided_data> tags
 - System prompt instructs AI to treat wrapped content as data only
 - NEVER raw field interpolation in system prompt
+- **Hardened 26 Jun 2026:** verification testing found the original INJECTION_PATTERNS regex denylist stripped individual trigger words (ignore, you are now, system prompt) but left surrounding instruction-like phrasing semantically intact and readable (e.g. "IGNORE ALL PREVIOUS INSTRUCTIONS...developer mode...verbatim" survived as "ALL PREVIOUS INSTRUCTIONS...in developer mode...verbatim" — still a coherent injected instruction). Added 7 more patterns (previous instructions, developer mode, verbatim, instead of, raw (system )?prompt, reveal/print instructions or prompt) to close the gap. Re-verified end-to-end against the live Claude API afterward: malicious payload produced 0 leakage matches (system prompt / developer mode / verbatim / ignore / raw prompt / previous instructions) anywhere in the response, output schema matched normal plan structure, and a control test with a legitimate goal produced equivalent output size/quality — confirms the regex extension did not degrade normal use. Regex denylist is explicitly NOT a complete scrub by design; the `<user_provided_data>` delimiter + system-prompt instruction is the primary defense layer, the regex list is defense-in-depth on top of it. If extending further, test the exact same way (real Claude API call with a crafted payload + grep the raw response for leakage terms) before trusting a "looks sanitized" read of the string alone.
+
+**Dependency vulnerabilities — fixed 26 Jun 2026 (Lovable security scan):**
+- jspdf: 4.1.0 → 4.2.1 (fixed PDF Object Injection, GIF dimension DoS, AcroForm JS execution — Critical/High)
+- @supabase/supabase-js: 2.95.3 → 2.108.2 (fixed `ws` Memory Exhaustion DoS + Uninitialized Memory Disclosure — High/Medium; confirmed no breaking API changes in this range)
+- react-router-dom: 6.30.1 → 6.30.4 (fixed open-redirect-via-`//`-path XSS — patch-level, stayed on v6 line, did NOT jump to v7 which has breaking changes)
+- recharts: kept at 2.15.4 unchanged (upgrading to v3 has real breaking changes, out of scope for a security-only fix); added `package.json` `overrides: { "lodash": "^4.18.1" }` to force the transitive lodash dependency to a patched version instead, fixing the Prototype Pollution advisories without touching recharts itself
+- Pattern for future dependency vulns: prefer patch/minor bumps within the same major version; for vulnerabilities in transitive dependencies, prefer `overrides`/`resolutions` over forcing a major version bump on the direct dependency
 
 **Quota race condition — NEVER restore old pattern:**
 - Uses atomic reserve_generate_quota RPC (row-lock + check + increment in one transaction)
@@ -453,7 +461,7 @@ If more mismatches are found during future work, add them here rather than re-di
 
 ---
 
-## 18. BACKLOG (as of 25 Jun 2026)
+## 18. BACKLOG (as of 26 Jun 2026)
 
 **RESOLVED since 17 Jun:**
 - ✅ Push notification fix (evening branch + test mode) — deployed
@@ -464,6 +472,8 @@ If more mismatches are found during future work, add them here rather than re-di
 - ✅ Security audit cluster (3 fixed: saved_plans.plan_completed_at client-trust, activity_sessions.distance_km client-trust, FIRST_GENERATE row-existence-only; 2 verified already-fixed) — 20 Jun
 - ✅ PNG share card transparency redesign for "Download Daily Progress" and "Download Progress" cards — fixed & manually verified 21 Jun
 - ✅ STREAK_30 "Unstoppable" stuck Locked despite longest_streak already >= 30 — removed redundant client-side gate in checkWorkoutStreakMedals; RPC's longest_streak check is now the sole gate — fixed & verified 25 Jun (see Section 14)
+- ✅ Dependency vulnerabilities (jspdf, @supabase/supabase-js, react-router-dom, recharts/lodash) — patched to safe versions, no major version jumps — fixed & build-verified 26 Jun (see Section 13)
+- ✅ Prompt injection hardening on generate-plan — extended INJECTION_PATTERNS denylist, re-verified end-to-end against live Claude API with 0 leakage — fixed & verified 26 Jun (see Section 13)
 
 **HIGH PRIORITY:**
 - Swap Workout Days feature
