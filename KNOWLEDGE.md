@@ -1,16 +1,16 @@
 # SURYA-FITAI SYSTEM KNOWLEDGE
 > Single source of truth. Read this before making ANY change.
-> Last updated: 26 Jun 2026
+> Last updated: 4 Jul 2026
 
 ---
 
 ## 1. SYSTEM OVERVIEW
 
-**App:** Surya-FitAI — AI-powered fitness PWA
+**App:** Surya-FitAI — fitness PWA (no longer "AI-powered" as of 4 Jul 2026 — see AI note below)
 **Domain:** surya-fitai.com
 **Stack:** React + Vite + Supabase (hrxqvheudexwswmlqbgw) + Midtrans (production)
 **Languages:** EN (default), ID, ZH — ALL UI text must have all 3 via t('key')
-**AI:** Claude API (claude-sonnet-4) for plan generation
+**AI:** NONE. Plan generation (both workout and meal) is fully rule-based/deterministic as of 4 Jul 2026 — see WORKOUT_TEMPLATE_LOGIC.md and MEAL_TEMPLATE_LOGIC.md for the complete generation logic. **Historical correction:** earlier versions of this document stated "Claude API (claude-sonnet-4) for plan generation" — this was never accurate. The actual prior implementation called the Lovable AI Gateway using `google/gemini-3-flash-preview` (confirmed via code read of `generate-plan/index.ts`, lines 877-895), not Claude/Anthropic. This AI dependency has now been removed entirely — the pivot was triggered by Lovable Cloud & AI credit exhaustion but the decision to go fully rule-based is permanent, not a temporary workaround.
 **Dev tool:** Lovable (prompt-based, English only)
 **Assets:** GitHub CDN (https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/)
 
@@ -35,19 +35,23 @@
 
 ## 3. PLAN RULES
 
-- New plan: plan_started_at = user selected date, NEVER NOW()
-- Day card: days[0] → card 0, sequential index only, never remap or reorder
+**⚠️ SUPERSEDED 4 Jul 2026.** Plan generation is no longer AI-based. The complete, current workout generation logic (split selection by Days×Experience, 47-exercise pool with difficulty/limitation-exclusion/demo-image data, exercise selection algorithm with rotation-with-memory + cardio finisher, volume/intensity RIR+rep-range per Goal×Experience, W1-W4 progression with Extend Month carry-forward) now lives in **WORKOUT_TEMPLATE_LOGIC.md** — read that file directly. The complete meal generation logic (Mifflin-St Jeor calorie formula, macro split, food database, meal timing, 16/8 IF window-shift) now lives in **MEAL_TEMPLATE_LOGIC.md**. Do not use the old Bulking/Cutting goal system or the old RIR-by-experience-only table below for any new work — they are kept here only as historical reference for understanding pre-4-Jul-2026 behavior.
+
+- New plan: plan_started_at = user selected date, NEVER NOW() — **this rule is unchanged and still applies** under the new rule-based system.
+- Day card: days[0] → card 0, sequential index only, never remap or reorder — **unchanged, still applies.**
+
+**OLD SYSTEM (pre-4 Jul 2026) — DO NOT USE, historical reference only:**
 - Exercise list IDENTICAL Week 1-4 (same exercises, days, count):
   - W1 Foundation: lighter weight
   - W2 Volume: increase reps
   - W3 Intensity: increase weight
   - W4 Deload: -1 set, weight -20%
 - Goals supported: Bulking, Cutting
-- RIR by experience level:
+- RIR by experience level (did not vary by goal):
   - Beginner: Compound 4 RIR, Isolation 3 RIR
   - Intermediate: Compound 3 RIR, Isolation 2 RIR
   - Advanced: Compound 2 RIR, Isolation 0-1 RIR
-- ExerciseDB removed — replaced with hardcoded pool of 15 bodyweight exercises
+- ExerciseDB removed — replaced with hardcoded pool of 15 bodyweight exercises (this pool has since been expanded and restructured — see WORKOUT_TEMPLATE_LOGIC.md for the current 47-exercise pool)
 
 ---
 
@@ -432,7 +436,9 @@ If more mismatches are found during future work, add them here rather than re-di
 
 **PNG generation:** Native Canvas API only, always transparent background
 
-**No ExerciseDB:** Removed due to commercial licensing — hardcoded bodyweight pool only
+**No ExerciseDB:** Removed due to commercial licensing. Exercise pool (47 exercises: 27 gym + 15 bodyweight + 5 cardio finisher, with difficulty tags, limitation-exclusion mapping, and confirmed demo images) is fully defined in WORKOUT_TEMPLATE_LOGIC.md — not a third-party database, not AI-generated.
+
+**Exercise & food name i18n:** Exercise names (WORKOUT_TEMPLATE_LOGIC.md) and food item names (MEAL_TEMPLATE_LOGIC.md) use static i18n KEYS (e.g. `exercise.barbell_bench_press`, `food.tempe_goreng`) resolved via the standard t('key') pattern — NOT on-the-fly/AI-based translation. On-the-fly translation would reintroduce an AI/API dependency, contradicting the whole point of the AI-removal pivot. Add all ~47 exercise keys + ~54 food keys to id.json/en.json/zh.json as one-time manual translation work.
 
 ---
 
@@ -464,7 +470,10 @@ If more mismatches are found during future work, add them here rather than re-di
 
 ---
 
-## 18. BACKLOG (as of 26 Jun 2026)
+## 18. BACKLOG (as of 4 Jul 2026)
+
+**MAJOR PIVOT — RESOLVED 4 Jul 2026:**
+- ✅ AI dependency fully removed from generate-plan. Trigger was Lovable Cloud & AI credit exhaustion, but the decision to go fully rule-based is permanent product direction, not a stopgap. Both WORKOUT_TEMPLATE_LOGIC.md and MEAL_TEMPLATE_LOGIC.md are complete and define the entire generation logic deterministically. See Section 3 for the pointer and historical context. Implementation to Lovable (form redesign, both backend engines, i18n translation keys, UI tab restructuring 5→3 tabs) is bundled as one coordinated rollout — see the separate implementation prompts, not done piecemeal.
 
 **RESOLVED since 17 Jun:**
 - ✅ Push notification fix (evening branch + test mode) — deployed
