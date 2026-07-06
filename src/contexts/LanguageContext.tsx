@@ -1927,6 +1927,18 @@ const translations = {
     "food.santan_kelapa": "椰浆",
     "food.selai_kacang": "花生酱",
     "food.keju_cheddar": "切达奶酪",
+    // === Meal slot names (Prompt 4) ===
+    "meal.breakfast": "早餐",
+    "meal.lunch": "午餐",
+    "meal.dinner": "晚餐",
+    "meal.snackMorning": "上午加餐",
+    "meal.snackAfternoon": "下午加餐",
+    "meal.snackEvening": "夜间加餐",
+    "plan.weightProjection.loss": "预计减脂：{{weeks}}周内约减 {{kg}}kg。",
+    "plan.weightProjection.gain": "预计增肌：{{weeks}}周内约增 {{kg}}kg。",
+    "plan.weightProjection.maintain": "{{weeks}}周内维持身体成分。",
+    "plan.motivational.default": "{{name}}，坚持是滋养一切的复合训练。",
+    "plan.motivational.extension": "{{name}}，第{{month}}个月建立在你已打下的基础之上。",
   },
 };
 
