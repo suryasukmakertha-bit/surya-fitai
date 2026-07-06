@@ -201,10 +201,11 @@ export function exportPlanToPDF(
   }
 
   // Motivational message
-  if (plan.motivational_message) {
+  const motText = resolveTemplated(plan.motivational_message);
+  if (motText) {
     check(20);
     doc.setFillColor(...BRAND_TINT);
-    const msgLines = doc.splitTextToSize(plan.motivational_message, PW - 12);
+    const msgLines = doc.splitTextToSize(motText, PW - 12);
     const boxH = msgLines.length * 4.5 + 8;
     doc.roundedRect(ML, y - 4, PW, boxH, 2, 2, "F");
     doc.setFillColor(...BRAND);
@@ -347,8 +348,8 @@ export function exportPlanToPDF(
     sectionTitle("MEAL PLAN");
 
     const mealRows = plan.meal_plan.map((m) => [
-      m.meal + (m.time ? `\n${m.time}` : ""),
-      m.foods.join(", "),
+      resolveMealName(m.meal) + (m.time ? `\n${m.time}` : ""),
+      m.foods.map(resolveFoodLine).join(", "),
       `${m.calories} kcal`,
     ]);
 
@@ -395,7 +396,7 @@ export function exportPlanToPDF(
       const col = i % cols;
       const row = Math.floor(i / cols);
       if (col === 0 && row > 0) check(5);
-      doc.text(`- ${item}`, ML + col * colW, y + row * 5);
+      doc.text(`- ${resolveFoodLine(item)}`, ML + col * colW, y + row * 5);
     });
     y += Math.ceil(plan.grocery_list.length / cols) * 5 + 8;
   }
