@@ -1329,7 +1329,7 @@ export default function Results() {
                   <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
                 </div>
               </div>
-              <p className="text-foreground text-sm italic">{plan.motivational_message}</p>
+              <p className="text-foreground text-sm italic">{resolveTemplated(plan.motivational_message)}</p>
             </div>
           </div>
         )}
@@ -1538,14 +1538,14 @@ export default function Results() {
               <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
                 <div className="flex justify-between items-center mb-3">
                   <div>
-                    <h3 className="font-display font-bold text-foreground">{meal.meal}</h3>
+                    <h3 className="font-display font-bold text-foreground">{resolveMealName(meal.meal)}</h3>
                     {meal.time && <p className="text-xs text-muted-foreground">{meal.time}</p>}
                   </div>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{meal.calories} kcal</span>
                 </div>
                 <ul className="space-y-1">
                   {meal.foods.map((f, j) => (
-                    <li key={j} className="text-sm text-muted-foreground">• {f}</li>
+                    <li key={j} className="text-sm text-muted-foreground">• {resolveFoodLine(f)}</li>
                   ))}
                 </ul>
               </div>
@@ -1561,7 +1561,7 @@ export default function Results() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {plan.grocery_list?.map((item, i) => (
                   <div key={i} className="bg-secondary/50 rounded-md px-3 py-2 text-sm text-foreground">
-                    {item}
+                    {resolveFoodLine(item)}
                   </div>
                 ))}
               </div>
@@ -1606,7 +1606,7 @@ export default function Results() {
             {plan.weight_projection && (
               <div className="card-gradient rounded-lg p-5 border border-border/50">
                 <h3 className="font-display font-bold text-foreground mb-2">{t.progressProjection}</h3>
-                <p className="text-sm text-muted-foreground">{plan.weight_projection}</p>
+                <p className="text-sm text-muted-foreground">{resolveTemplated(plan.weight_projection)}</p>
               </div>
             )}
             {plan.safety_notes?.length > 0 && (
