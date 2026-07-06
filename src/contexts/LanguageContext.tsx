@@ -640,6 +640,19 @@ const translations = {
     "food.santan_kelapa": "Coconut Milk",
     "food.selai_kacang": "Peanut Butter",
     "food.keju_cheddar": "Cheddar Cheese",
+    // === Meal slot names (Prompt 4 — used by rule-based meal engine) ===
+    "meal.breakfast": "Breakfast",
+    "meal.lunch": "Lunch",
+    "meal.dinner": "Dinner",
+    "meal.snackMorning": "Mid-morning Snack",
+    "meal.snackAfternoon": "Afternoon Snack",
+    "meal.snackEvening": "Evening Snack",
+    // === Templated messages (support {{param}} interpolation) ===
+    "plan.weightProjection.loss": "Estimated fat loss: ~{{kg}}kg over {{weeks}} weeks.",
+    "plan.weightProjection.gain": "Estimated lean gain: ~{{kg}}kg over {{weeks}} weeks.",
+    "plan.weightProjection.maintain": "Body-composition maintenance over {{weeks}} weeks.",
+    "plan.motivational.default": "{{name}}, consistency is the compound lift that grows everything.",
+    "plan.motivational.extension": "{{name}}, Month {{month}} builds on the foundation you already forged.",
   },
   id: {
     // Common
