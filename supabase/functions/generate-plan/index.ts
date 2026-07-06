@@ -607,7 +607,7 @@ function buildExerciseOutput(
     notes: '',
   };
 
-  // Extension-month W1 override: reps from prev W2, weight from prev W3.
+  // Extension-month W1 override: both reps AND weight from prev W3 (top of prior cycle).
   if (week === 1 && prevPlanData) {
     const carry = extensionBaselineFor(ex.name, prevPlanData);
     if (carry.reps) base.reps = carry.reps;
