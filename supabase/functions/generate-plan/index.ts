@@ -1265,8 +1265,9 @@ serve(async (req) => {
     const totalWeeks = 4;
 
     const lang = language === "id" ? "Indonesian (Bahasa Indonesia)" : language === "zh" ? "Mandarin Chinese (简体中文)" : "English";
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    // NOTE (Prompt 4): AI gateway removed entirely — LOVABLE_API_KEY no
+    // longer required by generate-plan. Both workout and meal are
+    // produced by deterministic engines above.
 
     const w = parseFloat(weight);
     const h = parseFloat(height);
@@ -1353,7 +1354,7 @@ serve(async (req) => {
     // Merge deterministic workout fields OVER whatever the AI returned so the
     // output shape stays identical to the old system (downstream consumers
     // — planProgress, streak, medals, PNG cards — see the same fields).
-    plan.programOverview = plan.programOverview || workoutOutput.programOverview;
+    plan.programOverview = workoutOutput.programOverview;
     plan.durationWeeks = totalWeeks;
     plan.weeklySplit = workoutOutput.weeklySplit;
     plan.estimatedSessionTimeMinutes = workoutOutput.estimatedSessionTimeMinutes;
@@ -1361,8 +1362,8 @@ serve(async (req) => {
     plan.workout_plan = workoutOutput.workout_plan;
     plan.coolDown = workoutOutput.coolDown;
     plan.weekly_schedule = workoutOutput.weekly_schedule;
-    plan.safety_notes = [...(plan.safety_notes || []), ...workoutOutput.safety_notes];
-    plan.warnings = [...(plan.warnings || []), ...workoutOutput.warnings];
+    plan.safety_notes = [...workoutOutput.safety_notes];
+    plan.warnings = [...workoutOutput.warnings];
     plan.progressionRules = workoutOutput.progressionRules;
     plan.deloadWeek = workoutOutput.deloadWeek;
     plan.recoveryTips = workoutOutput.recoveryTips;
