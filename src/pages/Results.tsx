@@ -1232,7 +1232,7 @@ export default function Results() {
         <div className="flex items-center justify-between mb-6">
           <div />
           <div className="flex items-center gap-2">
-            <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name)} variant="secondary" size="sm">
+            <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name, tKey)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
             <Button
