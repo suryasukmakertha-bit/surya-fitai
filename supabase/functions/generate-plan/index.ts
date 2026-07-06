@@ -1553,42 +1553,60 @@ Generate the complete plan now.`;
 
     let plan: any;
 
-    // === SINGLE-CALL STRATEGY ===
-    // Plans are now always exactly 4 weeks (1 month). The previous 12-week
-    // parallel-chunk strategy is removed because all plans now fit comfortably
-    // in a single AI call (well under the 140s wall-clock budget). Users
-    // continue to month 2/3/etc through the in-app completion modal, which
-    // creates a fresh plan with plan_month_number incremented.
-    const raw = await callAI(systemPrompt, userPrompt, "single-call-4-weeks");
-    plan = safeParseJSON(raw, "single-call-4-weeks");
+    // === MEAL-ONLY AI CALL ===
+    // The workout plan is now produced deterministically by generateWorkout()
+    // (rule-based engine per WORKOUT_TEMPLATE_LOGIC.md). The AI gateway is
+    // used ONLY for the meal plan, nutrition text, and motivational message.
+    const raw = await callAI(systemPrompt, userPrompt, "meal-only");
+    plan = safeParseJSON(raw, "meal-only");
 
-    // Validate exercise uniqueness
-    const trainingDayCount = (plan.workout_plan || []).filter((d: any) => d.exercises?.length > 0).length;
-    const exerciseSignatures = new Set(
-      (plan.workout_plan || [])
-        .filter((d: any) => d.exercises?.length > 0)
-        .map((d: any) => d.exercises.map((e: any) => e.name).sort().join(","))
-    );
-    console.log("[PlanGen] Validation summary", {
-      duration,
-      trainingDayCount,
-      uniqueDaySignatures: exerciseSignatures.size,
+    // === DETERMINISTIC WORKOUT ENGINE ===
+    const engineGoal = normalizeGoal(goal, programType);
+    const engineEquipment = normalizeEquipment(equipment);
+    const engineLimitations = parseLimitations(limitations);
+    const engineExperience: WExp = (experience as WExp);
+    const startDateObj = startDate ? new Date(startDate) : new Date();
+    if (isNaN(startDateObj.getTime())) startDateObj.setTime(Date.now());
+
+    const workoutOutput = generateWorkout({
+      goal: engineGoal,
+      experience: engineExperience,
+      trainingDaysPerWeek: workoutDays,
+      sessionMinutes: sessionMin,
+      equipment: engineEquipment,
+      limitations: engineLimitations,
+      startDate: startDateObj,
+      prevPlanData,
     });
 
-    if (!validatePlanExerciseUniqueness(plan.workout_plan || [])) {
-      console.warn("[PlanGen] Validation failed — retrying generation once");
-      const retryRaw = await callAI(
-        systemPrompt,
-        userPrompt + "\n\nCRITICAL: Each training day MUST have completely different exercises. Do NOT repeat the same exercise list on multiple days.",
-        "retry-single-call"
-      );
-      plan = safeParseJSON(retryRaw, "retry");
-    }
+    // Merge deterministic workout fields OVER whatever the AI returned so the
+    // output shape stays identical to the old system (downstream consumers
+    // — planProgress, streak, medals, PNG cards — see the same fields).
+    plan.programOverview = plan.programOverview || workoutOutput.programOverview;
+    plan.durationWeeks = totalWeeks;
+    plan.weeklySplit = workoutOutput.weeklySplit;
+    plan.estimatedSessionTimeMinutes = workoutOutput.estimatedSessionTimeMinutes;
+    plan.warmUp = workoutOutput.warmUp;
+    plan.workout_plan = workoutOutput.workout_plan;
+    plan.coolDown = workoutOutput.coolDown;
+    plan.weekly_schedule = workoutOutput.weekly_schedule;
+    plan.safety_notes = [...(plan.safety_notes || []), ...workoutOutput.safety_notes];
+    plan.warnings = [...(plan.warnings || []), ...workoutOutput.warnings];
+    plan.progressionRules = workoutOutput.progressionRules;
+    plan.deloadWeek = workoutOutput.deloadWeek;
+    plan.recoveryTips = workoutOutput.recoveryTips;
+
+    console.log("[PlanGen] Rule-based workout merged", {
+      goal: engineGoal,
+      equipment: engineEquipment,
+      days: workoutDays,
+      totalWorkoutDays: plan.workout_plan.length,
+      trainingDayCount: plan.workout_plan.filter((d: any) => d.exercises?.length > 0).length,
+    });
 
     console.log("[PlanGen] Plan returned successfully", {
       duration,
       totalWorkoutDays: (plan.workout_plan || []).length,
-      trainingDayCount,
     });
 
     // Quota was already reserved atomically before AI generation via
