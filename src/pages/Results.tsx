@@ -76,10 +76,10 @@ interface PlanData {
   water_liters: number;
   weekly_schedule: string[];
   safety_notes: string[];
-  motivational_message: string;
+  motivational_message: string | { key: string; params?: Record<string, string | number> };
   grocery_list: string[];
   estimated_calories_burned: number;
-  weight_projection: string;
+  weight_projection: string | { key: string; params?: Record<string, string | number> };
 }
 
 interface CheckIn {
@@ -327,7 +327,26 @@ export default function Results() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t, lang } = useLanguage();
+  const { t, lang, tKey } = useLanguage();
+
+  // Prompt-4 meal engine encoding helpers.
+  // foods entries look like "food.<id> · <grams>g · <qty>x".
+  // grocery entries look like "food.<id> · <totalGrams>g".
+  const resolveFoodLine = (raw: string): string => {
+    const parts = raw.split(" · ");
+    if (!parts.length || !parts[0].startsWith("food.")) return raw;
+    const name = tKey(parts[0]);
+    return [name, ...parts.slice(1)].join(" · ");
+  };
+  const resolveMealName = (raw: string): string =>
+    raw && raw.startsWith("meal.") ? tKey(raw) : raw;
+  const resolveTemplated = (
+    v: string | { key: string; params?: Record<string, string | number> } | undefined,
+  ): string => {
+    if (!v) return "";
+    if (typeof v === "string") return v;
+    return tKey(v.key, v.params);
+  };
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [restoredFromDraft, setRestoredFromDraft] = useState(false);
