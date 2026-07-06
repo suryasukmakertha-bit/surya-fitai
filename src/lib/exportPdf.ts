@@ -24,6 +24,15 @@ interface MealPlan {
   calories: number;
 }
 
+/**
+ * Prompt 4: `motivational_message` and `weight_projection` may arrive as
+ * either legacy plain strings or `{key, params}` payloads from the
+ * deterministic meal engine. The optional `tKey` resolver (injected by
+ * Results.tsx via useLanguage()) does the interpolation. When absent,
+ * strings are printed verbatim and objects fall back to their key.
+ */
+type Templated = string | { key: string; params?: Record<string, string | number> };
+
 interface PlanData {
   programOverview?: string;
   warmUp?: string;
@@ -42,10 +51,10 @@ interface PlanData {
   fat: number;
   water_liters: number;
   safety_notes: string[];
-  motivational_message: string;
+  motivational_message: Templated;
   grocery_list: string[];
   estimated_calories_burned: number;
-  weight_projection: string;
+  weight_projection: Templated;
 }
 
 // Brand orange #ff6b00 (replaces the previous green theme)
@@ -82,7 +91,28 @@ function drawHeader(doc: jsPDF, page: number, totalPages: number) {
   doc.text(`Page ${page} of ${totalPages}`, 105, 290, { align: "center" });
 }
 
-export function exportPlanToPDF(plan: PlanData, programType?: string, userName?: string) {
+export function exportPlanToPDF(
+  plan: PlanData,
+  programType?: string,
+  userName?: string,
+  tKey?: (key: string, params?: Record<string, string | number>) => string,
+) {
+  // Prompt-4 helpers. Keep resolvers local so callers that don't pass
+  // tKey still produce a valid (English-key) PDF instead of crashing.
+  const resolveTemplated = (v: Templated | undefined): string => {
+    if (!v) return "";
+    if (typeof v === "string") return v;
+    if (tKey) return tKey(v.key, v.params);
+    return v.key;
+  };
+  const resolveFoodLine = (raw: string): string => {
+    const parts = raw.split(" · ");
+    if (!parts.length || !parts[0].startsWith("food.")) return raw;
+    const name = tKey ? tKey(parts[0]) : parts[0];
+    return [name, ...parts.slice(1)].join(" · ");
+  };
+  const resolveMealName = (raw: string): string =>
+    raw && raw.startsWith("meal.") ? (tKey ? tKey(raw) : raw) : raw;
   const doc = new jsPDF();
   let y = 28;
 
