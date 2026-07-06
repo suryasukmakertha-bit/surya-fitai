@@ -761,6 +761,317 @@ function normalizeEquipment(raw: unknown): WEquipment {
   return 'gym';
 }
 
+// =====================================================================
+// RULE-BASED MEAL ENGINE (Prompt 4 — replaces AI-driven meal generation)
+// Spec: MEAL_TEMPLATE_LOGIC.md. Fully deterministic; no AI call remains.
+//
+// Output-shape contract:
+//   - Field NAMES (meal_plan, calorie_target, protein, carbs, fat,
+//     water_liters, motivational_message, grocery_list,
+//     estimated_calories_burned, weight_projection) are preserved 1:1.
+//   - `foods` and `grocery_list` entries are i18n-key strings using
+//     " · " separator: "food.<key> · <grams>g · <qty>x".
+//     Client resolves via t[key] in Results.tsx / exportPdf.ts.
+//   - `motivational_message` and `weight_projection` change shape from
+//     `string` to `{ key: string, params: Record<string, string|number> }`.
+//     DELIBERATE, NARROW EXCEPTION to the "preserve every field 1:1" rule
+//     — confirmed by product in Prompt 4 to avoid duplicating translations
+//     inside the edge function. Do NOT expand this exception to other
+//     fields without an explicit product decision.
+//
+// Composer notes (implementation choices, NOT in spec):
+//   - Greedy pick order: protein → carb → veg-or-fruit → optional fat.
+//   - Vegetable vs fruit toggle: slots >= 20% of daily kcal get a
+//     vegetable, smaller snack slots get a fruit.
+//   - Rotation across days uses (dayIdx + slotIdx + roleOffset) %
+//     poolLen for a stable-yet-varied 7-day menu.
+//   These choices were explicitly accepted, not silently assumed.
+// =====================================================================
+type MFoodCat = 'protein' | 'carb' | 'vegetable' | 'fruit' | 'fat';
+type MStyle = 'local' | 'western' | 'asian' | 'high-protein' | 'budget' | 'premium';
+type MDiet = 'omnivore' | 'vegetarian' | 'vegan';
+type MAllergen = 'dairy' | 'eggs' | 'fish' | 'shellfish' | 'nuts' | 'peanuts' | 'soy' | 'gluten';
+
+interface MFood {
+  id: string;             // stable i18n key suffix (matches "food.<id>")
+  cat: MFoodCat;
+  styles: MStyle[];
+  diets: MDiet[];
+  allergens: MAllergen[];
+  g: number;              // reference portion grams
+  kcal: number; p: number; c: number; f: number; // macros per reference portion
+}
+
+// Reference portions calibrated for realistic Indonesian/Western servings.
+const MEAL_FOOD_DB: MFood[] = [
+  // ---------- Proteins ----------
+  { id: 'dada_ayam_panggang',   cat: 'protein', styles: ['local','western','asian','high-protein','budget','premium'], diets: ['omnivore'],                    allergens: [],           g: 100, kcal: 165, p: 31, c: 0,  f: 4 },
+  { id: 'ayam_goreng_dada',     cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore'],                    allergens: [],           g: 100, kcal: 220, p: 25, c: 2,  f: 13 },
+  { id: 'ayam_goreng_paha',     cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore'],                    allergens: [],           g: 100, kcal: 250, p: 22, c: 2,  f: 18 },
+  { id: 'ayam_sayap_goreng',    cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore'],                    allergens: [],           g: 100, kcal: 260, p: 22, c: 1,  f: 19 },
+  { id: 'ayam_suwir_kecap',     cat: 'protein', styles: ['local','asian'],                                              diets: ['omnivore'],                    allergens: ['soy'],      g: 100, kcal: 200, p: 25, c: 5,  f: 8 },
+  { id: 'dada_kalkun_panggang', cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore'],                    allergens: [],           g: 100, kcal: 145, p: 30, c: 0,  f: 2 },
+  { id: 'ikan_kembung_bakar',   cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore'],                    allergens: ['fish'],     g: 100, kcal: 155, p: 20, c: 0,  f: 8 },
+  { id: 'ikan_kembung_goreng',  cat: 'protein', styles: ['local','budget'],                                              diets: ['omnivore'],                    allergens: ['fish'],     g: 100, kcal: 200, p: 20, c: 1,  f: 13 },
+  { id: 'ikan_lele_goreng',     cat: 'protein', styles: ['local','budget'],                                              diets: ['omnivore'],                    allergens: ['fish'],     g: 100, kcal: 190, p: 18, c: 1,  f: 12 },
+  { id: 'ikan_tuna_kalengan',   cat: 'protein', styles: ['western','high-protein','asian'],                              diets: ['omnivore'],                    allergens: ['fish'],     g: 100, kcal: 130, p: 28, c: 0,  f: 2 },
+  { id: 'udang_rebus',          cat: 'protein', styles: ['asian','western','premium','high-protein'],                    diets: ['omnivore'],                    allergens: ['shellfish'],g: 100, kcal: 100, p: 24, c: 0,  f: 1 },
+  { id: 'daging_sapi_semur',    cat: 'protein', styles: ['local','asian','premium'],                                     diets: ['omnivore'],                    allergens: ['soy'],      g: 100, kcal: 250, p: 22, c: 5,  f: 16 },
+  { id: 'telur_rebus',          cat: 'protein', styles: ['local','western','asian','high-protein','budget','premium'], diets: ['omnivore','vegetarian'],       allergens: ['eggs'],     g: 100, kcal: 155, p: 13, c: 1,  f: 11 },
+  { id: 'telur_dadar',          cat: 'protein', styles: ['local','western','asian','budget'],                            diets: ['omnivore','vegetarian'],       allergens: ['eggs'],     g: 100, kcal: 200, p: 13, c: 1,  f: 16 },
+  { id: 'telur_dadar_tepung',   cat: 'protein', styles: ['local','budget'],                                              diets: ['omnivore','vegetarian'],       allergens: ['eggs','gluten'], g: 100, kcal: 220, p: 12, c: 8, f: 15 },
+  { id: 'putih_telur',          cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore','vegetarian'],       allergens: ['eggs'],     g: 100, kcal: 52,  p: 11, c: 1,  f: 0 },
+  { id: 'tempe_goreng',         cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: ['soy'],    g: 100, kcal: 220, p: 18, c: 9,  f: 14 },
+  { id: 'tempe_panggang',       cat: 'protein', styles: ['local','asian','high-protein','premium'],                     diets: ['omnivore','vegetarian','vegan'], allergens: ['soy'],    g: 100, kcal: 190, p: 19, c: 9,  f: 11 },
+  { id: 'tahu_goreng',          cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: ['soy'],    g: 100, kcal: 180, p: 10, c: 5,  f: 14 },
+  { id: 'greek_yogurt',         cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 150, kcal: 130, p: 15, c: 8,  f: 4 },
+  { id: 'keju_cheddar',         cat: 'protein', styles: ['western','premium'],                                           diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 30,  kcal: 120, p: 7,  c: 1,  f: 10 },
+  { id: 'whey_protein',         cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 30,  kcal: 120, p: 24, c: 3,  f: 1 },
+  { id: 'lentil_rebus',         cat: 'protein', styles: ['western','asian','premium','budget'],                          diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 175, p: 13, c: 30, f: 1 },
+  { id: 'kacang_merah_rebus',   cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 190, p: 13, c: 34, f: 1 },
+  { id: 'kacang_hijau_rebus',   cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 165, p: 12, c: 30, f: 1 },
+  { id: 'kacang_tanah_sangrai', cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: ['peanuts'],g: 30,  kcal: 170, p: 8,  c: 5,  f: 14 },
+  // ---------- Carbs ----------
+  { id: 'nasi_putih',           cat: 'carb', styles: ['local','asian','budget'],                                        diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 195, p: 4,  c: 43, f: 1 },
+  { id: 'nasi_merah',           cat: 'carb', styles: ['local','asian','high-protein','premium'],                        diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 165, p: 4,  c: 34, f: 1 },
+  { id: 'mie_rebus',            cat: 'carb', styles: ['local','asian','budget'],                                        diets: ['omnivore','vegetarian','vegan'], allergens: ['gluten'], g: 150, kcal: 210, p: 6,  c: 40, f: 1 },
+  { id: 'kentang_rebus',        cat: 'carb', styles: ['western','local','budget'],                                       diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 130, p: 3,  c: 30, f: 0 },
+  { id: 'ubi_jalar_rebus',      cat: 'carb', styles: ['local','high-protein','budget'],                                 diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 130, p: 2,  c: 30, f: 0 },
+  { id: 'ubi_jalar_panggang',   cat: 'carb', styles: ['high-protein','premium','western','asian'],                       diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 135, p: 2,  c: 31, f: 0 },
+  { id: 'singkong_rebus',       cat: 'carb', styles: ['local','budget'],                                                diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 240, p: 2,  c: 58, f: 0 },
+  { id: 'jagung_rebus',         cat: 'carb', styles: ['local','asian','budget'],                                        diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 130, p: 5,  c: 27, f: 2 },
+  { id: 'oatmeal',              cat: 'carb', styles: ['western','high-protein','premium','asian'],                      diets: ['omnivore','vegetarian','vegan'], allergens: ['gluten'], g: 50,  kcal: 190, p: 7,  c: 33, f: 3 },
+  { id: 'quinoa_rebus',         cat: 'carb', styles: ['western','high-protein','premium'],                              diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 180, p: 6,  c: 33, f: 3 },
+  // ---------- Vegetables ----------
+  { id: 'bayam_tumis',          cat: 'vegetable', styles: ['local','asian','budget','high-protein','premium'],           diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 45,  p: 3,  c: 4,  f: 2 },
+  { id: 'kangkung_tumis',       cat: 'vegetable', styles: ['local','asian','budget'],                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 40,  p: 2,  c: 4,  f: 2 },
+  { id: 'brokoli_kukus',        cat: 'vegetable', styles: ['western','high-protein','premium','asian'],                  diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 35,  p: 3,  c: 7,  f: 0 },
+  { id: 'kol_rebus',            cat: 'vegetable', styles: ['local','budget','asian'],                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 25,  p: 1,  c: 5,  f: 0 },
+  { id: 'wortel_rebus',         cat: 'vegetable', styles: ['local','western','budget','premium','asian'],                diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 35,  p: 1,  c: 8,  f: 0 },
+  { id: 'jamur_tiram_tumis',    cat: 'vegetable', styles: ['asian','western','premium','local'],                          diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 55,  p: 3,  c: 5,  f: 3 },
+  { id: 'tauge_tumis',          cat: 'vegetable', styles: ['local','asian','budget'],                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 30,  p: 3,  c: 5,  f: 0 },
+  { id: 'terong_balado',        cat: 'vegetable', styles: ['local','asian','budget'],                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 60,  p: 1,  c: 8,  f: 3 },
+  { id: 'timun',                cat: 'vegetable', styles: ['local','western','asian','budget'],                          diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 15,  p: 1,  c: 3,  f: 0 },
+  // ---------- Fruits ----------
+  { id: 'pisang_ambon',         cat: 'fruit', styles: ['local','budget','high-protein'],                                 diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 120, kcal: 105, p: 1,  c: 27, f: 0 },
+  { id: 'apel',                 cat: 'fruit', styles: ['western','premium','local'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 80,  p: 0,  c: 22, f: 0 },
+  { id: 'jeruk',                cat: 'fruit', styles: ['local','asian','budget','premium','western'],                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 75,  p: 1,  c: 19, f: 0 },
+  { id: 'pepaya',               cat: 'fruit', styles: ['local','asian','budget'],                                        diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 60,  p: 1,  c: 15, f: 0 },
+  { id: 'semangka',             cat: 'fruit', styles: ['local','asian','budget'],                                        diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 45,  p: 1,  c: 12, f: 0 },
+  { id: 'alpukat',              cat: 'fruit', styles: ['western','premium','high-protein','local'],                       diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 160, p: 2,  c: 9,  f: 15 },
+  // ---------- Fats ----------
+  { id: 'minyak_zaitun',        cat: 'fat', styles: ['western','premium','high-protein'],                                diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 15,  kcal: 120, p: 0,  c: 0,  f: 14 },
+  { id: 'minyak_kelapa_sawit',  cat: 'fat', styles: ['local','budget'],                                                  diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 15,  kcal: 120, p: 0,  c: 0,  f: 14 },
+  { id: 'kacang_almond',        cat: 'fat', styles: ['western','high-protein','premium'],                                diets: ['omnivore','vegetarian','vegan'], allergens: ['nuts'],   g: 30,  kcal: 170, p: 6,  c: 6,  f: 15 },
+  { id: 'selai_kacang',         cat: 'fat', styles: ['western','high-protein','premium'],                                diets: ['omnivore','vegetarian','vegan'], allergens: ['peanuts'],g: 30,  kcal: 190, p: 8,  c: 6,  f: 16 },
+  { id: 'santan_kelapa',        cat: 'fat', styles: ['local','asian','budget'],                                          diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 200, p: 2,  c: 3,  f: 21 },
+];
+
+// Parse the free-text allergies field into structured allergen tokens.
+// Accepts EN/ID/ZH keywords; anything unrecognized is ignored.
+function parseAllergens(raw: unknown): MAllergen[] {
+  if (!raw) return [];
+  const s = String(raw).toLowerCase();
+  const out = new Set<MAllergen>();
+  const map: Array<[MAllergen, string[]]> = [
+    ['dairy',     ['dairy','milk','laktosa','susu','奶','乳']],
+    ['eggs',      ['egg','telur','蛋']],
+    ['fish',      ['fish','ikan','鱼']],
+    ['shellfish', ['shellfish','shrimp','prawn','udang','crab','kepiting','虾','贝','蟹']],
+    ['nuts',      ['nut','almond','kacang pohon','tree nut','坚果','杏仁']],
+    ['peanuts',   ['peanut','kacang tanah','花生']],
+    ['soy',       ['soy','soya','kedelai','tempe','tahu','大豆']],
+    ['gluten',    ['gluten','wheat','gandum','麸','小麦']],
+  ];
+  for (const [a, terms] of map) if (terms.some(t => s.includes(t))) out.add(a);
+  return Array.from(out);
+}
+
+function normalizeStyle(raw: unknown): MStyle {
+  const s = String(raw || 'local').toLowerCase();
+  if (['local','western','asian','high-protein','budget','premium'].includes(s)) return s as MStyle;
+  return 'local';
+}
+function normalizeDiet(raw: unknown): MDiet {
+  const s = String(raw || 'omnivore').toLowerCase();
+  if (s === 'vegan' || s === 'vegetarian') return s as MDiet;
+  return 'omnivore';
+}
+
+function filterFoods(style: MStyle, diet: MDiet, allergens: MAllergen[]): MFood[] {
+  return MEAL_FOOD_DB.filter(f =>
+    f.styles.includes(style) &&
+    f.diets.includes(diet) &&
+    !f.allergens.some(a => allergens.includes(a))
+  );
+}
+// If style filter empties any category, drop style constraint for that category.
+function filterWithFallback(style: MStyle, diet: MDiet, allergens: MAllergen[]) {
+  const primary = filterFoods(style, diet, allergens);
+  const byCat = (cat: MFoodCat) => {
+    const p = primary.filter(f => f.cat === cat);
+    if (p.length) return p;
+    return MEAL_FOOD_DB.filter(f => f.cat === cat && f.diets.includes(diet) && !f.allergens.some(a => allergens.includes(a)));
+  };
+  return {
+    protein: byCat('protein'),
+    carb: byCat('carb'),
+    vegetable: byCat('vegetable'),
+    fruit: byCat('fruit'),
+    fat: byCat('fat'),
+  };
+}
+
+// Calorie distribution across N meals per day.
+const MEAL_DIST: Record<number, number[]> = {
+  3: [0.30, 0.40, 0.30],
+  4: [0.25, 0.15, 0.35, 0.25],
+  5: [0.22, 0.12, 0.30, 0.12, 0.24],
+  6: [0.20, 0.10, 0.28, 0.10, 0.22, 0.10],
+};
+const MEAL_TIMES_NORMAL: Record<number, string[]> = {
+  3: ['07:00','12:30','19:00'],
+  4: ['07:00','10:00','13:00','19:00'],
+  5: ['07:00','10:00','13:00','16:00','19:00'],
+  6: ['07:00','10:00','13:00','16:00','19:00','21:00'],
+};
+const MEAL_TIMES_IF: Record<number, string[]> = {
+  3: ['12:00','16:00','19:30'],
+  4: ['12:00','14:30','17:00','19:30'],
+  5: ['12:00','14:00','16:00','18:00','19:45'],
+  6: ['12:00','13:30','15:00','16:30','18:00','19:45'],
+};
+const MEAL_NAME_KEYS: Record<number, string[]> = {
+  3: ['meal.breakfast','meal.lunch','meal.dinner'],
+  4: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.dinner'],
+  5: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.snackAfternoon','meal.dinner'],
+  6: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.snackAfternoon','meal.dinner','meal.snackEvening'],
+};
+
+function clampFreq(raw: unknown): 3 | 4 | 5 | 6 {
+  const n = parseInt(String(raw));
+  if (n === 3 || n === 4 || n === 5 || n === 6) return n;
+  return 4;
+}
+function pickQty(referenceKcal: number, targetKcal: number): number {
+  // Snap qty to {0.5, 1, 1.5, 2} — reference portion nearest target kcal.
+  const options = [0.5, 1, 1.5, 2];
+  let best = 1, bestDiff = Infinity;
+  for (const q of options) {
+    const d = Math.abs(referenceKcal * q - targetKcal);
+    if (d < bestDiff) { bestDiff = d; best = q; }
+  }
+  return best;
+}
+function encodeFood(f: MFood, qty: number): string {
+  // Consumer contract: split on " · ", parts = [foodKey, "<g>g", "<qty>x"].
+  return `food.${f.id} · ${Math.round(f.g * qty)}g · ${qty}x`;
+}
+function pickRotated(arr: MFood[], dayIdx: number, slotIdx: number, roleOffset: number): MFood | null {
+  if (!arr.length) return null;
+  return arr[(dayIdx * 3 + slotIdx * 5 + roleOffset) % arr.length];
+}
+
+interface MealPlanInput {
+  calorieTarget: number; proteinG: number; carbsG: number; fatG: number;
+  freq: 3 | 4 | 5 | 6; intermittentFasting: boolean;
+  style: MStyle; diet: MDiet; allergens: MAllergen[];
+  name: string; goalProgramType: string;
+  weightKg: number; workoutDays: number; sessionMin: number; extensionMonth: number | null;
+}
+
+function buildMealPlan(input: MealPlanInput) {
+  const pools = filterWithFallback(input.style, input.diet, input.allergens);
+  const dist = MEAL_DIST[input.freq];
+  const times = input.intermittentFasting ? MEAL_TIMES_IF[input.freq] : MEAL_TIMES_NORMAL[input.freq];
+  const nameKeys = MEAL_NAME_KEYS[input.freq];
+
+  // Aggregate grocery counts across the 7-day cycle: id -> total grams.
+  const groceryGrams: Record<string, number> = {};
+  const bump = (f: MFood, qty: number) => {
+    groceryGrams[f.id] = (groceryGrams[f.id] || 0) + Math.round(f.g * qty);
+  };
+
+  // Build 7 days, return DAY 1 as the canonical meal_plan (matches
+  // legacy shape: 1 day of representative meals). Grocery list is the
+  // 7-day aggregate so shopping covers the full week.
+  let day1Meals: any[] = [];
+  for (let day = 0; day < 7; day++) {
+    const meals: any[] = [];
+    for (let slot = 0; slot < input.freq; slot++) {
+      const slotPct = dist[slot];
+      const slotKcal = Math.round(input.calorieTarget * slotPct);
+      const isMainSlot = slotPct >= 0.20;
+
+      const protein = pickRotated(pools.protein, day, slot, 0);
+      const carb = pickRotated(pools.carb, day, slot, 1);
+      const veg = isMainSlot ? pickRotated(pools.vegetable, day, slot, 2) : null;
+      const fruit = !isMainSlot ? pickRotated(pools.fruit, day, slot, 2) : null;
+      const wantFat = isMainSlot && slotKcal > 500;
+      const fat = wantFat ? pickRotated(pools.fat, day, slot, 3) : null;
+
+      // Scale qty greedily: proteins target ~35%, carbs ~35%, veg/fruit ~15%, fat ~15%.
+      const parts: { f: MFood | null; frac: number }[] = [
+        { f: protein, frac: 0.35 },
+        { f: carb,    frac: 0.35 },
+        { f: veg || fruit, frac: 0.15 },
+        { f: fat,     frac: 0.15 },
+      ];
+      let kcalSum = 0;
+      const foods: string[] = [];
+      for (const part of parts) {
+        if (!part.f) continue;
+        const targetKcal = slotKcal * part.frac;
+        const qty = pickQty(part.f.kcal, targetKcal);
+        foods.push(encodeFood(part.f, qty));
+        bump(part.f, qty);
+        kcalSum += Math.round(part.f.kcal * qty);
+      }
+
+      meals.push({
+        meal: nameKeys[slot],        // i18n key; client resolves via t[key]
+        time: times[slot],
+        foods,
+        calories: kcalSum,
+      });
+    }
+    if (day === 0) day1Meals = meals;
+  }
+
+  // Grocery list — encode as "food.<id> · <totalGrams>g" (2 parts).
+  const grocery_list: string[] = Object.entries(groceryGrams)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([id, g]) => `food.${id} · ${g}g`);
+
+  // Water: 33 ml/kg bodyweight, min 2L, rounded to 0.5.
+  const water_liters = Math.max(2, Math.round((input.weightKg * 0.033) * 2) / 2);
+
+  // Estimated calories burned per training day (MET ≈ 6, moderate lifting).
+  const perSessionKcal = Math.round(input.weightKg * 6 * (input.sessionMin / 60));
+  const estimated_calories_burned = perSessionKcal * input.workoutDays;
+
+  // Weight projection: derive from program type, 7700 kcal/kg model.
+  const p = String(input.goalProgramType || '').toLowerCase();
+  let projKey = 'plan.weightProjection.maintain';
+  let projKg = 0;
+  if (p.includes('bulk')) { projKey = 'plan.weightProjection.gain'; projKg = 1.0; }
+  else if (p.includes('cut') || p.includes('loss')) { projKey = 'plan.weightProjection.loss'; projKg = 2.0; }
+  const weight_projection = { key: projKey, params: { kg: projKg, weeks: 4 } };
+
+  const motivational_message = input.extensionMonth
+    ? { key: 'plan.motivational.extension', params: { name: input.name || '', month: input.extensionMonth } }
+    : { key: 'plan.motivational.default',   params: { name: input.name || '' } };
+
+  return {
+    meal_plan: day1Meals,
+    grocery_list,
+    water_liters,
+    estimated_calories_burned,
+    weight_projection,
+    motivational_message,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
