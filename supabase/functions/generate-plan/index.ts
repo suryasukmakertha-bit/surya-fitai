@@ -551,12 +551,13 @@ function applyProgression(
   };
 }
 
-// Extension-month W1 baseline: prev W2 reps + prev W3 weight for same exercise.
+// Extension-month W1 baseline: prev W3 reps AND prev W3 weight for same exercise.
+// W3 is the high end of the rep range (top of cycle). W4 is deload, so it must
+// not be used as the carry-forward source.
 function extensionBaselineFor(exName: string, prevPlanData: any): { reps?: string; weight_kg?: string } {
   if (!prevPlanData?.workout_plan) return {};
   const wp: any[] = prevPlanData.workout_plan;
   // Group by week (7 entries each).
-  const w2 = wp.slice(7, 14);
   const w3 = wp.slice(14, 21);
   const findEx = (week: any[]) => {
     for (const d of week) {
@@ -566,9 +567,8 @@ function extensionBaselineFor(exName: string, prevPlanData: any): { reps?: strin
     }
     return null;
   };
-  const repsFromW2 = findEx(w2)?.reps;
-  const weightFromW3 = findEx(w3)?.weight_kg;
-  return { reps: repsFromW2, weight_kg: weightFromW3 };
+  const prev = findEx(w3);
+  return { reps: prev?.reps, weight_kg: prev?.weight_kg };
 }
 
 function buildExerciseOutput(
@@ -607,7 +607,7 @@ function buildExerciseOutput(
     notes: '',
   };
 
-  // Extension-month W1 override: reps from prev W2, weight from prev W3.
+  // Extension-month W1 override: both reps AND weight from prev W3 (top of prior cycle).
   if (week === 1 && prevPlanData) {
     const carry = extensionBaselineFor(ex.name, prevPlanData);
     if (carry.reps) base.reps = carry.reps;
