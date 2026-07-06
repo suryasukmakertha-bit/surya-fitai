@@ -1295,6 +1295,41 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
     });
 
+    // === DETERMINISTIC MEAL ENGINE (Prompt 4) ===
+    // No AI call is made. Meal plan, grocery list, water target,
+    // estimated calories burned, weight_projection, and
+    // motivational_message all come from buildMealPlan().
+    const mealOutput = buildMealPlan({
+      calorieTarget: macros.calories,
+      proteinG: macros.protein,
+      carbsG: macros.carbs,
+      fatG: macros.fat,
+      freq: clampFreq(mealFrequency),
+      intermittentFasting: Boolean(intermittentFasting),
+      style: normalizeStyle(foodStyle),
+      diet: normalizeDiet(dietType),
+      allergens: parseAllergens(allergies),
+      name: String(name || ''),
+      goalProgramType: String(programType || ''),
+      weightKg: w,
+      workoutDays,
+      sessionMin,
+      extensionMonth: extensionContext?.previousMonthNumber ? extensionContext.previousMonthNumber + 1 : null,
+    });
+
+    const plan: any = {
+      durationWeeks: totalWeeks,
+      calorie_target: macros.calories,
+      protein: macros.protein,
+      carbs: macros.carbs,
+      fat: macros.fat,
+      meal_plan: mealOutput.meal_plan,
+      grocery_list: mealOutput.grocery_list,
+      water_liters: mealOutput.water_liters,
+      estimated_calories_burned: mealOutput.estimated_calories_burned,
+      weight_projection: mealOutput.weight_projection,          // {key, params}
+      motivational_message: mealOutput.motivational_message,    // {key, params}
+    };
 
     // === DETERMINISTIC WORKOUT ENGINE ===
     const engineGoal = normalizeGoal(goal, programType);
