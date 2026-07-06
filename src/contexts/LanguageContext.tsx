@@ -1284,6 +1284,18 @@ const translations = {
     "food.santan_kelapa": "Santan Kelapa",
     "food.selai_kacang": "Selai Kacang",
     "food.keju_cheddar": "Keju Cheddar",
+    // === Meal slot names (Prompt 4) ===
+    "meal.breakfast": "Sarapan",
+    "meal.lunch": "Makan Siang",
+    "meal.dinner": "Makan Malam",
+    "meal.snackMorning": "Camilan Pagi",
+    "meal.snackAfternoon": "Camilan Sore",
+    "meal.snackEvening": "Camilan Malam",
+    "plan.weightProjection.loss": "Estimasi penurunan lemak: ~{{kg}}kg dalam {{weeks}} minggu.",
+    "plan.weightProjection.gain": "Estimasi kenaikan massa otot: ~{{kg}}kg dalam {{weeks}} minggu.",
+    "plan.weightProjection.maintain": "Mempertahankan komposisi tubuh selama {{weeks}} minggu.",
+    "plan.motivational.default": "{{name}}, konsistensi adalah latihan majemuk yang menumbuhkan segalanya.",
+    "plan.motivational.extension": "{{name}}, Bulan {{month}} dibangun di atas fondasi yang sudah kamu tempa.",
   },
   zh: {
     // Common
