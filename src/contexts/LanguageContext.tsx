@@ -1948,6 +1948,14 @@ interface LanguageContextType {
   lang: Lang;
   setLang: (lang: Lang) => void;
   t: Translations;
+  /**
+   * Resolve an i18n key with optional {{param}} interpolation.
+   * Falls back to the key itself if missing so downstream never crashes.
+   * Introduced in Prompt 4 for {key, params} payloads from the meal engine
+   * (weight_projection, motivational_message) and food strings encoded as
+   * "food.<id> · <grams>g · <qty>x".
+   */
+  tKey: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -1964,8 +1972,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("fitai-lang", newLang);
   };
 
+  const tKey = (key: string, params?: Record<string, string | number>) => {
+    const dict = translations[lang] as Record<string, unknown>;
+    const raw = dict[key];
+    const template = typeof raw === "string" ? raw : key;
+    if (!params) return template;
+    return template.replace(/\{\{(\w+)\}\}/g, (_, k) =>
+      params[k] !== undefined ? String(params[k]) : "",
+    );
+  };
+
   return (
-    <LanguageContext.Provider value={{ lang, setLang: handleSetLang, t: translations[lang] as Translations }}>
+    <LanguageContext.Provider value={{ lang, setLang: handleSetLang, t: translations[lang] as Translations, tKey }}>
       {children}
     </LanguageContext.Provider>
   );
