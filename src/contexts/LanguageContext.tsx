@@ -640,6 +640,19 @@ const translations = {
     "food.santan_kelapa": "Coconut Milk",
     "food.selai_kacang": "Peanut Butter",
     "food.keju_cheddar": "Cheddar Cheese",
+    // === Meal slot names (Prompt 4 — used by rule-based meal engine) ===
+    "meal.breakfast": "Breakfast",
+    "meal.lunch": "Lunch",
+    "meal.dinner": "Dinner",
+    "meal.snackMorning": "Mid-morning Snack",
+    "meal.snackAfternoon": "Afternoon Snack",
+    "meal.snackEvening": "Evening Snack",
+    // === Templated messages (support {{param}} interpolation) ===
+    "plan.weightProjection.loss": "Estimated fat loss: ~{{kg}}kg over {{weeks}} weeks.",
+    "plan.weightProjection.gain": "Estimated lean gain: ~{{kg}}kg over {{weeks}} weeks.",
+    "plan.weightProjection.maintain": "Body-composition maintenance over {{weeks}} weeks.",
+    "plan.motivational.default": "{{name}}, consistency is the compound lift that grows everything.",
+    "plan.motivational.extension": "{{name}}, Month {{month}} builds on the foundation you already forged.",
   },
   id: {
     // Common
@@ -1271,6 +1284,18 @@ const translations = {
     "food.santan_kelapa": "Santan Kelapa",
     "food.selai_kacang": "Selai Kacang",
     "food.keju_cheddar": "Keju Cheddar",
+    // === Meal slot names (Prompt 4) ===
+    "meal.breakfast": "Sarapan",
+    "meal.lunch": "Makan Siang",
+    "meal.dinner": "Makan Malam",
+    "meal.snackMorning": "Camilan Pagi",
+    "meal.snackAfternoon": "Camilan Sore",
+    "meal.snackEvening": "Camilan Malam",
+    "plan.weightProjection.loss": "Estimasi penurunan lemak: ~{{kg}}kg dalam {{weeks}} minggu.",
+    "plan.weightProjection.gain": "Estimasi kenaikan massa otot: ~{{kg}}kg dalam {{weeks}} minggu.",
+    "plan.weightProjection.maintain": "Mempertahankan komposisi tubuh selama {{weeks}} minggu.",
+    "plan.motivational.default": "{{name}}, konsistensi adalah latihan majemuk yang menumbuhkan segalanya.",
+    "plan.motivational.extension": "{{name}}, Bulan {{month}} dibangun di atas fondasi yang sudah kamu tempa.",
   },
   zh: {
     // Common
@@ -1902,6 +1927,18 @@ const translations = {
     "food.santan_kelapa": "椰浆",
     "food.selai_kacang": "花生酱",
     "food.keju_cheddar": "切达奶酪",
+    // === Meal slot names (Prompt 4) ===
+    "meal.breakfast": "早餐",
+    "meal.lunch": "午餐",
+    "meal.dinner": "晚餐",
+    "meal.snackMorning": "上午加餐",
+    "meal.snackAfternoon": "下午加餐",
+    "meal.snackEvening": "夜间加餐",
+    "plan.weightProjection.loss": "预计减脂：{{weeks}}周内约减 {{kg}}kg。",
+    "plan.weightProjection.gain": "预计增肌：{{weeks}}周内约增 {{kg}}kg。",
+    "plan.weightProjection.maintain": "{{weeks}}周内维持身体成分。",
+    "plan.motivational.default": "{{name}}，坚持是滋养一切的复合训练。",
+    "plan.motivational.extension": "{{name}}，第{{month}}个月建立在你已打下的基础之上。",
   },
 };
 
@@ -1911,6 +1948,14 @@ interface LanguageContextType {
   lang: Lang;
   setLang: (lang: Lang) => void;
   t: Translations;
+  /**
+   * Resolve an i18n key with optional {{param}} interpolation.
+   * Falls back to the key itself if missing so downstream never crashes.
+   * Introduced in Prompt 4 for {key, params} payloads from the meal engine
+   * (weight_projection, motivational_message) and food strings encoded as
+   * "food.<id> · <grams>g · <qty>x".
+   */
+  tKey: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -1927,8 +1972,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("fitai-lang", newLang);
   };
 
+  const tKey = (key: string, params?: Record<string, string | number>) => {
+    const dict = translations[lang] as Record<string, unknown>;
+    const raw = dict[key];
+    const template = typeof raw === "string" ? raw : key;
+    if (!params) return template;
+    return template.replace(/\{\{(\w+)\}\}/g, (_, k) =>
+      params[k] !== undefined ? String(params[k]) : "",
+    );
+  };
+
   return (
-    <LanguageContext.Provider value={{ lang, setLang: handleSetLang, t: translations[lang] as Translations }}>
+    <LanguageContext.Provider value={{ lang, setLang: handleSetLang, t: translations[lang] as Translations, tKey }}>
       {children}
     </LanguageContext.Provider>
   );

@@ -76,10 +76,10 @@ interface PlanData {
   water_liters: number;
   weekly_schedule: string[];
   safety_notes: string[];
-  motivational_message: string;
+  motivational_message: string | { key: string; params?: Record<string, string | number> };
   grocery_list: string[];
   estimated_calories_burned: number;
-  weight_projection: string;
+  weight_projection: string | { key: string; params?: Record<string, string | number> };
 }
 
 interface CheckIn {
@@ -327,7 +327,26 @@ export default function Results() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t, lang } = useLanguage();
+  const { t, lang, tKey } = useLanguage();
+
+  // Prompt-4 meal engine encoding helpers.
+  // foods entries look like "food.<id> · <grams>g · <qty>x".
+  // grocery entries look like "food.<id> · <totalGrams>g".
+  const resolveFoodLine = (raw: string): string => {
+    const parts = raw.split(" · ");
+    if (!parts.length || !parts[0].startsWith("food.")) return raw;
+    const name = tKey(parts[0]);
+    return [name, ...parts.slice(1)].join(" · ");
+  };
+  const resolveMealName = (raw: string): string =>
+    raw && raw.startsWith("meal.") ? tKey(raw) : raw;
+  const resolveTemplated = (
+    v: string | { key: string; params?: Record<string, string | number> } | undefined,
+  ): string => {
+    if (!v) return "";
+    if (typeof v === "string") return v;
+    return tKey(v.key, v.params);
+  };
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [restoredFromDraft, setRestoredFromDraft] = useState(false);
@@ -1213,7 +1232,7 @@ export default function Results() {
         <div className="flex items-center justify-between mb-6">
           <div />
           <div className="flex items-center gap-2">
-            <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name)} variant="secondary" size="sm">
+            <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name, tKey)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
             <Button
@@ -1310,7 +1329,7 @@ export default function Results() {
                   <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
                 </div>
               </div>
-              <p className="text-foreground text-sm italic">{plan.motivational_message}</p>
+              <p className="text-foreground text-sm italic">{resolveTemplated(plan.motivational_message)}</p>
             </div>
           </div>
         )}
@@ -1519,14 +1538,14 @@ export default function Results() {
               <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
                 <div className="flex justify-between items-center mb-3">
                   <div>
-                    <h3 className="font-display font-bold text-foreground">{meal.meal}</h3>
+                    <h3 className="font-display font-bold text-foreground">{resolveMealName(meal.meal)}</h3>
                     {meal.time && <p className="text-xs text-muted-foreground">{meal.time}</p>}
                   </div>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{meal.calories} kcal</span>
                 </div>
                 <ul className="space-y-1">
                   {meal.foods.map((f, j) => (
-                    <li key={j} className="text-sm text-muted-foreground">• {f}</li>
+                    <li key={j} className="text-sm text-muted-foreground">• {resolveFoodLine(f)}</li>
                   ))}
                 </ul>
               </div>
@@ -1542,7 +1561,7 @@ export default function Results() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {plan.grocery_list?.map((item, i) => (
                   <div key={i} className="bg-secondary/50 rounded-md px-3 py-2 text-sm text-foreground">
-                    {item}
+                    {resolveFoodLine(item)}
                   </div>
                 ))}
               </div>
@@ -1587,7 +1606,7 @@ export default function Results() {
             {plan.weight_projection && (
               <div className="card-gradient rounded-lg p-5 border border-border/50">
                 <h3 className="font-display font-bold text-foreground mb-2">{t.progressProjection}</h3>
-                <p className="text-sm text-muted-foreground">{plan.weight_projection}</p>
+                <p className="text-sm text-muted-foreground">{resolveTemplated(plan.weight_projection)}</p>
               </div>
             )}
             {plan.safety_notes?.length > 0 && (
