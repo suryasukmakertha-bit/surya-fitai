@@ -1048,7 +1048,10 @@ function buildMealPlan(input: MealPlanInput) {
   const pools = filterWithFallback(input.style, input.diet, input.allergens);
   const dist = MEAL_DIST[input.freq];
   const times = input.intermittentFasting ? MEAL_TIMES_IF[input.freq] : MEAL_TIMES_NORMAL[input.freq];
-  const nameKeys = MEAL_NAME_KEYS[input.freq];
+  // §5: IF mode uses generic "Meal 1..N" keys; normal mode keeps semantic slot names.
+  const nameKeys = input.intermittentFasting
+    ? MEAL_NAME_KEYS_IF[input.freq]
+    : MEAL_NAME_KEYS[input.freq];
 
   // Aggregate grocery counts across the 7-day cycle: id -> total grams.
   const groceryGrams: Record<string, number> = {};
@@ -1081,15 +1084,52 @@ function buildMealPlan(input: MealPlanInput) {
         { f: veg || fruit, frac: 0.15 },
         { f: fat,     frac: 0.15 },
       ];
+      // Initial greedy pick — snap each part's qty to {0.5,1,1.5,2}
+      // nearest its intra-slot target kcal.
+      const picks: { f: MFood; qty: number }[] = [];
       let kcalSum = 0;
-      const foods: string[] = [];
       for (const part of parts) {
         if (!part.f) continue;
         const targetKcal = slotKcal * part.frac;
         const qty = pickQty(part.f.kcal, targetKcal);
-        foods.push(encodeFood(part.f, qty));
-        bump(part.f, qty);
+        picks.push({ f: part.f, qty });
         kcalSum += Math.round(part.f.kcal * qty);
+      }
+      // BUGFIX (Prompt 4 review #3): the initial greedy pass systematically
+      // under-shoots slotKcal because pickQty rounds each item independently
+      // and the smallest option (0.5x) still often over-serves the veg/fat
+      // fractions. Top-up loop: while slot is >5% under target, bump the
+      // largest-kcal item (protein → carb → veg/fat) up by 0.5x until we're
+      // within ±5% of slotKcal, capped at 2x per item.
+      const tolerance = 0.05;
+      let guard = 0;
+      while (guard++ < 20 && kcalSum < slotKcal * (1 - tolerance)) {
+        // Prefer bumping the most calorie-dense pick with headroom.
+        const candidates = picks
+          .map((p, i) => ({ i, kcal: p.f.kcal, qty: p.qty }))
+          .filter(c => c.qty < 2)
+          .sort((a, b) => b.kcal - a.kcal);
+        if (!candidates.length) break;
+        const target = candidates[0];
+        picks[target.i].qty = Math.min(2, picks[target.i].qty + 0.5);
+        kcalSum += Math.round(picks[target.i].f.kcal * 0.5);
+      }
+      // Symmetric trim if we overshot (rare, but keep the tolerance honest).
+      guard = 0;
+      while (guard++ < 20 && kcalSum > slotKcal * (1 + tolerance)) {
+        const candidates = picks
+          .map((p, i) => ({ i, kcal: p.f.kcal, qty: p.qty }))
+          .filter(c => c.qty > 0.5)
+          .sort((a, b) => b.kcal - a.kcal);
+        if (!candidates.length) break;
+        const target = candidates[0];
+        picks[target.i].qty = Math.max(0.5, picks[target.i].qty - 0.5);
+        kcalSum -= Math.round(picks[target.i].f.kcal * 0.5);
+      }
+      const foods: string[] = [];
+      for (const p of picks) {
+        foods.push(encodeFood(p.f, p.qty));
+        bump(p.f, p.qty);
       }
 
       meals.push({
