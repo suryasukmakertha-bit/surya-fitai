@@ -862,7 +862,8 @@ const MEAL_FOOD_DB: MFood[] = [
   { id: 'greek_yogurt',         cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 150, kcal: 130, p: 15, c: 8,  f: 4 },
   { id: 'keju_cheddar',         cat: 'protein', styles: ['western','premium'],                                           diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 30,  kcal: 120, p: 7,  c: 1,  f: 10 },
   { id: 'whey_protein',         cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 30,  kcal: 120, p: 24, c: 3,  f: 1 },
-  { id: 'lentil_rebus',         cat: 'protein', styles: ['western','asian','premium','budget'],                          diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 175, p: 13, c: 30, f: 1 },
+  // MEAL_TEMPLATE_LOGIC.md §3 restricts lentils to High-Protein Fitness style only.
+  { id: 'lentil_rebus',         cat: 'protein', styles: ['high-protein'],                                                 diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 175, p: 13, c: 30, f: 1 },
   { id: 'kacang_merah_rebus',   cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 190, p: 13, c: 34, f: 1 },
   { id: 'kacang_hijau_rebus',   cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 165, p: 12, c: 30, f: 1 },
   { id: 'kacang_tanah_sangrai', cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: ['peanuts'],g: 30,  kcal: 170, p: 8,  c: 5,  f: 14 },
@@ -876,7 +877,8 @@ const MEAL_FOOD_DB: MFood[] = [
   { id: 'singkong_rebus',       cat: 'carb', styles: ['local','budget'],                                                diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 240, p: 2,  c: 58, f: 0 },
   { id: 'jagung_rebus',         cat: 'carb', styles: ['local','asian','budget'],                                        diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 130, p: 5,  c: 27, f: 2 },
   { id: 'oatmeal',              cat: 'carb', styles: ['western','high-protein','premium','asian'],                      diets: ['omnivore','vegetarian','vegan'], allergens: ['gluten'], g: 50,  kcal: 190, p: 7,  c: 33, f: 3 },
-  { id: 'quinoa_rebus',         cat: 'carb', styles: ['western','high-protein','premium'],                              diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 180, p: 6,  c: 33, f: 3 },
+  // MEAL_TEMPLATE_LOGIC.md §3 restricts quinoa to High-Protein Fitness style only.
+  { id: 'quinoa_rebus',         cat: 'carb', styles: ['high-protein'],                                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 180, p: 6,  c: 33, f: 3 },
   // ---------- Vegetables ----------
   { id: 'bayam_tumis',          cat: 'vegetable', styles: ['local','asian','budget','high-protein','premium'],           diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 45,  p: 3,  c: 4,  f: 2 },
   { id: 'kangkung_tumis',       cat: 'vegetable', styles: ['local','asian','budget'],                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 40,  p: 2,  c: 4,  f: 2 },
