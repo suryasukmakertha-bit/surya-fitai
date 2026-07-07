@@ -107,17 +107,52 @@ function calculateTDEE(bmr: number, activityMultiplier: number, dailySteps: stri
   return bmr * activityMultiplier + neat;
 }
 
+// MEAL_TEMPLATE_LOGIC.md §1–§2:
+// 1) TDEE adjustment by goal to get daily calorie target.
+// 2) Protein first, per kg of bodyweight (NOT % of calories).
+// 3) Remaining kcal = calories − protein·4, split into carbs/fat
+//    at the goal-specific midpoint of the spec's range.
+//
+// Previous implementation applied carb/fat as flat %s of TOTAL kcal, which
+// double-counted the protein bucket and caused the summed macro kcal to
+// overshoot calorie_target by ~10%. Fixed to use the remaining-kcal split
+// exactly as the spec requires.
 function calculateMacros(tdee: number, weight: number, programType: string) {
+  // Goal → { tdeeMult, proteinPerKg, carbPctOfRemaining, fatPctOfRemaining }
+  // Percentages are the midpoints of the spec's Carb/Fat ranges.
+  let calorieMult: number;
+  let proteinPerKg: number;
+  let carbPctRem: number;
+  let fatPctRem: number;
+
   if (programType === "bulking") {
-    const calories = Math.round(tdee * 1.15);
-    return { calories, protein: Math.round(weight * 2.0), carbs: Math.round((calories * 0.55) / 4), fat: Math.round((calories * 0.25) / 9) };
+    // Hypertrophy: +12.5% (mid of +10/+15), P 2.0 g/kg, C 47.5%, F 52.5%
+    calorieMult = 1.125;
+    proteinPerKg = 2.0;
+    carbPctRem = 0.475;
+    fatPctRem = 0.525;
   } else if (programType === "cutting") {
-    const calories = Math.round(tdee * 0.80);
-    return { calories, protein: Math.round(weight * 2.2), carbs: Math.round((calories * 0.40) / 4), fat: Math.round((calories * 0.30) / 9) };
+    // Fat Loss: −17.5% (mid of −15/−20), P 2.2 g/kg, C 37.5%, F 62.5%
+    calorieMult = 0.825;
+    proteinPerKg = 2.2;
+    carbPctRem = 0.375;
+    fatPctRem = 0.625;
   } else {
-    const calories = Math.round(tdee * 1.05);
-    return { calories, protein: Math.round(weight * 1.8), carbs: Math.round((calories * 0.50) / 4), fat: Math.round((calories * 0.30) / 9) };
+    // General Fitness / Recomp / Strength fallback: maintenance,
+    // P 1.8 g/kg, C 47.5%, F 52.5% (mid of General Fitness row).
+    calorieMult = 1.0;
+    proteinPerKg = 1.8;
+    carbPctRem = 0.475;
+    fatPctRem = 0.525;
   }
+
+  const calories = Math.round(tdee * calorieMult);
+  const protein = Math.round(weight * proteinPerKg);
+  const proteinKcal = protein * 4;
+  const remaining = Math.max(0, calories - proteinKcal);
+  const carbs = Math.round((remaining * carbPctRem) / 4);
+  const fat = Math.round((remaining * fatPctRem) / 9);
+  return { calories, protein, carbs, fat };
 }
 
 function calculateTargetSets(sessionDurationMinutes: number, experienceLevel: string): { targetLiftingMinutes: number; targetSets: number } {
