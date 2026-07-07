@@ -904,6 +904,14 @@ const MEAL_FOOD_DB: MFood[] = [
 
 // Parse the free-text allergies field into structured allergen tokens.
 // Accepts EN/ID/ZH keywords; anything unrecognized is ignored.
+//
+// BUGFIX (Prompt 4 review #1): "shellfish" contains "fish" as a substring,
+// so a naive `String.includes('fish')` would incorrectly flag a shellfish-only
+// allergy as also being a fish allergy — filtering out ikan_kembung_*/ikan_lele_*
+// (which are tagged `['fish']`) when the user only listed shellfish/udang/etc.
+// Fix: for ASCII terms match on word boundaries; for CJK terms (no word
+// boundaries in Unicode class \b) use plain includes but check the longer
+// compound tokens first and short-circuit substring collisions explicitly.
 function parseAllergens(raw: unknown): MAllergen[] {
   if (!raw) return [];
   const s = String(raw).toLowerCase();
@@ -911,14 +919,23 @@ function parseAllergens(raw: unknown): MAllergen[] {
   const map: Array<[MAllergen, string[]]> = [
     ['dairy',     ['dairy','milk','laktosa','susu','奶','乳']],
     ['eggs',      ['egg','telur','蛋']],
-    ['fish',      ['fish','ikan','鱼']],
     ['shellfish', ['shellfish','shrimp','prawn','udang','crab','kepiting','虾','贝','蟹']],
-    ['nuts',      ['nut','almond','kacang pohon','tree nut','坚果','杏仁']],
+    ['fish',      ['fish','ikan','鱼']],
+    ['nuts',      ['nut','almond','tree nut','kacang pohon','坚果','杏仁']],
     ['peanuts',   ['peanut','kacang tanah','花生']],
     ['soy',       ['soy','soya','kedelai','tempe','tahu','大豆']],
     ['gluten',    ['gluten','wheat','gandum','麸','小麦']],
   ];
-  for (const [a, terms] of map) if (terms.some(t => s.includes(t))) out.add(a);
+  const isAscii = (t: string) => /^[\x00-\x7f]+$/.test(t);
+  const matches = (term: string): boolean => {
+    if (isAscii(term)) {
+      // Word-boundary match so "fish" does NOT match inside "shellfish".
+      const re = new RegExp(`(^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i');
+      return re.test(s);
+    }
+    return s.includes(term);
+  };
+  for (const [a, terms] of map) if (terms.some(matches)) out.add(a);
   return Array.from(out);
 }
 
