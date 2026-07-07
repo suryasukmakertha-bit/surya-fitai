@@ -862,7 +862,8 @@ const MEAL_FOOD_DB: MFood[] = [
   { id: 'greek_yogurt',         cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 150, kcal: 130, p: 15, c: 8,  f: 4 },
   { id: 'keju_cheddar',         cat: 'protein', styles: ['western','premium'],                                           diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 30,  kcal: 120, p: 7,  c: 1,  f: 10 },
   { id: 'whey_protein',         cat: 'protein', styles: ['western','high-protein','premium'],                            diets: ['omnivore','vegetarian'],       allergens: ['dairy'],    g: 30,  kcal: 120, p: 24, c: 3,  f: 1 },
-  { id: 'lentil_rebus',         cat: 'protein', styles: ['western','asian','premium','budget'],                          diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 175, p: 13, c: 30, f: 1 },
+  // MEAL_TEMPLATE_LOGIC.md §3 restricts lentils to High-Protein Fitness style only.
+  { id: 'lentil_rebus',         cat: 'protein', styles: ['high-protein'],                                                 diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 175, p: 13, c: 30, f: 1 },
   { id: 'kacang_merah_rebus',   cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 190, p: 13, c: 34, f: 1 },
   { id: 'kacang_hijau_rebus',   cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 165, p: 12, c: 30, f: 1 },
   { id: 'kacang_tanah_sangrai', cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore','vegetarian','vegan'], allergens: ['peanuts'],g: 30,  kcal: 170, p: 8,  c: 5,  f: 14 },
@@ -876,7 +877,8 @@ const MEAL_FOOD_DB: MFood[] = [
   { id: 'singkong_rebus',       cat: 'carb', styles: ['local','budget'],                                                diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 240, p: 2,  c: 58, f: 0 },
   { id: 'jagung_rebus',         cat: 'carb', styles: ['local','asian','budget'],                                        diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 130, p: 5,  c: 27, f: 2 },
   { id: 'oatmeal',              cat: 'carb', styles: ['western','high-protein','premium','asian'],                      diets: ['omnivore','vegetarian','vegan'], allergens: ['gluten'], g: 50,  kcal: 190, p: 7,  c: 33, f: 3 },
-  { id: 'quinoa_rebus',         cat: 'carb', styles: ['western','high-protein','premium'],                              diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 180, p: 6,  c: 33, f: 3 },
+  // MEAL_TEMPLATE_LOGIC.md §3 restricts quinoa to High-Protein Fitness style only.
+  { id: 'quinoa_rebus',         cat: 'carb', styles: ['high-protein'],                                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 150, kcal: 180, p: 6,  c: 33, f: 3 },
   // ---------- Vegetables ----------
   { id: 'bayam_tumis',          cat: 'vegetable', styles: ['local','asian','budget','high-protein','premium'],           diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 45,  p: 3,  c: 4,  f: 2 },
   { id: 'kangkung_tumis',       cat: 'vegetable', styles: ['local','asian','budget'],                                    diets: ['omnivore','vegetarian','vegan'], allergens: [],         g: 100, kcal: 40,  p: 2,  c: 4,  f: 2 },
@@ -904,6 +906,14 @@ const MEAL_FOOD_DB: MFood[] = [
 
 // Parse the free-text allergies field into structured allergen tokens.
 // Accepts EN/ID/ZH keywords; anything unrecognized is ignored.
+//
+// BUGFIX (Prompt 4 review #1): "shellfish" contains "fish" as a substring,
+// so a naive `String.includes('fish')` would incorrectly flag a shellfish-only
+// allergy as also being a fish allergy — filtering out ikan_kembung_*/ikan_lele_*
+// (which are tagged `['fish']`) when the user only listed shellfish/udang/etc.
+// Fix: for ASCII terms match on word boundaries; for CJK terms (no word
+// boundaries in Unicode class \b) use plain includes but check the longer
+// compound tokens first and short-circuit substring collisions explicitly.
 function parseAllergens(raw: unknown): MAllergen[] {
   if (!raw) return [];
   const s = String(raw).toLowerCase();
@@ -911,14 +921,23 @@ function parseAllergens(raw: unknown): MAllergen[] {
   const map: Array<[MAllergen, string[]]> = [
     ['dairy',     ['dairy','milk','laktosa','susu','奶','乳']],
     ['eggs',      ['egg','telur','蛋']],
-    ['fish',      ['fish','ikan','鱼']],
     ['shellfish', ['shellfish','shrimp','prawn','udang','crab','kepiting','虾','贝','蟹']],
-    ['nuts',      ['nut','almond','kacang pohon','tree nut','坚果','杏仁']],
+    ['fish',      ['fish','ikan','鱼']],
+    ['nuts',      ['nut','almond','tree nut','kacang pohon','坚果','杏仁']],
     ['peanuts',   ['peanut','kacang tanah','花生']],
     ['soy',       ['soy','soya','kedelai','tempe','tahu','大豆']],
     ['gluten',    ['gluten','wheat','gandum','麸','小麦']],
   ];
-  for (const [a, terms] of map) if (terms.some(t => s.includes(t))) out.add(a);
+  const isAscii = (t: string) => /^[\x00-\x7f]+$/.test(t);
+  const matches = (term: string): boolean => {
+    if (isAscii(term)) {
+      // Word-boundary match so "fish" does NOT match inside "shellfish".
+      const re = new RegExp(`(^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i');
+      return re.test(s);
+    }
+    return s.includes(term);
+  };
+  for (const [a, terms] of map) if (terms.some(matches)) out.add(a);
   return Array.from(out);
 }
 
@@ -971,7 +990,8 @@ const MEAL_TIMES_NORMAL: Record<number, string[]> = {
   6: ['07:00','10:00','13:00','16:00','19:00','21:00'],
 };
 const MEAL_TIMES_IF: Record<number, string[]> = {
-  3: ['12:00','16:00','19:30'],
+  // MEAL_TEMPLATE_LOGIC.md §5 IF window shift — slot 2 for freq=3 is 15:30, not 16:00.
+  3: ['12:00','15:30','19:30'],
   4: ['12:00','14:30','17:00','19:30'],
   5: ['12:00','14:00','16:00','18:00','19:45'],
   6: ['12:00','13:30','15:00','16:30','18:00','19:45'],
@@ -981,6 +1001,15 @@ const MEAL_NAME_KEYS: Record<number, string[]> = {
   4: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.dinner'],
   5: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.snackAfternoon','meal.dinner'],
   6: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.snackAfternoon','meal.dinner','meal.snackEvening'],
+};
+// MEAL_TEMPLATE_LOGIC.md §5: in Intermittent Fasting mode, slot labels become
+// generic "Meal 1..N" rather than breakfast/lunch/dinner (the fast skips the
+// morning slot semantically). Keys resolve client-side via t().
+const MEAL_NAME_KEYS_IF: Record<number, string[]> = {
+  3: ['meal.meal1','meal.meal2','meal.meal3'],
+  4: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4'],
+  5: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4','meal.meal5'],
+  6: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4','meal.meal5','meal.meal6'],
 };
 
 function clampFreq(raw: unknown): 3 | 4 | 5 | 6 {
@@ -1019,7 +1048,10 @@ function buildMealPlan(input: MealPlanInput) {
   const pools = filterWithFallback(input.style, input.diet, input.allergens);
   const dist = MEAL_DIST[input.freq];
   const times = input.intermittentFasting ? MEAL_TIMES_IF[input.freq] : MEAL_TIMES_NORMAL[input.freq];
-  const nameKeys = MEAL_NAME_KEYS[input.freq];
+  // §5: IF mode uses generic "Meal 1..N" keys; normal mode keeps semantic slot names.
+  const nameKeys = input.intermittentFasting
+    ? MEAL_NAME_KEYS_IF[input.freq]
+    : MEAL_NAME_KEYS[input.freq];
 
   // Aggregate grocery counts across the 7-day cycle: id -> total grams.
   const groceryGrams: Record<string, number> = {};
@@ -1052,15 +1084,52 @@ function buildMealPlan(input: MealPlanInput) {
         { f: veg || fruit, frac: 0.15 },
         { f: fat,     frac: 0.15 },
       ];
+      // Initial greedy pick — snap each part's qty to {0.5,1,1.5,2}
+      // nearest its intra-slot target kcal.
+      const picks: { f: MFood; qty: number }[] = [];
       let kcalSum = 0;
-      const foods: string[] = [];
       for (const part of parts) {
         if (!part.f) continue;
         const targetKcal = slotKcal * part.frac;
         const qty = pickQty(part.f.kcal, targetKcal);
-        foods.push(encodeFood(part.f, qty));
-        bump(part.f, qty);
+        picks.push({ f: part.f, qty });
         kcalSum += Math.round(part.f.kcal * qty);
+      }
+      // BUGFIX (Prompt 4 review #3): the initial greedy pass systematically
+      // under-shoots slotKcal because pickQty rounds each item independently
+      // and the smallest option (0.5x) still often over-serves the veg/fat
+      // fractions. Top-up loop: while slot is >5% under target, bump the
+      // largest-kcal item (protein → carb → veg/fat) up by 0.5x until we're
+      // within ±5% of slotKcal, capped at 2x per item.
+      const tolerance = 0.05;
+      let guard = 0;
+      while (guard++ < 20 && kcalSum < slotKcal * (1 - tolerance)) {
+        // Prefer bumping the most calorie-dense pick with headroom.
+        const candidates = picks
+          .map((p, i) => ({ i, kcal: p.f.kcal, qty: p.qty }))
+          .filter(c => c.qty < 2)
+          .sort((a, b) => b.kcal - a.kcal);
+        if (!candidates.length) break;
+        const target = candidates[0];
+        picks[target.i].qty = Math.min(2, picks[target.i].qty + 0.5);
+        kcalSum += Math.round(picks[target.i].f.kcal * 0.5);
+      }
+      // Symmetric trim if we overshot (rare, but keep the tolerance honest).
+      guard = 0;
+      while (guard++ < 20 && kcalSum > slotKcal * (1 + tolerance)) {
+        const candidates = picks
+          .map((p, i) => ({ i, kcal: p.f.kcal, qty: p.qty }))
+          .filter(c => c.qty > 0.5)
+          .sort((a, b) => b.kcal - a.kcal);
+        if (!candidates.length) break;
+        const target = candidates[0];
+        picks[target.i].qty = Math.max(0.5, picks[target.i].qty - 0.5);
+        kcalSum -= Math.round(picks[target.i].f.kcal * 0.5);
+      }
+      const foods: string[] = [];
+      for (const p of picks) {
+        foods.push(encodeFood(p.f, p.qty));
+        bump(p.f, p.qty);
       }
 
       meals.push({
