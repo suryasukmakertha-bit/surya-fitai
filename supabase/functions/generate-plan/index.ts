@@ -990,7 +990,8 @@ const MEAL_TIMES_NORMAL: Record<number, string[]> = {
   6: ['07:00','10:00','13:00','16:00','19:00','21:00'],
 };
 const MEAL_TIMES_IF: Record<number, string[]> = {
-  3: ['12:00','16:00','19:30'],
+  // MEAL_TEMPLATE_LOGIC.md §5 IF window shift — slot 2 for freq=3 is 15:30, not 16:00.
+  3: ['12:00','15:30','19:30'],
   4: ['12:00','14:30','17:00','19:30'],
   5: ['12:00','14:00','16:00','18:00','19:45'],
   6: ['12:00','13:30','15:00','16:30','18:00','19:45'],
@@ -1000,6 +1001,15 @@ const MEAL_NAME_KEYS: Record<number, string[]> = {
   4: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.dinner'],
   5: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.snackAfternoon','meal.dinner'],
   6: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.snackAfternoon','meal.dinner','meal.snackEvening'],
+};
+// MEAL_TEMPLATE_LOGIC.md §5: in Intermittent Fasting mode, slot labels become
+// generic "Meal 1..N" rather than breakfast/lunch/dinner (the fast skips the
+// morning slot semantically). Keys resolve client-side via t().
+const MEAL_NAME_KEYS_IF: Record<number, string[]> = {
+  3: ['meal.meal1','meal.meal2','meal.meal3'],
+  4: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4'],
+  5: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4','meal.meal5'],
+  6: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4','meal.meal5','meal.meal6'],
 };
 
 function clampFreq(raw: unknown): 3 | 4 | 5 | 6 {
