@@ -1130,7 +1130,24 @@ function buildMealPlan(input: MealPlanInput) {
             if (err < bestErr) { bestErr = err; bestIdx = i; bestDir = -1; }
           }
         }
-        if (bestIdx < 0) break; // no improving move exists; accept slot as-is
+        if (bestIdx < 0) {
+          // No 0.5x move improves error. Last-resort: if we're above the
+          // upper band AND every pick is already at min qty (0.5x), drop
+          // the smallest-kcal pick entirely. This handles small snack
+          // slots (e.g. 240kcal target with 3 mandatory items whose sum
+          // at min-qty exceeds the band's upper edge). Non-empty guard:
+          // never drop below 2 items so the slot still reads as a meal.
+          if (kcalSum > hi && picks.length > 2 && picks.every(p => p.qty <= 0.5)) {
+            let dropIdx = 0;
+            for (let i = 1; i < picks.length; i++) {
+              if (picks[i].f.kcal < picks[dropIdx].f.kcal) dropIdx = i;
+            }
+            kcalSum -= Math.round(picks[dropIdx].f.kcal * picks[dropIdx].qty);
+            picks.splice(dropIdx, 1);
+            continue;
+          }
+          break; // accept slot as-is
+        }
         const step = Math.round(picks[bestIdx].f.kcal * 0.5);
         picks[bestIdx].qty = bestDir === 1
           ? Math.min(2, picks[bestIdx].qty + 0.5)
