@@ -1095,36 +1095,71 @@ function buildMealPlan(input: MealPlanInput) {
         picks.push({ f: part.f, qty });
         kcalSum += Math.round(part.f.kcal * qty);
       }
-      // BUGFIX (Prompt 4 review #3): the initial greedy pass systematically
-      // under-shoots slotKcal because pickQty rounds each item independently
-      // and the smallest option (0.5x) still often over-serves the veg/fat
-      // fractions. Top-up loop: while slot is >5% under target, bump the
-      // largest-kcal item (protein → carb → veg/fat) up by 0.5x until we're
-      // within ±5% of slotKcal, capped at 2x per item.
+      // BUGFIX (Prompt 4 review #3, revision b): "cost-aware" candidate
+      // selection. The previous version always bumped/trimmed the
+      // highest-kcal candidate, which caused oscillation on small slots
+      // where a single 0.5x step (85–120 kcal) is larger than the ±5%
+      // band itself (e.g. dinner @ 401kcal → ±20kcal band). We now pick,
+      // at each step, the candidate whose 0.5x delta lands kcalSum
+      // closest to slotKcal — greedy on |post-step error|, not on kcal.
+      // NOTE: ±5% per-slot tolerance is an implementation choice, not a
+      // requirement of MEAL_TEMPLATE_LOGIC.md. Documented as an accepted
+      // exception pending the next KNOWLEDGE.md bundling pass.
       const tolerance = 0.05;
+      const lo = slotKcal * (1 - tolerance);
+      const hi = slotKcal * (1 + tolerance);
       let guard = 0;
-      while (guard++ < 20 && kcalSum < slotKcal * (1 - tolerance)) {
-        // Prefer bumping the most calorie-dense pick with headroom.
-        const candidates = picks
-          .map((p, i) => ({ i, kcal: p.f.kcal, qty: p.qty }))
-          .filter(c => c.qty < 2)
-          .sort((a, b) => b.kcal - a.kcal);
-        if (!candidates.length) break;
-        const target = candidates[0];
-        picks[target.i].qty = Math.min(2, picks[target.i].qty + 0.5);
-        kcalSum += Math.round(picks[target.i].f.kcal * 0.5);
-      }
-      // Symmetric trim if we overshot (rare, but keep the tolerance honest).
-      guard = 0;
-      while (guard++ < 20 && kcalSum > slotKcal * (1 + tolerance)) {
-        const candidates = picks
-          .map((p, i) => ({ i, kcal: p.f.kcal, qty: p.qty }))
-          .filter(c => c.qty > 0.5)
-          .sort((a, b) => b.kcal - a.kcal);
-        if (!candidates.length) break;
-        const target = candidates[0];
-        picks[target.i].qty = Math.max(0.5, picks[target.i].qty - 0.5);
-        kcalSum -= Math.round(picks[target.i].f.kcal * 0.5);
+      while (guard++ < 40 && (kcalSum < lo || kcalSum > hi)) {
+        // Enumerate every legal single-step move (+0.5x or -0.5x per pick)
+        // and choose the one that minimizes |kcalSum' - slotKcal|. Only
+        // accept a move if it strictly improves the error — prevents the
+        // up/down oscillation seen in the previous implementation.
+        const currentErr = Math.abs(kcalSum - slotKcal);
+        let bestErr = currentErr;
+        let bestIdx = -1;
+        let bestDir: 1 | -1 = 1;
+        for (let i = 0; i < picks.length; i++) {
+          const p = picks[i];
+          const step = Math.round(p.f.kcal * 0.5);
+          if (p.qty < 2) {
+            const err = Math.abs(kcalSum + step - slotKcal);
+            if (err < bestErr) { bestErr = err; bestIdx = i; bestDir = 1; }
+          }
+          if (p.qty > 0.5) {
+            const err = Math.abs(kcalSum - step - slotKcal);
+            if (err < bestErr) { bestErr = err; bestIdx = i; bestDir = -1; }
+          }
+        }
+        if (bestIdx < 0) {
+          // No 0.5x move improves error. Last-resort: if we're above the
+          // upper band AND every pick is already at min qty (0.5x), drop
+          // the smallest-kcal pick entirely. This handles small snack
+          // slots (e.g. 240kcal target with 3 mandatory items whose sum
+          // at min-qty exceeds the band's upper edge). Non-empty guard:
+          // never drop below 2 items so the slot still reads as a meal.
+          if (kcalSum > hi && picks.length > 2 && picks.every(p => p.qty <= 0.5)) {
+            // Try every candidate drop; pick the one that minimizes
+            // post-drop error, and only apply if it strictly improves.
+            let dropIdx = -1;
+            let bestDropErr = currentErr;
+            for (let i = 0; i < picks.length; i++) {
+              const removed = Math.round(picks[i].f.kcal * picks[i].qty);
+              const err = Math.abs(kcalSum - removed - slotKcal);
+              if (err < bestDropErr) { bestDropErr = err; dropIdx = i; }
+            }
+            if (dropIdx >= 0) {
+              kcalSum -= Math.round(picks[dropIdx].f.kcal * picks[dropIdx].qty);
+              picks.splice(dropIdx, 1);
+              continue;
+            }
+          }
+          break; // accept slot as-is
+        }
+        const step = Math.round(picks[bestIdx].f.kcal * 0.5);
+        picks[bestIdx].qty = bestDir === 1
+          ? Math.min(2, picks[bestIdx].qty + 0.5)
+          : Math.max(0.5, picks[bestIdx].qty - 0.5);
+        kcalSum += bestDir === 1 ? step : -step;
       }
       const foods: string[] = [];
       for (const p of picks) {
