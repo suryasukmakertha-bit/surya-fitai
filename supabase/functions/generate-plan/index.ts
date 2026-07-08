@@ -1138,13 +1138,20 @@ function buildMealPlan(input: MealPlanInput) {
           // at min-qty exceeds the band's upper edge). Non-empty guard:
           // never drop below 2 items so the slot still reads as a meal.
           if (kcalSum > hi && picks.length > 2 && picks.every(p => p.qty <= 0.5)) {
-            let dropIdx = 0;
-            for (let i = 1; i < picks.length; i++) {
-              if (picks[i].f.kcal < picks[dropIdx].f.kcal) dropIdx = i;
+            // Try every candidate drop; pick the one that minimizes
+            // post-drop error, and only apply if it strictly improves.
+            let dropIdx = -1;
+            let bestDropErr = currentErr;
+            for (let i = 0; i < picks.length; i++) {
+              const removed = Math.round(picks[i].f.kcal * picks[i].qty);
+              const err = Math.abs(kcalSum - removed - slotKcal);
+              if (err < bestDropErr) { bestDropErr = err; dropIdx = i; }
             }
-            kcalSum -= Math.round(picks[dropIdx].f.kcal * picks[dropIdx].qty);
-            picks.splice(dropIdx, 1);
-            continue;
+            if (dropIdx >= 0) {
+              kcalSum -= Math.round(picks[dropIdx].f.kcal * picks[dropIdx].qty);
+              picks.splice(dropIdx, 1);
+              continue;
+            }
           }
           break; // accept slot as-is
         }
