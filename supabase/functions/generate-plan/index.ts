@@ -1559,3 +1559,22 @@ serve(async (req) => {
     );
   }
 });
+
+// Test-only exports. Harmless in prod: `serve()` above is already running and
+// re-exporting these bindings has no runtime effect on the edge function.
+// Exposed so the Deno test harness can import the exact source symbols
+// instead of duplicating logic (see stale-deploy / drift incident notes).
+export {
+  generateWorkout,
+  buildMealPlan,
+  EXERCISE_POOL,
+  pickSessionOrder,
+  MEAL_FOOD_DB,
+  MEAL_DIST,
+  MEAL_TIMES_NORMAL,
+  MEAL_TIMES_IF,
+  MEAL_NAME_KEYS,
+  MEAL_NAME_KEYS_IF,
+  pickQty,
+  pickRotated,
+};
