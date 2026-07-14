@@ -31,6 +31,19 @@ const EQUIPMENT_OPTIONS = [
   { value: "full-gym", labelKey: "equipFullGym" },
 ] as const;
 
+// Maps Programs-page route param (programType) to the canonical 5-value
+// Fitness Goal enum expected by computeAll/calculateMacros. Mirrors the
+// edge function normalizeGoal programType fallback. Preview widget only.
+function programTypeToGoal(type: string | undefined): string {
+  switch (type) {
+    case "bulking": return "Hypertrophy";
+    case "cutting": return "Fat Loss";
+    case "beginner":
+    case "senior":
+    default: return "General Fitness";
+  }
+}
+
 // Maps the user-facing single-select equipment value to the engine
 // equipment array consumed by the AI prompt in `generate-plan`.
 const EQUIPMENT_ENGINE_MAP: Record<string, string[]> = {
@@ -126,7 +139,7 @@ export default function ProgramForm() {
     const h = parseFloat(form.height);
     const a = parseInt(form.age);
     if (!w || !h || !a || !form.gender) return null;
-    return computeAll(w, h, a, form.gender, parseInt(form.trainingDaysPerWeek) || 4, form.dailySteps, type || "beginner");
+    return computeAll(w, h, a, form.gender, parseInt(form.trainingDaysPerWeek) || 4, form.dailySteps, programTypeToGoal(type));
   }, [form.weight, form.height, form.age, form.gender, form.trainingDaysPerWeek, form.dailySteps, type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
