@@ -52,26 +52,44 @@ export function calculateTDEE(bmr: number, activityMultiplier: number, dailyStep
   return bmr * activityMultiplier + neat;
 }
 
-export function calculateMacros(tdee: number, weight: number, programType: string) {
-  let calories: number, protein: number, carbs: number, fat: number;
+// Mirrors supabase/functions/generate-plan/index.ts calculateMacros exactly:
+// - Branches on the normalized 5-value Fitness Goal (WGoal) instead of programType.
+// - Uses remaining-kcal-after-protein split for carbs/fat (not flat % of total kcal).
+// Multipliers per MEAL_TEMPLATE_LOGIC.md §1-2 midpoints.
+// The `goal` param is typed loosely because upstream callers still pass legacy
+// programType strings (e.g. "beginner"); those fall through to General Fitness.
+// Fixing caller resolution is out of scope for this file.
+export function calculateMacros(tdee: number, weight: number, goal: string) {
+  let calorieMult: number;
+  let proteinPerKg: number;
+  let carbPctRem: number;
+  let fatPctRem: number;
 
-  if (programType === "bulking") {
-    calories = Math.round(tdee * 1.15);
-    protein = Math.round(weight * 2.0);
-    carbs = Math.round((calories * 0.55) / 4);
-    fat = Math.round((calories * 0.25) / 9);
-  } else if (programType === "cutting") {
-    calories = Math.round(tdee * 0.80);
-    protein = Math.round(weight * 2.2);
-    carbs = Math.round((calories * 0.40) / 4);
-    fat = Math.round((calories * 0.30) / 9);
-  } else {
-    // beginner & senior
-    calories = Math.round(tdee * 1.05);
-    protein = Math.round(weight * 1.8);
-    carbs = Math.round((calories * 0.50) / 4);
-    fat = Math.round((calories * 0.30) / 9);
+  switch (goal) {
+    case "Hypertrophy":
+      calorieMult = 1.125; proteinPerKg = 2.0; carbPctRem = 0.475; fatPctRem = 0.525;
+      break;
+    case "Strength":
+      calorieMult = 1.075; proteinPerKg = 2.0; carbPctRem = 0.425; fatPctRem = 0.575;
+      break;
+    case "Fat Loss":
+      calorieMult = 0.825; proteinPerKg = 2.2; carbPctRem = 0.375; fatPctRem = 0.625;
+      break;
+    case "Body Recomposition":
+      calorieMult = 1.0; proteinPerKg = 2.2; carbPctRem = 0.425; fatPctRem = 0.575;
+      break;
+    case "General Fitness":
+    default:
+      calorieMult = 1.0; proteinPerKg = 1.8; carbPctRem = 0.475; fatPctRem = 0.525;
+      break;
   }
+
+  const calories = Math.round(tdee * calorieMult);
+  const protein = Math.round(weight * proteinPerKg);
+  const proteinKcal = protein * 4;
+  const remaining = Math.max(0, calories - proteinKcal);
+  const carbs = Math.round((remaining * carbPctRem) / 4);
+  const fat = Math.round((remaining * fatPctRem) / 9);
 
   return { calories, protein, carbs, fat };
 }
@@ -83,12 +101,12 @@ export function computeAll(
   gender: string,
   trainingDays: number,
   dailySteps: string,
-  programType: string
+  goal: string
 ): FitnessMetrics {
   const { bmi, category } = calculateBMI(weight, heightCm);
   const bmr = calculateBMR(weight, heightCm, age, gender);
   const actMult = getActivityMultiplier("", trainingDays);
   const tdee = calculateTDEE(bmr, actMult, dailySteps);
-  const { calories, protein, carbs, fat } = calculateMacros(tdee, weight, programType);
+  const { calories, protein, carbs, fat } = calculateMacros(tdee, weight, goal);
   return { bmi, bmiCategory: category, bmr: Math.round(bmr), tdee: Math.round(tdee), calories, protein, carbs, fat };
 }
