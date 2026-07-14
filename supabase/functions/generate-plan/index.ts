@@ -117,33 +117,41 @@ function calculateTDEE(bmr: number, activityMultiplier: number, dailySteps: stri
 // double-counted the protein bucket and caused the summed macro kcal to
 // overshoot calorie_target by ~10%. Fixed to use the remaining-kcal split
 // exactly as the spec requires.
-function calculateMacros(tdee: number, weight: number, programType: string) {
-  // Goal → { tdeeMult, proteinPerKg, carbPctOfRemaining, fatPctOfRemaining }
-  // Percentages are the midpoints of the spec's Carb/Fat ranges.
+// Branches on the normalized 5-value Fitness Goal (WGoal), i.e. the
+// output of normalizeGoal() — the same value already fed to the workout
+// engine's Layer D. `programType` remains in the signature as an
+// unused legacy parameter until Programs page removal (separate prompt);
+// no other caller depends on it (sole call site: buildMealPlan flow at
+// ~L1421 — updated to pass engineGoal).
+// Multipliers per MEAL_TEMPLATE_LOGIC.md §1–2 midpoints.
+function calculateMacros(tdee: number, weight: number, goal: WGoal, _programType?: string) {
   let calorieMult: number;
   let proteinPerKg: number;
   let carbPctRem: number;
   let fatPctRem: number;
 
-  if (programType === "bulking") {
-    // Hypertrophy: +12.5% (mid of +10/+15), P 2.0 g/kg, C 47.5%, F 52.5%
-    calorieMult = 1.125;
-    proteinPerKg = 2.0;
-    carbPctRem = 0.475;
-    fatPctRem = 0.525;
-  } else if (programType === "cutting") {
-    // Fat Loss: −17.5% (mid of −15/−20), P 2.2 g/kg, C 37.5%, F 62.5%
-    calorieMult = 0.825;
-    proteinPerKg = 2.2;
-    carbPctRem = 0.375;
-    fatPctRem = 0.625;
-  } else {
-    // General Fitness / Recomp / Strength fallback: maintenance,
-    // P 1.8 g/kg, C 47.5%, F 52.5% (mid of General Fitness row).
-    calorieMult = 1.0;
-    proteinPerKg = 1.8;
-    carbPctRem = 0.475;
-    fatPctRem = 0.525;
+  switch (goal) {
+    case 'Hypertrophy':
+      // +12.5% (mid +10/+15), P 2.0 g/kg, C 47.5%, F 52.5%
+      calorieMult = 1.125; proteinPerKg = 2.0; carbPctRem = 0.475; fatPctRem = 0.525;
+      break;
+    case 'Strength':
+      // +7.5% (mid +5/+10), P 2.0 g/kg, C 42.5%, F 57.5% (mid 40-45 / 55-60)
+      calorieMult = 1.075; proteinPerKg = 2.0; carbPctRem = 0.425; fatPctRem = 0.575;
+      break;
+    case 'Fat Loss':
+      // −17.5% (mid −15/−20), P 2.2 g/kg, C 37.5%, F 62.5%
+      calorieMult = 0.825; proteinPerKg = 2.2; carbPctRem = 0.375; fatPctRem = 0.625;
+      break;
+    case 'Body Recomposition':
+      // ±0%, P 2.2 g/kg, C 42.5%, F 57.5% (mid 40-45 / 55-60)
+      calorieMult = 1.0; proteinPerKg = 2.2; carbPctRem = 0.425; fatPctRem = 0.575;
+      break;
+    case 'General Fitness':
+    default:
+      // ±0%, P 1.8 g/kg, C 47.5%, F 52.5%
+      calorieMult = 1.0; proteinPerKg = 1.8; carbPctRem = 0.475; fatPctRem = 0.525;
+      break;
   }
 
   const calories = Math.round(tdee * calorieMult);
@@ -1418,7 +1426,11 @@ serve(async (req) => {
     const bmr = Math.round(calculateBMR(w, h, a, gender));
     const actMult = getActivityMultiplier(td);
     const tdee = Math.round(calculateTDEE(bmr, actMult, dailySteps || "4000-8000"));
-    const macros = calculateMacros(tdee, w, programType);
+    // Compute engineGoal BEFORE macros so the same normalized 5-value goal
+    // drives both the meal-macro branch and the workout engine (single
+    // parsing path, per prompt).
+    const engineGoal = normalizeGoal(goal, programType);
+    const macros = calculateMacros(tdee, w, engineGoal, programType);
     const { targetLiftingMinutes, targetSets } = calculateTargetSets(sessionMin, experience);
 
     const workoutDays = td;
@@ -1472,7 +1484,7 @@ serve(async (req) => {
     };
 
     // === DETERMINISTIC WORKOUT ENGINE ===
-    const engineGoal = normalizeGoal(goal, programType);
+    // engineGoal already computed above (shared with calculateMacros).
     const engineEquipment = normalizeEquipment(equipment);
     const engineLimitations = parseLimitations(limitations);
     const engineExperience: WExp = (experience as WExp);
