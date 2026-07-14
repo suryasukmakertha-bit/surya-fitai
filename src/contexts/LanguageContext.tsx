@@ -205,14 +205,6 @@ const translations = {
     planRenamed: "Plan renamed",
     addPlan: "+ Add Plan",
     whatsappCta: "Get Personal Trainer Assistance from Coach Surya",
-    occupation: "Occupation",
-    occupationSelect: "Select occupation",
-    occupationStudent: "Student",
-    occupationOffice: "Office Worker (Mostly Sitting)",
-    occupationField: "Field Worker (Physically Active)",
-    occupationFreelancer: "Freelancer",
-    occupationBusiness: "Business Owner",
-    occupationOtherPlaceholder: "Enter your occupation",
     trainingFrequency: "Training Days / Week",
     freq2: "2 Days",
     freq3: "3 Days",
@@ -291,16 +283,6 @@ const translations = {
     steps2: "8,000 – 12,000 steps (Moderate)",
     steps3: "> 12,000 steps (Very Active)",
     stepsDesk: "Desk job 8+ hours",
-
-    // Enhanced Form - Sleep
-    sleepHoursLabel: "Average Sleep (hours)",
-    whySleep: "Sleep quality affects recovery, hormone balance, and training capacity.",
-    sleepQualityLabel: "Sleep Quality",
-
-    // Enhanced Form - Stress
-    stressLevelLabel: "Current Stress Level",
-    whyStress: "High stress increases cortisol, requiring adjusted volume and recovery.",
-    nightShiftLabel: "Night shift / overtime work",
 
     // Enhanced Form - Nutrition
     mealFrequencyLabel: "Preferred Meal Frequency",
@@ -863,14 +845,6 @@ const translations = {
     planRenamed: "Rencana diganti nama",
     addPlan: "+ Tambah Rencana",
     whatsappCta: "Dapatkan Bantuan Pelatih Pribadi dari Coach Surya",
-    occupation: "Pekerjaan",
-    occupationSelect: "Pilih pekerjaan",
-    occupationStudent: "Pelajar/Mahasiswa",
-    occupationOffice: "Pekerja Kantoran (Banyak Duduk)",
-    occupationField: "Pekerja Lapangan (Aktif Fisik)",
-    occupationFreelancer: "Freelancer",
-    occupationBusiness: "Pemilik Usaha",
-    occupationOtherPlaceholder: "Masukkan pekerjaan Anda",
     trainingFrequency: "Hari Latihan / Minggu",
     freq2: "2 Hari",
     freq3: "3 Hari",
@@ -949,16 +923,6 @@ const translations = {
     steps2: "8.000 – 12.000 langkah (Sedang)",
     steps3: "> 12.000 langkah (Sangat Aktif)",
     stepsDesk: "Kerja meja 8+ jam",
-
-    // Enhanced Form - Sleep
-    sleepHoursLabel: "Rata-rata Tidur (jam)",
-    whySleep: "Kualitas tidur mempengaruhi pemulihan, keseimbangan hormon, dan kapasitas latihan.",
-    sleepQualityLabel: "Kualitas Tidur",
-
-    // Enhanced Form - Stress
-    stressLevelLabel: "Tingkat Stres Saat Ini",
-    whyStress: "Stres tinggi meningkatkan kortisol, memerlukan penyesuaian volume dan pemulihan.",
-    nightShiftLabel: "Kerja shift malam / lembur",
 
     // Enhanced Form - Nutrition
     mealFrequencyLabel: "Frekuensi Makan Pilihan",
@@ -1512,14 +1476,6 @@ const translations = {
     planRenamed: "计划已重命名",
     addPlan: "+ 添加计划",
     whatsappCta: "获取Surya教练的私人训练协助",
-    occupation: "职业",
-    occupationSelect: "选择职业",
-    occupationStudent: "学生",
-    occupationOffice: "办公室职员（久坐）",
-    occupationField: "户外工作者（体力活跃）",
-    occupationFreelancer: "自由职业者",
-    occupationBusiness: "企业主",
-    occupationOtherPlaceholder: "输入你的职业",
     trainingFrequency: "每周训练天数",
     freq2: "2天",
     freq3: "3天",
@@ -1598,16 +1554,6 @@ const translations = {
     steps2: "8,000 – 12,000 步（中度）",
     steps3: "> 12,000 步（非常活跃）",
     stepsDesk: "久坐办公 8+ 小时",
-
-    // Enhanced Form - Sleep
-    sleepHoursLabel: "平均睡眠（小时）",
-    whySleep: "睡眠质量影响恢复、激素平衡和训练能力。",
-    sleepQualityLabel: "睡眠质量",
-
-    // Enhanced Form - Stress
-    stressLevelLabel: "当前压力水平",
-    whyStress: "高压力增加皮质醇，需要调整训练量和恢复。",
-    nightShiftLabel: "夜班 / 加班工作",
 
     // Enhanced Form - Nutrition
     mealFrequencyLabel: "首选用餐频率",

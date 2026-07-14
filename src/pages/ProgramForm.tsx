@@ -102,18 +102,12 @@ export default function ProgramForm() {
     experience: "Beginner",
     limitations: "",
     allergies: "",
-    occupation: "",
-    occupationOther: "",
     trainingDaysPerWeek: "4",
     foodStyle: "",
     dietType: "",
     sessionDuration: 60,
     equipment: "full-gym" as string,
     dailySteps: "4000-8000",
-    sleepHours: "",
-    sleepQuality: 7,
-    stressLevel: 5,
-    nightShift: false,
     mealFrequency: "4",
     intermittentFasting: false,
   });
@@ -183,7 +177,6 @@ export default function ProgramForm() {
       setLoadingStep((prev) => (prev < 3 ? prev + 1 : prev));
     }, 8000);
     try {
-      const occupation = form.occupation === "other" ? form.occupationOther : form.occupation;
       const startDateStr = format(startDate, "yyyy-MM-dd");
       const startDayName = format(startDate, "EEEE");
       const trainingDaysPerWeek = parseInt(form.trainingDaysPerWeek) || 4;
@@ -201,7 +194,6 @@ export default function ProgramForm() {
         body: {
           ...form,
           experience: effectiveExperience,
-          occupation,
           programType: type,
           language: lang,
           startDate: startDateStr,
@@ -212,10 +204,6 @@ export default function ProgramForm() {
           sessionDuration: form.sessionDuration,
           equipment: EQUIPMENT_ENGINE_MAP[form.equipment] ?? (form.equipment ? [form.equipment] : []),
           dailySteps: form.dailySteps,
-          sleepHours: form.sleepHours,
-          sleepQuality: form.sleepQuality,
-          stressLevel: form.stressLevel,
-          nightShift: form.nightShift,
           mealFrequency: form.mealFrequency,
           intermittentFasting: form.intermittentFasting,
           calculatedMetrics: metrics,
@@ -359,24 +347,6 @@ export default function ProgramForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>{t.occupation}</Label>
-              <Select value={form.occupation} onValueChange={(v) => set("occupation", v)}>
-                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={t.occupationSelect} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">{t.occupationStudent}</SelectItem>
-                  <SelectItem value="office">{t.occupationOffice}</SelectItem>
-                  <SelectItem value="field">{t.occupationField}</SelectItem>
-                  <SelectItem value="freelancer">{t.occupationFreelancer}</SelectItem>
-                  <SelectItem value="business">{t.occupationBusiness}</SelectItem>
-                  <SelectItem value="other">{t.other}</SelectItem>
-                </SelectContent>
-              </Select>
-              {form.occupation === "other" && (
-                <Input value={form.occupationOther} onChange={(e) => set("occupationOther", e.target.value)} placeholder={t.occupationOtherPlaceholder} className="bg-secondary border-border mt-2" />
-              )}
-            </div>
-
-            <div className="space-y-2">
               <Label>{t.fitnessGoal}</Label>
               <Input value={form.goal} onChange={(e) => set("goal", e.target.value)} placeholder={(t as any).fitnessGoalPlaceholder} className="bg-secondary border-border" />
             </div>
@@ -500,35 +470,6 @@ export default function ProgramForm() {
                   <SelectItem value="desk">{t.stepsDesk}</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Sleep */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>
-                  {t.sleepHoursLabel} <WhyTooltip text={t.whySleep} />
-                </Label>
-                <Input type="number" value={form.sleepHours} onChange={(e) => set("sleepHours", e.target.value)} placeholder="7" min={3} max={12} step={0.5} className="bg-secondary border-border" />
-              </div>
-              <div className="space-y-3">
-                <Label>{t.sleepQualityLabel}: <span className="text-primary font-bold">{form.sleepQuality}/10</span></Label>
-                <Slider value={[form.sleepQuality]} onValueChange={([v]) => set("sleepQuality", v)} min={1} max={10} step={1} />
-              </div>
-            </div>
-
-            {/* Stress */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <Label>
-                  {t.stressLevelLabel}: <span className="text-primary font-bold">{form.stressLevel}/10</span>
-                  <WhyTooltip text={t.whyStress} />
-                </Label>
-                <Slider value={[form.stressLevel]} onValueChange={([v]) => set("stressLevel", v)} min={1} max={10} step={1} />
-              </div>
-              <div className="flex items-center gap-3 pt-6">
-                <Switch checked={form.nightShift} onCheckedChange={(v) => set("nightShift", v)} />
-                <Label className="cursor-pointer">{t.nightShiftLabel}</Label>
-              </div>
             </div>
           </div>
 
