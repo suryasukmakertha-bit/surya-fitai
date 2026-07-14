@@ -126,7 +126,7 @@ export default function ProgramForm() {
     const h = parseFloat(form.height);
     const a = parseInt(form.age);
     if (!w || !h || !a || !form.gender) return null;
-    return computeAll(w, h, a, form.gender, parseInt(form.trainingDaysPerWeek) || 4, form.dailySteps, type || "beginner");
+    return computeAll(w, h, a, form.gender, parseInt(form.trainingDaysPerWeek) || 4, form.dailySteps, programTypeToGoal(type));
   }, [form.weight, form.height, form.age, form.gender, form.trainingDaysPerWeek, form.dailySteps, type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
