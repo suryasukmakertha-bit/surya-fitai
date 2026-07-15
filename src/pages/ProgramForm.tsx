@@ -31,6 +31,22 @@ const EQUIPMENT_OPTIONS = [
   { value: "full-gym", labelKey: "equipFullGym" },
 ] as const;
 
+// Canonical limitation tokens matched (case-insensitive substring) by the
+// edge function's parseLimitations. The token string is what gets sent in
+// the payload; the label is looked up via i18n. "lower back" (with space)
+// is required to trigger the parser's lower_back branch.
+const LIMITATION_OPTIONS = [
+  { token: "knee",       labelKey: "limKnee" },
+  { token: "lower back", labelKey: "limLowerBack" },
+  { token: "shoulder",   labelKey: "limShoulder" },
+  { token: "wrist",      labelKey: "limWrist" },
+  { token: "ankle",      labelKey: "limAnkle" },
+  { token: "hip",        labelKey: "limHip" },
+  { token: "elbow",      labelKey: "limElbow" },
+  { token: "pregnancy",  labelKey: "limPregnancy" },
+  { token: "none",       labelKey: "limNone" },
+] as const;
+
 // Maps Programs-page route param (programType) to the canonical 5-value
 // Fitness Goal enum expected by computeAll/calculateMacros. Mirrors the
 // edge function normalizeGoal programType fallback. Preview widget only.
@@ -527,7 +543,39 @@ export default function ProgramForm() {
 
             <div className="space-y-2">
               <Label>{t.limitations}</Label>
-              <Textarea value={form.limitations} onChange={(e) => set("limitations", e.target.value)} placeholder={t.limitationsPlaceholder} className="bg-secondary border-border" />
+              <p className="text-xs text-muted-foreground">{(t as any).limitationsHelper}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                {LIMITATION_OPTIONS.map(opt => {
+                  const selected = form.limitations
+                    .split(",")
+                    .map(s => s.trim().toLowerCase())
+                    .filter(Boolean);
+                  const isChecked = selected.includes(opt.token);
+                  const toggle = () => {
+                    let next: string[];
+                    if (opt.token === "none") {
+                      next = isChecked ? [] : ["none"];
+                    } else if (isChecked) {
+                      next = selected.filter(s => s !== opt.token);
+                    } else {
+                      next = [...selected.filter(s => s !== "none"), opt.token];
+                    }
+                    set("limitations", next.length ? next.join(", ") : "None");
+                  };
+                  return (
+                    <label
+                      key={opt.token}
+                      className={cn(
+                        "flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer bg-secondary border-border text-sm select-none",
+                        isChecked && "border-primary bg-primary/10"
+                      )}
+                    >
+                      <Checkbox checked={isChecked} onCheckedChange={toggle} />
+                      <span>{(t as any)[opt.labelKey]}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="space-y-2">
