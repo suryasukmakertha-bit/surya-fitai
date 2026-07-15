@@ -31,6 +31,22 @@ const EQUIPMENT_OPTIONS = [
   { value: "full-gym", labelKey: "equipFullGym" },
 ] as const;
 
+// Canonical limitation tokens matched (case-insensitive substring) by the
+// edge function's parseLimitations. The token string is what gets sent in
+// the payload; the label is looked up via i18n. "lower back" (with space)
+// is required to trigger the parser's lower_back branch.
+const LIMITATION_OPTIONS = [
+  { token: "knee",       labelKey: "limKnee" },
+  { token: "lower back", labelKey: "limLowerBack" },
+  { token: "shoulder",   labelKey: "limShoulder" },
+  { token: "wrist",      labelKey: "limWrist" },
+  { token: "ankle",      labelKey: "limAnkle" },
+  { token: "hip",        labelKey: "limHip" },
+  { token: "elbow",      labelKey: "limElbow" },
+  { token: "pregnancy",  labelKey: "limPregnancy" },
+  { token: "none",       labelKey: "limNone" },
+] as const;
+
 // Maps Programs-page route param (programType) to the canonical 5-value
 // Fitness Goal enum expected by computeAll/calculateMacros. Mirrors the
 // edge function normalizeGoal programType fallback. Preview widget only.
