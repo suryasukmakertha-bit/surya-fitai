@@ -543,7 +543,39 @@ export default function ProgramForm() {
 
             <div className="space-y-2">
               <Label>{t.limitations}</Label>
-              <Textarea value={form.limitations} onChange={(e) => set("limitations", e.target.value)} placeholder={t.limitationsPlaceholder} className="bg-secondary border-border" />
+              <p className="text-xs text-muted-foreground">{(t as any).limitationsHelper}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                {LIMITATION_OPTIONS.map(opt => {
+                  const selected = form.limitations
+                    .split(",")
+                    .map(s => s.trim().toLowerCase())
+                    .filter(Boolean);
+                  const isChecked = selected.includes(opt.token);
+                  const toggle = () => {
+                    let next: string[];
+                    if (opt.token === "none") {
+                      next = isChecked ? [] : ["none"];
+                    } else if (isChecked) {
+                      next = selected.filter(s => s !== opt.token);
+                    } else {
+                      next = [...selected.filter(s => s !== "none"), opt.token];
+                    }
+                    set("limitations", next.length ? next.join(", ") : "None");
+                  };
+                  return (
+                    <label
+                      key={opt.token}
+                      className={cn(
+                        "flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer bg-secondary border-border text-sm select-none",
+                        isChecked && "border-primary bg-primary/10"
+                      )}
+                    >
+                      <Checkbox checked={isChecked} onCheckedChange={toggle} />
+                      <span>{(t as any)[opt.labelKey]}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="space-y-2">
