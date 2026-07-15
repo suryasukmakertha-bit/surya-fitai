@@ -1,37 +1,67 @@
-# Fix: ProgramForm preview passes programType instead of Goal to computeAll
+# Plan: Redesign `limitations` field as canonical multi-select
 
-## Problem
-`src/pages/ProgramForm.tsx:129` passes `type || "beginner"` (Programs-page route param: `beginner`/`bulking`/`cutting`/`senior`) as `computeAll`'s third argument. After the recent rename, `computeAll` expects one of the 5 canonical Goal strings (`Hypertrophy` / `Strength` / `Fat Loss` / `Body Recomposition` / `General Fitness`). None match, so `calculateMacros` falls through to `default` (General Fitness) every render — the live preview silently shows General Fitness macros for every user, diverging from what `generate-plan/index.ts` will actually store.
+## Goal
 
-## Fix (single, minimal change)
-In `src/pages/ProgramForm.tsx` only, add a small local `programTypeToGoal(type)` helper and pass its result into `computeAll`'s third argument.
+Replace the free-text `limitations` Textarea in `ProgramForm.tsx` with a 9-option multi-select whose payload is a comma-joined string of the canonical English tokens that `parseLimitations` in the edge function already recognizes. **Zero backend changes.** Allergies stays as-is this prompt.
 
-### Mapping (mirrors edge function `normalizeGoal` programType fallback)
-- `bulking` → `Hypertrophy`
-- `cutting` → `Fat Loss`
-- `beginner` → `General Fitness`
-- `senior` → `General Fitness`
-- anything else → `General Fitness`
+## Why this shape
 
-This mapping is the **only** source. The existing `form.goal` field is a translated display string derived from `type` via i18n and will **not** be read or used as a fallback.
+Investigation confirmed:
+- Edge function's `parseLimitations` (lines 386–400) is a case-insensitive substring matcher over English keywords only: `knee`, `lower back` / `lower_back` / `back pain`, `shoulder`, `wrist`, `ankle`, `hip`, `elbow`, `pregnan`, `none`.
+- ID/ZH free-text ("sakit lutut", "肩膀痛") currently parses to `[]` → exclusion is dead for non-English users.
+- Engine consumes `WLimitation[]` = `'knee' | 'lower_back' | 'shoulder' | 'wrist' | 'ankle' | 'hip' | 'elbow' | 'pregnancy' | 'none'` via `excludedByLimitations` in `filterPool` / `filterCardioPool` + a pregnancy safety-note branch.
 
-### Code change
-Replace line 129:
+By emitting a joined string of the exact English keywords, every user (any UI language) produces the correct `WLimitation[]` after backend parse — no parser edit, no risk to Layer B.
 
-```ts
-return computeAll(w, h, a, form.gender, parseInt(form.trainingDaysPerWeek) || 4, form.dailySteps, type || "beginner");
-```
+## Changes (frontend only)
 
-with a call using `programTypeToGoal(type)` in the third argument position. `useMemo` deps unchanged (`type` already listed).
+### 1. `src/pages/ProgramForm.tsx`
+
+**State**
+- Keep `limitations` as `string` in the form state (still sent as a string to `generate-plan`, unchanged payload key/type).
+- Add a derived UI helper: an array of selected canonical tokens, e.g. `limitationTokens: string[]`, either stored as a second state field or derived by splitting `form.limitations`. Prefer a dedicated `Set<string>` state (`selectedLimitations`) whose serialized form is written into `form.limitations` on every toggle — clearest source of truth.
+- **Mutual exclusion:** selecting `None` clears all others; selecting any injury clears `None`. If nothing is selected, default the string to `"None"` before submit so the parser returns `['none']` (matches current empty-string behavior).
+
+**JSX (replaces the current `limitations` Textarea block, ~lines 587–590)**
+- Section heading (localized): "Physical limitations" / "Batasan fisik" / "身体限制".
+- Helper text (localized): "Select any that apply — exercises stressing these areas will be excluded."
+- 9 checkbox chips (or shadcn `Toggle` / `Checkbox` inside a responsive grid), one per canonical value. Label rendered via i18n; value written to state is the canonical English token.
+
+| Canonical token   | EN label      | ID label         | ZH label |
+|-------------------|---------------|------------------|----------|
+| `knee`            | Knee          | Lutut            | 膝盖     |
+| `lower back`      | Lower Back    | Punggung bawah   | 下背部   |
+| `shoulder`        | Shoulder      | Bahu             | 肩膀     |
+| `wrist`           | Wrist         | Pergelangan tangan | 手腕   |
+| `ankle`           | Ankle         | Pergelangan kaki | 脚踝     |
+| `hip`             | Hip           | Pinggul          | 髋部     |
+| `elbow`           | Elbow         | Siku             | 肘部     |
+| `pregnancy`       | Pregnancy     | Kehamilan        | 怀孕     |
+| `none`            | None          | Tidak ada        | 无       |
+
+Note: the token written into state must be one that `parseLimitations` matches — `"lower back"` (with space) triggers the `s.includes('lower back')` branch. `"pregnancy"` triggers `pregnan`. All others are single-word substring matches.
+
+**Serialization**
+- On every toggle: `form.limitations = Array.from(selected).join(', ')`.
+- If `selected` is empty → write `"None"` (defensive; parser also treats empty as `['none']`, but explicit is clearer for debugging and for the payload log).
+
+**Payload**
+- No change: `limitations: form.limitations` (string). Backend receives e.g. `"shoulder, lower back"` → parser returns `['shoulder','lower_back']`.
+
+### 2. `src/contexts/LanguageContext.tsx`
+
+Add localized strings for the section heading, helper text, and the 9 chip labels across `en`, `id`, `zh`. Keep the token→label mapping table-driven (single `LIMITATION_OPTIONS` const in `ProgramForm.tsx`) so JSX stays compact.
 
 ## Out of scope
-- No changes to `computeAll` / `calculateMacros` internals.
-- No changes to `generate-plan/index.ts` or `normalizeGoal`.
-- No changes to `form.goal` or any translation strings.
-- No UI/copy changes.
+
+- `parseLimitations` and any edge-function code — untouched.
+- Allergies field — remains free-text this prompt.
+- Any other form field, i18n key, or component.
+- No new tests; existing Layer B unit tests still exercise the engine directly with `WLimitation[]`.
 
 ## Verification
-Manual preview check for each program route against the test table (TDEE=2500, w=70kg):
-- `bulking` → Hypertrophy (2813 / 140P / 268C / 131F)
-- `cutting` → Fat Loss (2063 / 154 / 136 / 100)
-- `beginner` and `senior` → General Fitness (2500 / 126 / 237 / 116)
+
+1. `bun run build` succeeds.
+2. Manual: switch UI language, tick two limitations, submit — inspect `generate-plan` request body: `limitations` is the comma-joined English tokens; other 4 languages of the UI show translated labels but payload is unchanged.
+3. Regression: default state (no boxes ticked) submits `"None"` → engine sees `['none']` → no exclusions, same as today's empty-textarea case.
+4. Pregnancy tick still produces the safety note (engine line 762 branch).
