@@ -31,6 +31,15 @@ const EQUIPMENT_OPTIONS = [
   { value: "full-gym", labelKey: "equipFullGym" },
 ] as const;
 
+// Allowed weekly training days per experience level (WORKOUT_TEMPLATE_LOGIC §0).
+// Frontend restriction — the engine has entries for all combos but out-of-spec
+// pairs silently produce off-spec splits.
+const DAYS_BY_EXPERIENCE: Record<string, number[]> = {
+  Beginner:     [2, 3, 4, 5],
+  Intermediate: [2, 3, 4, 5, 6],
+  Advanced:     [2, 3, 4, 5, 6, 7],
+};
+
 // Canonical limitation tokens matched (case-insensitive substring) by the
 // edge function's parseLimitations. The token string is what gets sent in
 // the payload; the label is looked up via i18n. "lower back" (with space)
