@@ -387,7 +387,18 @@ export default function ProgramForm() {
               {type !== 'beginner' && (
                 <div className="space-y-2">
                   <Label>{t.experienceLevel}</Label>
-                  <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
+                  <Select
+                    value={form.experience}
+                    onValueChange={(v) => {
+                      const maxDays = (DAYS_BY_EXPERIENCE[v] ?? [7]).slice(-1)[0];
+                      const currentDays = parseInt(form.trainingDaysPerWeek) || 4;
+                      setForm((p) => ({
+                        ...p,
+                        experience: v,
+                        trainingDaysPerWeek: currentDays > maxDays ? String(maxDays) : p.trainingDaysPerWeek,
+                      }));
+                    }}
+                  >
                     <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Beginner">{t.beginner}</SelectItem>
