@@ -413,7 +413,7 @@ export default function ProgramForm() {
                 <Select value={form.trainingDaysPerWeek} onValueChange={(v) => set("trainingDaysPerWeek", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2, 3, 4, 5, 6, 7].map((n) => (
+                    {(DAYS_BY_EXPERIENCE[type === 'beginner' ? 'Beginner' : form.experience] ?? [2, 3, 4, 5, 6, 7]).map((n) => (
                       <SelectItem key={n} value={String(n)}>{(t as any)[`freq${n}`]}</SelectItem>
                     ))}
                   </SelectContent>
