@@ -31,6 +31,15 @@ const EQUIPMENT_OPTIONS = [
   { value: "full-gym", labelKey: "equipFullGym" },
 ] as const;
 
+// Allowed weekly training days per experience level (WORKOUT_TEMPLATE_LOGIC §0).
+// Frontend restriction — the engine has entries for all combos but out-of-spec
+// pairs silently produce off-spec splits.
+const DAYS_BY_EXPERIENCE: Record<string, number[]> = {
+  Beginner:     [2, 3, 4, 5],
+  Intermediate: [2, 3, 4, 5, 6],
+  Advanced:     [2, 3, 4, 5, 6, 7],
+};
+
 // Canonical limitation tokens matched (case-insensitive substring) by the
 // edge function's parseLimitations. The token string is what gets sent in
 // the payload; the label is looked up via i18n. "lower back" (with space)
@@ -378,7 +387,18 @@ export default function ProgramForm() {
               {type !== 'beginner' && (
                 <div className="space-y-2">
                   <Label>{t.experienceLevel}</Label>
-                  <Select value={form.experience} onValueChange={(v) => set("experience", v)}>
+                  <Select
+                    value={form.experience}
+                    onValueChange={(v) => {
+                      const maxDays = (DAYS_BY_EXPERIENCE[v] ?? [7]).slice(-1)[0];
+                      const currentDays = parseInt(form.trainingDaysPerWeek) || 4;
+                      setForm((p) => ({
+                        ...p,
+                        experience: v,
+                        trainingDaysPerWeek: currentDays > maxDays ? String(maxDays) : p.trainingDaysPerWeek,
+                      }));
+                    }}
+                  >
                     <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Beginner">{t.beginner}</SelectItem>
@@ -393,7 +413,7 @@ export default function ProgramForm() {
                 <Select value={form.trainingDaysPerWeek} onValueChange={(v) => set("trainingDaysPerWeek", v)}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[2, 3, 4, 5, 6, 7].map((n) => (
+                    {(DAYS_BY_EXPERIENCE[type === 'beginner' ? 'Beginner' : form.experience] ?? [2, 3, 4, 5, 6, 7]).map((n) => (
                       <SelectItem key={n} value={String(n)}>{(t as any)[`freq${n}`]}</SelectItem>
                     ))}
                   </SelectContent>
