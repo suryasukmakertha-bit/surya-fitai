@@ -1473,7 +1473,7 @@ serve(async (req) => {
       diet: normalizeDiet(dietType),
       allergens: parseAllergens(allergies),
       name: String(name || ''),
-      goalProgramType: String(programType || ''),
+      engineGoal,
       weightKg: w,
       workoutDays,
       sessionMin,
