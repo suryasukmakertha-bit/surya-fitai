@@ -1048,7 +1048,7 @@ interface MealPlanInput {
   calorieTarget: number; proteinG: number; carbsG: number; fatG: number;
   freq: 3 | 4 | 5 | 6; intermittentFasting: boolean;
   style: MStyle; diet: MDiet; allergens: MAllergen[];
-  name: string; goalProgramType: string;
+  name: string; engineGoal: WGoal;
   weightKg: number; workoutDays: number; sessionMin: number; extensionMonth: number | null;
 }
 
