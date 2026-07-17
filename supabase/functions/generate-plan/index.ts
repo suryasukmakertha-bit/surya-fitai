@@ -1048,7 +1048,7 @@ interface MealPlanInput {
   calorieTarget: number; proteinG: number; carbsG: number; fatG: number;
   freq: 3 | 4 | 5 | 6; intermittentFasting: boolean;
   style: MStyle; diet: MDiet; allergens: MAllergen[];
-  name: string; goalProgramType: string;
+  name: string; engineGoal: WGoal;
   weightKg: number; workoutDays: number; sessionMin: number; extensionMonth: number | null;
 }
 
@@ -1197,12 +1197,23 @@ function buildMealPlan(input: MealPlanInput) {
   const perSessionKcal = Math.round(input.weightKg * 6 * (input.sessionMin / 60));
   const estimated_calories_burned = perSessionKcal * input.workoutDays;
 
-  // Weight projection: derive from program type, 7700 kcal/kg model.
-  const p = String(input.goalProgramType || '').toLowerCase();
+  // Weight projection: branch on canonical 5-value engineGoal (same token
+  // used by calculateMacros and the workout engine). Kg values derived from
+  // MEAL_TEMPLATE_LOGIC §1 TDEE-adjustment midpoints, 7700 kcal/kg model.
+  //   Hypertrophy         +1.0 kg/wk  (surplus +10-15%, preserves prior "bulk")
+  //   Strength            +0.5 kg/wk  (surplus +5-10%, ~0.6x Hypertrophy)
+  //   Fat Loss            -2.0 kg/wk  (deficit, preserves prior "cut")
+  //   Body Recomposition   0   kg/wk  (maintenance)
+  //   General Fitness      0   kg/wk  (maintenance, preserves prior "else")
   let projKey = 'plan.weightProjection.maintain';
   let projKg = 0;
-  if (p.includes('bulk')) { projKey = 'plan.weightProjection.gain'; projKg = 1.0; }
-  else if (p.includes('cut') || p.includes('loss')) { projKey = 'plan.weightProjection.loss'; projKg = 2.0; }
+  switch (input.engineGoal) {
+    case 'Hypertrophy':        projKey = 'plan.weightProjection.gain'; projKg = 1.0; break;
+    case 'Strength':           projKey = 'plan.weightProjection.gain'; projKg = 0.5; break;
+    case 'Fat Loss':           projKey = 'plan.weightProjection.loss'; projKg = 2.0; break;
+    case 'Body Recomposition': projKey = 'plan.weightProjection.maintain'; projKg = 0; break;
+    case 'General Fitness':    projKey = 'plan.weightProjection.maintain'; projKg = 0; break;
+  }
   const weight_projection = { key: projKey, params: { kg: projKg, weeks: 4 } };
 
   const motivational_message = input.extensionMonth
@@ -1462,7 +1473,7 @@ serve(async (req) => {
       diet: normalizeDiet(dietType),
       allergens: parseAllergens(allergies),
       name: String(name || ''),
-      goalProgramType: String(programType || ''),
+      engineGoal,
       weightKg: w,
       workoutDays,
       sessionMin,
