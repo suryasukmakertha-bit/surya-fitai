@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { playGeneratePlanSuccess } from "@/utils/sounds";
 import { Button } from "@/components/ui/button";
@@ -120,7 +120,12 @@ export default function ProgramForm() {
     gender: "",
     weight: "",
     height: "",
-    goal: (t as any)[`${type}Goal`] || program?.goal || "",
+    // Fitness Goal is a canonical 5-value token (Hypertrophy | Strength |
+    // Fat Loss | Body Recomposition | General Fitness) — the initial value
+    // is a sensible default derived from the Programs-page route param,
+    // but the user can freely change it via the Select below. No
+    // language-sync effect exists — only the display label is localized.
+    goal: programTypeToGoal(type),
     // Duration is now hardcoded to 1 month — selector removed from UI.
     // Plans are 4 weeks; users continue to month 2/3/etc via the completion modal.
     duration: "1 Month",
@@ -137,15 +142,6 @@ export default function ProgramForm() {
     intermittentFasting: false,
   });
 
-  // Sync goal text when language changes
-  useEffect(() => {
-    const goalKey = `${type}Goal` as keyof typeof t;
-    const localizedGoal = (t as any)[goalKey];
-    if (localizedGoal) {
-      setForm((p) => ({ ...p, goal: localizedGoal }));
-    }
-  }, [lang, type, t]);
-
   const set = (key: string, val: any) => setForm((p) => ({ ...p, [key]: val }));
 
   const selectEquipment = (val: string) => {
@@ -158,8 +154,8 @@ export default function ProgramForm() {
     const h = parseFloat(form.height);
     const a = parseInt(form.age);
     if (!w || !h || !a || !form.gender) return null;
-    return computeAll(w, h, a, form.gender, parseInt(form.trainingDaysPerWeek) || 4, form.dailySteps, programTypeToGoal(type));
-  }, [form.weight, form.height, form.age, form.gender, form.trainingDaysPerWeek, form.dailySteps, type]);
+    return computeAll(w, h, a, form.gender, parseInt(form.trainingDaysPerWeek) || 4, form.dailySteps, form.goal);
+  }, [form.weight, form.height, form.age, form.gender, form.trainingDaysPerWeek, form.dailySteps, form.goal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -373,7 +369,16 @@ export default function ProgramForm() {
 
             <div className="space-y-2">
               <Label>{t.fitnessGoal}</Label>
-              <Input value={form.goal} onChange={(e) => set("goal", e.target.value)} placeholder={(t as any).fitnessGoalPlaceholder} className="bg-secondary border-border" />
+              <Select value={form.goal} onValueChange={(v) => set("goal", v)}>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Hypertrophy">{(t as any).goalHypertrophy}</SelectItem>
+                  <SelectItem value="Strength">{(t as any).goalStrength}</SelectItem>
+                  <SelectItem value="Fat Loss">{(t as any).goalFatLoss}</SelectItem>
+                  <SelectItem value="Body Recomposition">{(t as any).goalBodyRecomp}</SelectItem>
+                  <SelectItem value="General Fitness">{(t as any).goalGeneralFitness}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
