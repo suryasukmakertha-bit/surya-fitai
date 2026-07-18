@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { playGeneratePlanSuccess } from "@/utils/sounds";
 import { Button } from "@/components/ui/button";
