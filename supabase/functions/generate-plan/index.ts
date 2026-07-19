@@ -1600,4 +1600,6 @@ export {
   MEAL_NAME_KEYS_IF,
   pickQty,
   pickRotated,
+  normalizeGoal,
+  calculateMacros,
 };
