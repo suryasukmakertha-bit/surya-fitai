@@ -124,7 +124,7 @@ function calculateTDEE(bmr: number, activityMultiplier: number, dailySteps: stri
 // no other caller depends on it (sole call site: buildMealPlan flow at
 // ~L1421 — updated to pass engineGoal).
 // Multipliers per MEAL_TEMPLATE_LOGIC.md §1–2 midpoints.
-function calculateMacros(tdee: number, weight: number, goal: WGoal, _programType?: string) {
+export function calculateMacros(tdee: number, weight: number, goal: WGoal, _programType?: string) {
   let calorieMult: number;
   let proteinPerKg: number;
   let carbPctRem: number;
@@ -204,7 +204,7 @@ interface ExerciseDef {
 }
 
 // LAYER B — Exercise Pool (47 canonical exercises)
-const EXERCISE_POOL: ExerciseDef[] = [
+export const EXERCISE_POOL: ExerciseDef[] = [
   // GYM — Chest
   { name: 'Barbell Bench Press',      muscle: 'chest',    equipment: 'gym', difficulty: 'intermediate', isCompound: true,  excludedBy: ['wrist'] },
   { name: 'Incline Barbell Press',    muscle: 'chest',    equipment: 'gym', difficulty: 'intermediate', isCompound: true,  excludedBy: ['shoulder'] },
@@ -279,7 +279,7 @@ type SessionType =
   | 'PPL_PUSH' | 'PPL_PULL' | 'PPL_LEGS'
   | 'WEAKPOINT';
 
-function pickSessionOrder(days: number, exp: WExp): SessionType[] {
+export function pickSessionOrder(days: number, exp: WExp): SessionType[] {
   const d = Math.max(2, Math.min(7, days));
   if (d === 2) return ['FB_A', 'FB_B'];
   if (d === 3) {
@@ -694,7 +694,7 @@ interface WorkoutEngineOutput {
   estimatedSessionTimeMinutes: number;
 }
 
-function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput {
+export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput {
   const { goal, experience, trainingDaysPerWeek, sessionMinutes, equipment,
           limitations, startDate, prevPlanData } = input;
 
@@ -782,7 +782,7 @@ function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput {
   };
 }
 
-function normalizeGoal(raw: string | undefined | null, programType: string | undefined | null): WGoal {
+export function normalizeGoal(raw: string | undefined | null, programType: string | undefined | null): WGoal {
   const s = (raw || '').toLowerCase();
   if (s.includes('strength')) return 'Strength';
   if (s.includes('hypertroph')) return 'Hypertrophy';
@@ -846,7 +846,7 @@ interface MFood {
 }
 
 // Reference portions calibrated for realistic Indonesian/Western servings.
-const MEAL_FOOD_DB: MFood[] = [
+export const MEAL_FOOD_DB: MFood[] = [
   // ---------- Proteins ----------
   { id: 'dada_ayam_panggang',   cat: 'protein', styles: ['local','western','asian','high-protein','budget','premium'], diets: ['omnivore'],                    allergens: [],           g: 100, kcal: 165, p: 31, c: 0,  f: 4 },
   { id: 'ayam_goreng_dada',     cat: 'protein', styles: ['local','asian','budget'],                                     diets: ['omnivore'],                    allergens: [],           g: 100, kcal: 220, p: 25, c: 2,  f: 13 },
@@ -985,26 +985,26 @@ function filterWithFallback(style: MStyle, diet: MDiet, allergens: MAllergen[]) 
 }
 
 // Calorie distribution across N meals per day.
-const MEAL_DIST: Record<number, number[]> = {
+export const MEAL_DIST: Record<number, number[]> = {
   3: [0.30, 0.40, 0.30],
   4: [0.25, 0.15, 0.35, 0.25],
   5: [0.22, 0.12, 0.30, 0.12, 0.24],
   6: [0.20, 0.10, 0.28, 0.10, 0.22, 0.10],
 };
-const MEAL_TIMES_NORMAL: Record<number, string[]> = {
+export const MEAL_TIMES_NORMAL: Record<number, string[]> = {
   3: ['07:00','12:30','19:00'],
   4: ['07:00','10:00','13:00','19:00'],
   5: ['07:00','10:00','13:00','16:00','19:00'],
   6: ['07:00','10:00','13:00','16:00','19:00','21:00'],
 };
-const MEAL_TIMES_IF: Record<number, string[]> = {
+export const MEAL_TIMES_IF: Record<number, string[]> = {
   // MEAL_TEMPLATE_LOGIC.md §5 IF window shift — slot 2 for freq=3 is 15:30, not 16:00.
   3: ['12:00','15:30','19:30'],
   4: ['12:00','14:30','17:00','19:30'],
   5: ['12:00','14:00','16:00','18:00','19:45'],
   6: ['12:00','13:30','15:00','16:30','18:00','19:45'],
 };
-const MEAL_NAME_KEYS: Record<number, string[]> = {
+export const MEAL_NAME_KEYS: Record<number, string[]> = {
   3: ['meal.breakfast','meal.lunch','meal.dinner'],
   4: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.dinner'],
   5: ['meal.breakfast','meal.snackMorning','meal.lunch','meal.snackAfternoon','meal.dinner'],
@@ -1013,7 +1013,7 @@ const MEAL_NAME_KEYS: Record<number, string[]> = {
 // MEAL_TEMPLATE_LOGIC.md §5: in Intermittent Fasting mode, slot labels become
 // generic "Meal 1..N" rather than breakfast/lunch/dinner (the fast skips the
 // morning slot semantically). Keys resolve client-side via t().
-const MEAL_NAME_KEYS_IF: Record<number, string[]> = {
+export const MEAL_NAME_KEYS_IF: Record<number, string[]> = {
   3: ['meal.meal1','meal.meal2','meal.meal3'],
   4: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4'],
   5: ['meal.meal1','meal.meal2','meal.meal3','meal.meal4','meal.meal5'],
@@ -1025,7 +1025,7 @@ function clampFreq(raw: unknown): 3 | 4 | 5 | 6 {
   if (n === 3 || n === 4 || n === 5 || n === 6) return n;
   return 4;
 }
-function pickQty(referenceKcal: number, targetKcal: number): number {
+export function pickQty(referenceKcal: number, targetKcal: number): number {
   // Snap qty to {0.5, 1, 1.5, 2} — reference portion nearest target kcal.
   const options = [0.5, 1, 1.5, 2];
   let best = 1, bestDiff = Infinity;
@@ -1039,7 +1039,7 @@ function encodeFood(f: MFood, qty: number): string {
   // Consumer contract: split on " · ", parts = [foodKey, "<g>g", "<qty>x"].
   return `food.${f.id} · ${Math.round(f.g * qty)}g · ${qty}x`;
 }
-function pickRotated(arr: MFood[], dayIdx: number, slotIdx: number, roleOffset: number): MFood | null {
+export function pickRotated(arr: MFood[], dayIdx: number, slotIdx: number, roleOffset: number): MFood | null {
   if (!arr.length) return null;
   return arr[(dayIdx * 3 + slotIdx * 5 + roleOffset) % arr.length];
 }
@@ -1052,7 +1052,7 @@ interface MealPlanInput {
   weightKg: number; workoutDays: number; sessionMin: number; extensionMonth: number | null;
 }
 
-function buildMealPlan(input: MealPlanInput) {
+export function buildMealPlan(input: MealPlanInput) {
   const pools = filterWithFallback(input.style, input.diet, input.allergens);
   const dist = MEAL_DIST[input.freq];
   const times = input.intermittentFasting ? MEAL_TIMES_IF[input.freq] : MEAL_TIMES_NORMAL[input.freq];
@@ -1583,23 +1583,3 @@ serve(async (req) => {
   }
 });
 
-// Test-only exports. Harmless in prod: `serve()` above is already running and
-// re-exporting these bindings has no runtime effect on the edge function.
-// Exposed so the Deno test harness can import the exact source symbols
-// instead of duplicating logic (see stale-deploy / drift incident notes).
-export {
-  generateWorkout,
-  buildMealPlan,
-  EXERCISE_POOL,
-  pickSessionOrder,
-  MEAL_FOOD_DB,
-  MEAL_DIST,
-  MEAL_TIMES_NORMAL,
-  MEAL_TIMES_IF,
-  MEAL_NAME_KEYS,
-  MEAL_NAME_KEYS_IF,
-  pickQty,
-  pickRotated,
-  normalizeGoal,
-  calculateMacros,
-};
