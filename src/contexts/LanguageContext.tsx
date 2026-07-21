@@ -714,6 +714,7 @@ const translations = {
     cuttingDesc: "Turunkan lemak tubuh sambil menjaga otot. Dapatkan tubuh ramping dengan latihan dan nutrisi strategis.",
     cuttingBenefits: ["Fokus pembakaran lemak", "Pertahankan otot", "Makanan defisit kalori", "Integrasi HIIT"],
     cuttingGoal: "Turunkan lemak dan jadi ramping",
+    customTitle: "Program Baru",
     seniorTitle: "Kebugaran Lansia",
     seniorDesc: "Latihan aman dan adaptif untuk orang dewasa. Fokus pada mobilitas, keseimbangan, dan kekuatan fungsional.",
     seniorBenefits: ["Latihan ramah sendi", "Latihan keseimbangan", "Fokus fleksibilitas", "Progres aman"],
