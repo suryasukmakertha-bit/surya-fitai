@@ -55,6 +55,7 @@ const translations = {
     bulkingBenefits: ["Muscle hypertrophy", "Progressive overload", "High protein meals", "Recovery optimization"],
     bulkingGoal: "Build muscle mass",
     cuttingTitle: "Cutting Program",
+    customTitle: "New Program",
     cuttingDesc: "Shed body fat while preserving muscle. Get defined and lean with strategic training and nutrition.",
     cuttingBenefits: ["Fat loss focus", "Maintain muscle", "Calorie deficit meals", "HIIT integration"],
     cuttingGoal: "Lose fat and get lean",
