@@ -25,7 +25,7 @@ export default function BottomNav() {
 
   const items = [
     { key: "home",   path: "/",            icon: Home,       label: t("Home", "Home", "首页") },
-    { key: "prog",   path: "/programs",    icon: Dumbbell,   label: t("Program", "Program", "计划") },
+    { key: "prog",   path: "/program/custom",    icon: Dumbbell,   label: t("Program", "Program", "计划") },
     { key: "saved",  path: "/saved-plans", icon: FolderOpen, label: t("Rencana", "Plans", "我的") },
     { key: "profile",path: "/profile",     icon: User,       label: t("Profil", "Profile", "我") },
   ];

@@ -138,7 +138,7 @@ export default function AppHeader() {
               <div className="flex items-center gap-1 lg:gap-3 mr-2">
                 {[
                   { key: "home", path: "/", label: t.home || (lang === "id" ? "Home" : lang === "zh" ? "主页" : "Home") },
-                  { key: "program", path: "/programs", label: lang === "id" ? "Program" : lang === "zh" ? "计划" : "Program" },
+                  { key: "program", path: "/program/custom", label: lang === "id" ? "Program" : lang === "zh" ? "计划" : "Program" },
                   { key: "plans", path: "/saved-plans", label: lang === "id" ? "Rencana" : lang === "zh" ? "我的计划" : "Plans", guard: () => guardSavedPlans() },
                   { key: "profile", path: "/profile", label: lang === "id" ? "Profil" : lang === "zh" ? "个人" : "Profile" },
                 ].map((item) => {
