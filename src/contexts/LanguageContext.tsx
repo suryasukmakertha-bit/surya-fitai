@@ -1360,6 +1360,7 @@ const translations = {
     cuttingDesc: "减少体脂同时保持肌肉。通过战略性训练和营养变得精瘦。",
     cuttingBenefits: ["聚焦减脂", "保持肌肉", "热量赤字饮食", "HIIT整合"],
     cuttingGoal: "减脂变精瘦",
+    customTitle: "新计划",
     seniorTitle: "老年健身",
     seniorDesc: "为老年人设计的安全、适应性锻炼。专注于活动能力、平衡和功能性力量。",
     seniorBenefits: ["关节友好练习", "平衡训练", "柔韧性重点", "安全进阶"],
