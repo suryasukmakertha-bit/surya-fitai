@@ -798,7 +798,7 @@ export default function Results() {
 
   const handleStartFreshProgram = () => {
     setShowCompletionModal(false);
-    navigate("/programs");
+    navigate("/program/custom");
   };
 
   // Week computation (must be before early return for hooks rules)
@@ -1110,7 +1110,7 @@ export default function Results() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">{t.noPlanData}</p>
-          <button onClick={() => navigate("/programs")} className="text-primary hover:underline">{t.goBackPrograms}</button>
+          <button onClick={() => navigate("/program/custom")} className="text-primary hover:underline">{t.goBackPrograms}</button>
         </div>
       </div>
     );
