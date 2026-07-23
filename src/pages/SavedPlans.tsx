@@ -154,7 +154,7 @@ export default function SavedPlans() {
       toast({ title: planLimitToastMsg, duration: 3000 });
       return;
     }
-    navigate("/programs");
+    navigate("/program/custom");
   };
 
   // Most recent plan id by GREATEST(updated_at, created_at)
@@ -225,7 +225,7 @@ export default function SavedPlans() {
         {plans.length === 0 ? (
           <div className="card-gradient rounded-lg p-8 border border-border/50 text-center">
             <p className="text-muted-foreground mb-4">{t.noSavedPlans}</p>
-            <Button onClick={() => navigate("/programs")}>{t.generateFirst}</Button>
+            <Button onClick={() => navigate("/program/custom")}>{t.generateFirst}</Button>
           </div>
         ) : (
           <div className="space-y-3">
