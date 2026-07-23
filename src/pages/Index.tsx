@@ -620,9 +620,9 @@ export default function Index() {
 
   const handleStartProgram = () => {
     if (user) {
-      navigate("/programs");
+      navigate("/program/custom");
     } else {
-      navigate("/auth", { state: { redirectTo: "/programs" } });
+      navigate("/auth", { state: { redirectTo: "/program/custom" } });
     }
   };
 
@@ -656,9 +656,9 @@ export default function Index() {
       <div className="min-h-screen page-bg noise-overlay">
         <AppHeader />
         <LoggedInDashboard
-          onGenerate={() => navigate("/programs")}
+          onGenerate={() => navigate("/program/custom")}
           onOpenPlans={() => navigate("/saved-plans")}
-          onOpenPrograms={() => navigate("/programs")}
+          onOpenPrograms={() => navigate("/program/custom")}
           onOpenPlan={(planId, plan) => {
             navigate("/results", {
               state: {

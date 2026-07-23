@@ -6,7 +6,6 @@ const translations = {
   en: {
     // Common
     back: "Back",
-    backToPrograms: "Back to Programs",
     home: "Home",
 
     // Nav
@@ -157,7 +156,7 @@ const translations = {
     weeklySchedule: "Weekly Schedule Overview",
     estimatedCalories: "Estimated {count} calories burned per session",
     noPlanData: "No plan data found.",
-    goBackPrograms: "Go back to programs",
+    goBackPrograms: "Start a new plan",
     rest: "rest",
     done: "done",
     progressTab: "Progress",
@@ -662,7 +661,6 @@ const translations = {
   id: {
     // Common
     back: "Kembali",
-    backToPrograms: "Kembali ke Program",
     home: "Beranda",
 
     // Nav
@@ -813,7 +811,7 @@ const translations = {
     weeklySchedule: "Jadwal Mingguan",
     estimatedCalories: "Estimasi {count} kalori terbakar per sesi",
     noPlanData: "Data rencana tidak ditemukan.",
-    goBackPrograms: "Kembali ke program",
+    goBackPrograms: "Mulai rencana baru",
     rest: "istirahat",
     done: "selesai",
     progressTab: "Progres",
@@ -1309,7 +1307,6 @@ const translations = {
   zh: {
     // Common
     back: "返回",
-    backToPrograms: "返回项目",
     home: "首页",
 
     // Nav
@@ -1460,7 +1457,7 @@ const translations = {
     weeklySchedule: "每周时间表",
     estimatedCalories: "预计每次训练燃烧 {count} 卡路里",
     noPlanData: "未找到计划数据。",
-    goBackPrograms: "返回项目",
+    goBackPrograms: "开始新计划",
     rest: "休息",
     done: "完成",
     progressTab: "进度",
