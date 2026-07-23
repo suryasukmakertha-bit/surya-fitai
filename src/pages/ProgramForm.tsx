@@ -142,7 +142,7 @@ export default function ProgramForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.age || !form.gender || !form.weight || !form.height || !startDate || !form.foodStyle) {
+    if (!form.name || !form.age || !form.gender || !form.weight || !form.height || !startDate || !form.foodStyle || !form.goal) {
       toast({ title: t.fillRequired, variant: "destructive" });
       return;
     }
