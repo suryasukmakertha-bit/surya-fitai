@@ -13,7 +13,6 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Loader2, CalendarIcon, HelpCircle, Activity, Flame, Beef, Wheat, Droplet } from "lucide-react";
-import { programs } from "@/components/ProgramCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -56,19 +55,6 @@ const LIMITATION_OPTIONS = [
   { token: "none",       labelKey: "limNone" },
 ] as const;
 
-// Maps Programs-page route param (programType) to the canonical 5-value
-// Fitness Goal enum expected by computeAll/calculateMacros. Mirrors the
-// edge function normalizeGoal programType fallback. Preview widget only.
-function programTypeToGoal(type: string | undefined): string {
-  switch (type) {
-    case "bulking": return "Hypertrophy";
-    case "cutting": return "Fat Loss";
-    case "beginner":
-    case "senior":
-    default: return "General Fitness";
-  }
-}
-
 // Maps the user-facing single-select equipment value to the engine
 // equipment array consumed by the AI prompt in `generate-plan`.
 const EQUIPMENT_ENGINE_MAP: Record<string, string[]> = {
@@ -102,7 +88,6 @@ export default function ProgramForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, lang } = useLanguage();
-  const program = programs.find((p) => p.id === type);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -112,7 +97,7 @@ export default function ProgramForm() {
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
 
   const titleKey = `${type}Title` as keyof typeof t;
-  const programTitle = (t[titleKey] as string) || program?.title || "Program";
+  const programTitle = (t[titleKey] as string) || "New Program";
 
   const [form, setForm] = useState({
     name: "",
@@ -121,11 +106,9 @@ export default function ProgramForm() {
     weight: "",
     height: "",
     // Fitness Goal is a canonical 5-value token (Hypertrophy | Strength |
-    // Fat Loss | Body Recomposition | General Fitness) — the initial value
-    // is a sensible default derived from the Programs-page route param,
-    // but the user can freely change it via the Select below. No
-    // language-sync effect exists — only the display label is localized.
-    goal: programTypeToGoal(type),
+    // Fat Loss | Body Recomposition | General Fitness). Empty default forces
+    // the user to make an explicit selection via the required Goal Select.
+    goal: "",
     // Duration is now hardcoded to 1 month — selector removed from UI.
     // Plans are 4 weeks; users continue to month 2/3/etc via the completion modal.
     duration: "1 Month",
