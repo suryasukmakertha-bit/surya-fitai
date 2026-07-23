@@ -353,7 +353,7 @@ export default function ProgramForm() {
             <div className="space-y-2">
               <Label>{t.fitnessGoal}</Label>
               <Select value={form.goal} onValueChange={(v) => set("goal", v)}>
-                <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder={(t as any).selectGoalPlaceholder ?? "Select a goal"} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Hypertrophy">{(t as any).goalHypertrophy}</SelectItem>
                   <SelectItem value="Strength">{(t as any).goalStrength}</SelectItem>
