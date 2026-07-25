@@ -1,106 +1,165 @@
-# Pre-Publish Readiness Report
+# Diagnostic Report — Read-Only
 
-Plan mode restricts stateful commands. Part 1 is complete (pure reads); Part 2 requires running Playwright, which submits the form and triggers a real `generate-plan` invocation + DB write — that's stateful, so I'm listing exactly what I'll run once you approve.
+No code changes. Evidence only.
 
 ---
 
-## PART 1 — Test-Only Export Block Audit (complete, evidence below)
+## PART 1 — EXERCISE_POOL / name field audit
 
-### 1. Where the "exports" live now
+### 1. Type + sample entries (`supabase/functions/generate-plan/index.ts`)
 
-Two locations:
-
-**A. `supabase/functions/generate-plan/index.ts`** — `export` keyword prefixed on top-level declarations (13 sites):
-
-```
-127: export function calculateMacros(tdee, weight, goal, _programType?)
-207: export const EXERCISE_POOL: ExerciseDef[]
-282: export function pickSessionOrder(days, exp)
-697: export function generateWorkout(input)
-785: export function normalizeGoal(raw, programType)
-849: export const MEAL_FOOD_DB
-988: export const MEAL_DIST
-994: export const MEAL_TIMES_NORMAL
-1000: export const MEAL_TIMES_IF
-1007: export const MEAL_NAME_KEYS
-1016: export const MEAL_NAME_KEYS_IF
-1028: export function pickQty(...)
-1042: export function pickRotated(...)
-1055: export function buildMealPlan(...)
-```
-
-These are inline `export` prefixes on declarations, not a trailing test-only block. The trailing block referenced in earlier prompts was moved into a sibling file per an earlier turn.
-
-**B. `supabase/functions/generate-plan/_exports.ts`** — full file (20 lines), pure re-exports:
+Interface (lines ~195–205):
 
 ```ts
-// Test-harness re-exports. Not imported by index.ts and therefore has zero
-// effect on the deployed edge function runtime (serve() in index.ts is the
-// only entrypoint invoked by Supabase). Kept as a sibling so the production
-// entry file has no test-scaffolding residue.
-export { generateWorkout, buildMealPlan, EXERCISE_POOL, pickSessionOrder,
-  MEAL_FOOD_DB, MEAL_DIST, MEAL_TIMES_NORMAL, MEAL_TIMES_IF,
-  MEAL_NAME_KEYS, MEAL_NAME_KEYS_IF, pickQty, pickRotated,
-  normalizeGoal, calculateMacros } from "./index.ts";
+interface ExerciseDef {
+  name: string;
+  muscle: WMuscle;
+  equipment: WEquipment;
+  difficulty: WDifficulty;
+  isCompound: boolean;
+  excludedBy: WLimitation[];
+}
 ```
 
-### 2. Reachability — grep evidence
+There is **only one naming field: `name` (plain string)**. No `nameKey`, no `id`, no `demoKey`.
 
-Repo-wide search for consumers of either the exports or the sibling file (`rg -n "from.*generate-plan|_exports" -g '!node_modules' .`):
+Sample entries (lines 209–212):
 
-- **No import statements found in any client (`src/**`) or other edge function (`supabase/functions/**`) referencing `generate-plan/index.ts`, `generate-plan/_exports.ts`, or any of the exported symbols.**
-- Only hits are documentation prose in `KNOWLEDGE.md` and a comment in `src/lib/fitnessCalculations.ts`.
-- The client calls the function via `supabase.functions.invoke("generate-plan", ...)` (HTTP), not via ESM import.
+```ts
+{ name: 'Barbell Bench Press',   muscle: 'chest',    equipment: 'gym', difficulty: 'intermediate', isCompound: true,  excludedBy: ['wrist'] },
+{ name: 'Lat Pulldown',          muscle: 'back',     equipment: 'gym', difficulty: 'beginner',     isCompound: true,  excludedBy: [] },
+{ name: 'Machine Shoulder Press',muscle: 'shoulder', equipment: 'gym', difficulty: 'beginner',     isCompound: true,  excludedBy: ['shoulder'] },
+```
 
-### 3. Request-path impact — trace of `serve()`
+### 2. Code path EXERCISE_POOL.name → response `exercises[].name`
 
-- `serve(async (req) => { ... })` at the bottom of `index.ts` is the sole Supabase entrypoint. Its body handles CORS, JWT parse, quota reservation, then `generateWorkout(...)` / `buildMealPlan(...)` (called by name — those functions would run whether or not they had the `export` keyword).
-- `_exports.ts` is **not** referenced from `index.ts`. Supabase's edge runtime loads only the deployed function's entry module (`index.ts`); sibling files not imported by it are never loaded on a request.
-- The `export` keyword in Deno/TS is a compile-time module-graph marker with **zero runtime side effect**. It doesn't add code, doesn't run at load, and doesn't alter `serve()` behavior.
+`generateWorkout()` (L697) → `selectSessionExercises()` returns `ExerciseDef[]` → `buildExerciseOutput(ex, …)` (L619) constructs:
 
-### 4. Classification
+```ts
+const base: ExerciseOutput = {
+  name: ex.name,          // ← literal English string copied verbatim
+  sets, reps, rest, tempo,
+  cues: isCardio ? 'Steady breathing, controlled cadence.' :
+        compound ? 'Brace core, controlled eccentric, full range of motion.' :
+                   'Slow controlled tempo, squeeze target muscle at peak.',
+  …
+};
+```
 
-**(a) Fully inert dead code — from the deployed function's runtime perspective.**
+No key renaming, no flattening — `ex.name` is a literal English string in the pool and is written straight into the response object.
 
-- `_exports.ts`: not imported by `index.ts` → not loaded at request time → cannot affect real traffic.
-- Inline `export` keywords in `index.ts`: metadata only → zero effect on the executed code path.
+### 3. Frontend consumer (`src/pages/Results.tsx`)
 
-The block is safe to leave for the Deno test harness. No removal needed for correctness or safety; only a cosmetic concern if you want the production file with zero test scaffolding (already addressed by the earlier move to `_exports.ts`).
+Workout list render (L1495):
+
+```tsx
+<span className="text-foreground font-medium">{ex.name}</span>
+```
+
+Coaching cue render (L1501–1502):
+
+```tsx
+{ex.cues && (
+  <p className="…"><Lightbulb className="w-3 h-3" /> {ex.cues}</p>
+)}
+```
+
+Both rendered **raw**. No `t(...)`, no `tKey(...)`, no translation lookup.
+
+### 4. Contrast — meal render pipeline (same file)
+
+Meal helpers (L335–345):
+
+```ts
+const resolveFoodLine = (raw: string): string => {
+  const parts = raw.split(" · ");
+  if (!parts.length || !parts[0].startsWith("food.")) return raw;
+  const name = tKey(parts[0]);
+  return [name, ...parts.slice(1)].join(" · ");
+};
+const resolveMealName = (raw: string): string =>
+  raw && raw.startsWith("meal.") ? tKey(raw) : raw;
+```
+
+Meal strings are emitted by the engine as i18n keys (`food.dada_ayam_panggang`, `meal.breakfast`) and resolved through `tKey()` at render. Workout strings are not — no matching helper exists for exercise names/cues.
+
+### 5. Coaching cues, warm-up/cool-down, weekly-split labels
+
+All four are literal English strings baked into the engine.
+
+- **Cues** — L634–636 (see snippet above): three fixed English sentences.
+- **warmUp** — L710:
+  ```ts
+  const warmUp = equipment === 'gym'
+    ? '5-7 min: (1) 5 min light cardio (treadmill/bike/marching); (2) Arm circles 10x each direction; …'
+    : '5-7 min: (1) Marching/light jumping jacks 2-3 min; …';
+  ```
+  Rendered raw at Results.tsx L1450: `<p …>{plan.warmUp}</p>`.
+- **coolDown** — L714:
+  ```ts
+  const coolDown = '5 min: (1) Easy walk/march in place 1-2 min, breathing focus; (2) Static hamstring stretch 30s per leg; …';
+  ```
+  Rendered raw at Results.tsx L1524.
+- **weeklySplit** — L689:
+  ```ts
+  const weeklySplit: string[] = sessionOrder.map((s, i) => `Day ${i + 1}: ${sessionLabel(s)}`);
+  ```
+  where `sessionLabel()` returns `'Full Body A'`, `'Upper Body A'`, `'Push'`, etc. (L320–330). Rendered raw at L1460 (`plan.weeklySplit.map((split, i) => …)`), no `t()`.
+- **weekly_schedule** — L695–702: `${dayNames[d]}: ${sessionLabel(...)}` with `dayNames = ['Mon','Tue',…]`. Rendered raw at L1628.
+- **day label** — `formatDayLabel()` L668:
+  ```ts
+  const weekday = ['Sunday','Monday',…][d.getDay()];
+  return `Week ${week} - ${weekday}, ${iso}`;
+  ```
+  Also English literal.
+
+Zero translation call sites for any of these fields anywhere in `src/`.
+
+### 6. Genuine gap or intended?
+
+**Genuine gap for exercise names.** The prior meal-engine turns established `{key, params}` / `food.*` / `meal.*` as the locked i18n mechanism, and that pattern was applied to the meal engine only. The workout engine was never converted — `EXERCISE_POOL` has no `nameKey` field and no i18n helper exists for it.
+
+Regarding written spec: no verbatim requirement was located in the repo — searches over `KNOWLEDGE.md` and any `WORKOUT_TEMPLATE_LOGIC.md` are not surfaced in the file list provided. **Unconfirmed** whether spec explicitly mandated i18n keys for exercise names; only the meal-side spec was executed via that mechanism. Coaching cues, warm-up, cool-down, weekly-split labels are English literals by current implementation and no prior turn is recorded as converting them.
 
 ---
 
-## PART 2 — End-to-End Smoke Test (proposed execution)
+## PART 2 — Tab re-test with unlocked account: blocker
 
-I have not run this yet because it triggers a live `generate-plan` call and a `saved_plans` DB write (stateful, disallowed in plan mode). On approval, I will execute the following in one Playwright script and paste raw output:
+### Subscriptions inventory (raw query result, today = 2026-07-25)
 
-### Steps
+```
+email                              | status | trial_end / sub_end        | plans
+adiputra.ap353@gmail.com           | trial  | 2026-05-26 (expired)       | 1
+projectwebappsurya@gmail.com       | trial  | 2026-05-12 (expired)       | 2
+suryadmnstrs@gmail.com             | active | sub_end 2026-04-30 (expired)| 2
+riskyjul34@gmail.com               | trial  | 2026-04-21 (expired)       | 1
+surya.sukmakertha@gmail.com        | trial  | 2026-04-03 (expired)       | 3
+```
 
-1. Restore injected Supabase session, navigate to `/program/custom`.
-2. Fill: name=SmokeTest, age=30, male, 70kg, 175cm, Hypertrophy, Intermediate, 4 days, 8k steps, Omnivore, Asian, 3 meals/day, start=today, equipment=full-gym.
-3. Submit, capture:
-   - Any console errors during generation
-   - The `generate-plan` response — **top-level keys only** (e.g. `workout_plan`, `meal_plan`, `grocery_list`, `calorie_target`, `protein`, `carbs`, `fat`, `weekly_schedule`, `safety_notes`, `warnings`, `progressionRules`, `deloadWeek`, `recoveryTips`, `motivational_message`, `weight_projection`, `estimated_calories_burned`, `water_liters`)
-4. On `/results`, click each of the 5 tabs (Workout / Meals / Grocery / Info / Progress) and screenshot + inspect DOM text for:
-   - **Workout tab**: any string starting with `exercise.` (raw key leakage), presence of sets/reps/RIR text, "Deload Week" / "Progress Projection" sections.
-   - **Meals tab**: any string starting with `food.` or `meal.` (raw key leakage), macro numbers.
-   - **Grocery tab**: item count, sample items, any raw `food.` keys.
-   - **Info tab**: enumerate what section headings actually render (Warnings, Recovery Tips, Progression Rules, Deload Week, Safety Notes — report actual DOM, don't assume).
-   - **Progress tab**: load without error, screenshot.
-5. Switch language → Indonesian; reload `/results`; re-check Workout + Meals tabs for translated exercise/food names vs. English fallback vs. raw keys.
-6. Repeat step 5 for Chinese (`zh`).
-7. Aggregate console error array across the whole run.
+**No account in the DB currently has an active trial or paid subscription.** Every row's `trial_end` / `subscription_end` is in the past.
 
-### Output format
+Exception path — `useSubscription.ts` L81:
 
-Raw values only:
-- `errors: []` arrays per language
-- top-level JSON keys as a list
-- per-tab: sample text extracted from DOM (first 3-5 items)
-- screenshots viewed with `code--view` and referenced by path
+```ts
+if (email?.toLowerCase() === SPECIAL_EMAIL.toLowerCase()) {
+  return { …, isUnlimited: true, isSubscriptionActive: true, … };
+}
+```
 
-### Notes / caveats
+`SPECIAL_EMAIL = 'surya.sukmakertha@gmail.com'` (L6) is hardcoded-unlimited regardless of subscription row. This user has 3 saved plans and would bypass all tab locks.
 
-- Test will create 1 real `saved_plans` row (identifiable by name `SmokeTest`), consuming 1 quota unit for the test user.
-- If language-switching requires a full page reload for i18n keys to re-render exercise/food strings (currently these are resolved via `tKey` in `Results.tsx` / `exportPdf.ts`), the test will reload after each switch.
+### Status of Part 2 tab inspection
 
-Approve to proceed.
+I did not execute Playwright in this turn because plan mode restricts stateful commands, and the injected-session identity in this sandbox is not verified against the SPECIAL_EMAIL account. Two viable paths, need your pick:
+
+**Option A — Use the SPECIAL_EMAIL account** (`surya.sukmakertha@gmail.com`). Purely read: load one of its 3 existing saved plans on `/results` and inspect each tab's DOM. No writes, no new plan generation. Requires confirming that the injected browser session in this sandbox belongs to this account (or accepting whichever account it belongs to and expecting Meals/Grocery/Info tabs to remain locked).
+
+**Option B — Temporarily extend a trial** on the injected-session account by updating `subscriptions.trial_end` to a future date. This is a stateful DB write, disallowed in plan mode; would need explicit approval.
+
+### Which do you want?
+
+- A: read-only tab DOM inspection under SPECIAL_EMAIL (only viable if that session is what's injected — I'll confirm on the first navigation)
+- B: approve a one-row trial extension so the currently-injected user unlocks tabs, then inspect and revert
+- C: skip Part 2 for now; the Part 1 findings are the actionable output
+
+Reply with A / B / C and I'll proceed accordingly.
