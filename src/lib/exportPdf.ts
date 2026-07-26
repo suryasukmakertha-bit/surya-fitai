@@ -113,6 +113,11 @@ export function exportPlanToPDF(
   };
   const resolveMealName = (raw: string): string =>
     raw && raw.startsWith("meal.") ? (tKey ? tKey(raw) : raw) : raw;
+  // Exercise names emitted by the engine are `exercise.*` i18n keys.
+  // Old saved plans still contain literal EN strings — pass those through
+  // unchanged so the PDF never renders raw keys.
+  const resolveExerciseName = (raw: string): string =>
+    raw && raw.startsWith("exercise.") ? (tKey ? tKey(raw) : raw) : raw;
   const doc = new jsPDF();
   let y = 28;
 
@@ -269,7 +274,7 @@ export function exportPlanToPDF(
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.setTextColor(...DARK);
-        doc.text(ex.name, ML + 2, y);
+        doc.text(resolveExerciseName(ex.name), ML + 2, y);
         y += 4.5;
 
         // Sets x Reps | Rest | Tempo
