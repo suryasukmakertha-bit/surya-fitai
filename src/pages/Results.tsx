@@ -340,6 +340,11 @@ export default function Results() {
   };
   const resolveMealName = (raw: string): string =>
     raw && raw.startsWith("meal.") ? tKey(raw) : raw;
+  // Exercise names emitted by the engine are `exercise.*` i18n keys.
+  // Old saved plans still contain literal EN strings — fall through
+  // to the raw value for backward compatibility.
+  const resolveExerciseName = (raw: string): string =>
+    raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
   const resolveTemplated = (
     v: string | { key: string; params?: Record<string, string | number> } | undefined,
   ): string => {
@@ -1492,7 +1497,7 @@ export default function Results() {
                       {day.exercises.map((ex, j) => (
                         <div key={j} className="bg-secondary/50 rounded-md px-4 py-3 text-sm space-y-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-foreground font-medium">{ex.name}</span>
+                            <span className="text-foreground font-medium">{resolveExerciseName(ex.name)}</span>
                             <span className="text-muted-foreground text-xs">
                               {ex.sets} × {ex.reps} · {ex.rest} {t.rest}
                               {ex.tempo && ` · ${(t as any).tempoLabel || "Tempo"}: ${ex.tempo}`}
