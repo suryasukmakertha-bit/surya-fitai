@@ -272,6 +272,62 @@ export const EXERCISE_POOL: ExerciseDef[] = [
   { name: 'Burpee',                   muscle: 'cardio',   equipment: 'bodyweight', difficulty: 'advanced',     isCompound: true,  excludedBy: ['lower_back','shoulder','wrist','ankle'] },
 ];
 
+// EXERCISE NAME → i18n key mapping. Keys already exist in
+// src/contexts/LanguageContext.tsx under `exercise.*` for EN/ID/ZH.
+// The engine emits keys so the client can resolve them via tKey().
+// Old saved_plans still contain the literal EN name and render via
+// the resolver's fallback path.
+export const EXERCISE_NAME_KEY: Record<string, string> = {
+  'Barbell Bench Press':          'exercise.barbell_bench_press',
+  'Incline Barbell Press':        'exercise.incline_barbell_press',
+  'Cable Crossover':              'exercise.cable_crossover',
+  'Lat Pulldown':                 'exercise.lat_pulldown',
+  'T-Bar Row':                    'exercise.t_bar_row',
+  'Face Pull':                    'exercise.face_pull',
+  'Barbell Upright Row':          'exercise.barbell_upright_row',
+  'Seated Dumbbell Press':        'exercise.seated_dumbbell_press',
+  'Lateral Raise (Dumbbell)':     'exercise.lateral_raise_dumbbell',
+  'Machine Shoulder Press':       'exercise.machine_shoulder_press',
+  'Barbell Curl':                 'exercise.barbell_curl',
+  'Dumbbell Curl':                'exercise.dumbbell_curl',
+  'Hammer Curl':                  'exercise.hammer_curl',
+  'Concentration Curl':           'exercise.concentration_curl',
+  'Tricep Pushdown (Cable)':      'exercise.tricep_pushdown_cable',
+  'Skull Crushers':               'exercise.skull_crushers',
+  'Box Squat':                    'exercise.box_squat',
+  'Bulgarian Split Squat':        'exercise.bulgarian_split_squat',
+  'Dumbbell Lunge':               'exercise.dumbbell_lunge',
+  'Romanian Deadlift (Dumbbell)': 'exercise.romanian_deadlift_dumbbell',
+  'Barbell Glute Bridge':         'exercise.barbell_glute_bridge',
+  'Glute Bridge':                 'exercise.glute_bridge',
+  'Standing Calf Raise':          'exercise.standing_calf_raise',
+  'Seated Calf Raise':            'exercise.seated_calf_raise',
+  'Forearm Plank':                'exercise.forearm_plank',
+  'Dead Bug':                     'exercise.dead_bug',
+  'Side Plank (Knee Version)':    'exercise.side_plank_knee',
+  'Push Up':                      'exercise.push_up',
+  'Incline Push Up':              'exercise.incline_push_up',
+  'Inverted Row':                 'exercise.inverted_row',
+  'Superman Hold':                'exercise.superman_hold',
+  'Bird Dog':                     'exercise.bird_dog',
+  'Bench Dip':                    'exercise.bench_dip',
+  'Close Grip Push Up':           'exercise.close_grip_push_up',
+  'Reverse Lunge':                'exercise.reverse_lunge',
+  'Wall Sit':                     'exercise.wall_sit',
+  'Single Leg Glute Bridge':      'exercise.single_leg_glute_bridge',
+  'Hollow Body Hold':             'exercise.hollow_body_hold',
+  'Bicycle Crunch':               'exercise.bicycle_crunch',
+  'Jumping Jack':                 'exercise.jumping_jack',
+  'High Knees':                   'exercise.high_knees',
+  'Mountain Climber':             'exercise.mountain_climber',
+  'Jump Squat':                   'exercise.jump_squat',
+  'Burpee':                       'exercise.burpee',
+};
+
+export function toExerciseKey(name: string): string {
+  return EXERCISE_NAME_KEY[name] ?? name;
+}
+
 // LAYER A — Split Selector
 type SessionType =
   | 'FB_A' | 'FB_B' | 'FB_C'
@@ -602,10 +658,13 @@ function extensionBaselineFor(exName: string, prevPlanData: any): { reps?: strin
   const wp: any[] = prevPlanData.workout_plan;
   // Group by week (7 entries each).
   const w3 = wp.slice(14, 21);
+  // Prev plans may store either the literal EN name (pre-i18n-key rollout)
+  // or the new `exercise.*` key. Match on either representation.
+  const keyForm = toExerciseKey(exName);
   const findEx = (week: any[]) => {
     for (const d of week) {
       if (!d?.exercises) continue;
-      const hit = d.exercises.find((e: any) => e.name === exName);
+      const hit = d.exercises.find((e: any) => e.name === exName || e.name === keyForm);
       if (hit) return hit;
     }
     return null;
@@ -634,7 +693,7 @@ function buildExerciseOutput(
   const baseIntensity = bodyweight ? 'Bodyweight' : (compound ? '~70%' : '~60%');
 
   const base: ExerciseOutput = {
-    name: ex.name,
+    name: toExerciseKey(ex.name),
     sets,
     reps,
     rest,
