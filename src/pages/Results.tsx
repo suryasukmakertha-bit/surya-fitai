@@ -340,6 +340,11 @@ export default function Results() {
   };
   const resolveMealName = (raw: string): string =>
     raw && raw.startsWith("meal.") ? tKey(raw) : raw;
+  // Exercise names emitted by the engine are `exercise.*` i18n keys.
+  // Old saved plans still contain literal EN strings — fall through
+  // to the raw value for backward compatibility.
+  const resolveExerciseName = (raw: string): string =>
+    raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
   const resolveTemplated = (
     v: string | { key: string; params?: Record<string, string | number> } | undefined,
   ): string => {
