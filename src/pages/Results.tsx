@@ -1497,7 +1497,7 @@ export default function Results() {
                       {day.exercises.map((ex, j) => (
                         <div key={j} className="bg-secondary/50 rounded-md px-4 py-3 text-sm space-y-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-foreground font-medium">{ex.name}</span>
+                            <span className="text-foreground font-medium">{resolveExerciseName(ex.name)}</span>
                             <span className="text-muted-foreground text-xs">
                               {ex.sets} × {ex.reps} · {ex.rest} {t.rest}
                               {ex.tempo && ` · ${(t as any).tempoLabel || "Tempo"}: ${ex.tempo}`}
