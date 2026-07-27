@@ -120,7 +120,13 @@ interface CompletionState {
 
 export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt, planMonthNumber }: WorkoutChecklistProps) {
   const { user } = useAuth();
-  const { t, lang } = useLanguage();
+  const { t, lang, tKey } = useLanguage();
+  // DISPLAY-ONLY resolver: exercise names now emit i18n keys (e.g.
+  // "exercise.barbell_bench_press"). All completion-tracking / matching
+  // code MUST keep using the raw ex.name string (buildKey, exercise_id,
+  // completedExercises arrays) so this helper is only used at render.
+  const resolveExerciseName = (raw: string): string =>
+    raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
   const { toast } = useToast();
   const [completionState, setCompletionState] = useState<CompletionState>({});
   const [loading, setLoading] = useState(true);
