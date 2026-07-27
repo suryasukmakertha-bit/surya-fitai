@@ -26,7 +26,9 @@ export default function DailyProgressImage({
   totalExercises,
   planMonthNumber = 1,
 }: DailyProgressImageProps) {
-  const { lang } = useLanguage();
+  const { lang, tKey } = useLanguage();
+  const resolveExerciseName = (raw: string): string =>
+    raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
 
   const completedList = exercises.filter((ex) => completedExercises.includes(ex.name));
 
@@ -41,8 +43,9 @@ export default function DailyProgressImage({
       totalExercises,
       planMonthNumber,
       lang,
+      resolveExerciseName,
     });
-  }, [dayLabel, exercises, completedExercises, totalExercises, planMonthNumber, lang]);
+  }, [dayLabel, exercises, completedExercises, totalExercises, planMonthNumber, lang, tKey]);
 
   if (completedList.length === 0) return null;
 

@@ -7,10 +7,15 @@ export function downloadDailyProgress(opts: {
   totalExercises: number;
   planMonthNumber?: number;
   lang: "en" | "id" | "zh";
+  /** DISPLAY-ONLY resolver for exercise names emitted as i18n keys.
+   *  Matching (completedExercises.includes) still uses raw names. */
+  resolveExerciseName?: (raw: string) => string;
 }) {
-  const { dayLabel, exercises, completedExercises, totalExercises, planMonthNumber = 1, lang } = opts;
+  const { dayLabel, exercises, completedExercises, totalExercises, planMonthNumber = 1, lang, resolveExerciseName } = opts;
   const completedList = exercises.filter((ex) => completedExercises.includes(ex.name));
-  const exerciseNames = completedList.map((e) => e.name);
+  const resolve = (n: string) =>
+    resolveExerciseName ? resolveExerciseName(n) : n;
+  const exerciseNames = completedList.map((e) => resolve(e.name));
 
   const formatDate = (label: string): string => {
     const dateMatch = label.match(/(\d{4}-\d{2}-\d{2})/);

@@ -3,7 +3,7 @@ import { playWorkoutComplete } from "@/utils/sounds";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage, resolveExerciseKeyToEnglish } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
@@ -120,7 +120,13 @@ interface CompletionState {
 
 export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, planStartedAt, planMonthNumber }: WorkoutChecklistProps) {
   const { user } = useAuth();
-  const { t, lang } = useLanguage();
+  const { t, lang, tKey } = useLanguage();
+  // DISPLAY-ONLY resolver: exercise names now emit i18n keys (e.g.
+  // "exercise.barbell_bench_press"). All completion-tracking / matching
+  // code MUST keep using the raw ex.name string (buildKey, exercise_id,
+  // completedExercises arrays) so this helper is only used at render.
+  const resolveExerciseName = (raw: string): string =>
+    raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
   const { toast } = useToast();
   const [completionState, setCompletionState] = useState<CompletionState>({});
   const [loading, setLoading] = useState(true);
@@ -136,7 +142,11 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
 
   // Preload all exercise demo images in background
   const allExerciseNames = useMemo(() => {
-    return workoutPlan?.flatMap(day => day.exercises.map(ex => ex.name)) || [];
+    // Preload uses exercise-gif-lookup which keys on literal English names,
+    // so resolve exercise.* keys to English before passing.
+    return workoutPlan?.flatMap(day =>
+      day.exercises.map(ex => resolveExerciseKeyToEnglish(ex.name))
+    ) || [];
   }, [workoutPlan]);
   usePreloadExerciseMedia(allExerciseNames);
 
@@ -364,7 +374,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                           onClick={(e) => e.stopPropagation()}
                         />
                         <span className={`text-foreground font-medium ${isDone ? "line-through" : ""}`}>
-                          {ex.name}
+                          {resolveExerciseName(ex.name)}
                         </span>
                       </div>
                       <ChevronRight
@@ -402,14 +412,14 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
           <div className="p-6 space-y-4">
             <div className="flex items-start justify-between">
               <DialogTitle className="text-xl font-display font-bold text-foreground pr-8">
-                {selectedExercise?.name}
+                {selectedExercise ? resolveExerciseName(selectedExercise.name) : ""}
               </DialogTitle>
             </div>
             <DialogDescription id="exercise-detail-desc" className="sr-only">Exercise technique details</DialogDescription>
 
             {/* Exercise GIF Demo */}
             {selectedExercise && (
-              <ExerciseGifPlayer exerciseName={selectedExercise.name} />
+              <ExerciseGifPlayer exerciseName={resolveExerciseKeyToEnglish(selectedExercise.name)} />
             )}
 
             {/* Sets × Reps • Rest • RIR */}
