@@ -3,7 +3,7 @@ import { playWorkoutComplete } from "@/utils/sounds";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage, resolveExerciseKeyToEnglish } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
