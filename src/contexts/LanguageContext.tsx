@@ -1971,6 +1971,24 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  // no-op marker
+  return LanguageProviderImpl({ children });
+}
+
+/**
+ * Resolve an `exercise.*` i18n key to its English literal, regardless of
+ * current UI language. Used by consumers that need the canonical English
+ * name for downstream lookups (e.g. exercise-gif-lookup which keys on
+ * literal English names like "Barbell Bench Press"). Falls through raw
+ * strings unchanged for legacy plans that stored literal names.
+ */
+export function resolveExerciseKeyToEnglish(raw: string): string {
+  if (!raw || !raw.startsWith("exercise.")) return raw;
+  const en = (translations.en as Record<string, unknown>)[raw];
+  return typeof en === "string" ? en : raw;
+}
+
+function LanguageProviderImpl({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(() => {
     const saved = localStorage.getItem("fitai-lang");
     if (saved === "id" || saved === "en" || saved === "zh") return saved;
