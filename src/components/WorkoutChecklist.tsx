@@ -142,7 +142,11 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
 
   // Preload all exercise demo images in background
   const allExerciseNames = useMemo(() => {
-    return workoutPlan?.flatMap(day => day.exercises.map(ex => ex.name)) || [];
+    // Preload uses exercise-gif-lookup which keys on literal English names,
+    // so resolve exercise.* keys to English before passing.
+    return workoutPlan?.flatMap(day =>
+      day.exercises.map(ex => resolveExerciseKeyToEnglish(ex.name))
+    ) || [];
   }, [workoutPlan]);
   usePreloadExerciseMedia(allExerciseNames);
 
