@@ -370,7 +370,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                           onClick={(e) => e.stopPropagation()}
                         />
                         <span className={`text-foreground font-medium ${isDone ? "line-through" : ""}`}>
-                          {ex.name}
+                          {resolveExerciseName(ex.name)}
                         </span>
                       </div>
                       <ChevronRight
@@ -408,14 +408,14 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
           <div className="p-6 space-y-4">
             <div className="flex items-start justify-between">
               <DialogTitle className="text-xl font-display font-bold text-foreground pr-8">
-                {selectedExercise?.name}
+                {selectedExercise ? resolveExerciseName(selectedExercise.name) : ""}
               </DialogTitle>
             </div>
             <DialogDescription id="exercise-detail-desc" className="sr-only">Exercise technique details</DialogDescription>
 
             {/* Exercise GIF Demo */}
             {selectedExercise && (
-              <ExerciseGifPlayer exerciseName={selectedExercise.name} />
+              <ExerciseGifPlayer exerciseName={resolveExerciseKeyToEnglish(selectedExercise.name)} />
             )}
 
             {/* Sets × Reps • Rest • RIR */}
