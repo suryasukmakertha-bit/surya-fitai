@@ -37,8 +37,10 @@ export default function DailyCelebrationPopup({
   planMonthNumber = 1,
   dayNumber,
 }: DailyCelebrationPopupProps) {
-  const { lang } = useLanguage();
+  const { lang, tKey } = useLanguage();
   const s = STR[lang] || STR.en;
+  const resolveExerciseName = (raw: string): string =>
+    raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
 
   const totalSets = useMemo(() => {
     return exercises.reduce((sum, ex) => {
@@ -48,7 +50,7 @@ export default function DailyCelebrationPopup({
   }, [exercises]);
 
   const handleDownload = () => {
-    downloadDailyProgress({ dayLabel, exercises, completedExercises, totalExercises, planMonthNumber, lang });
+    downloadDailyProgress({ dayLabel, exercises, completedExercises, totalExercises, planMonthNumber, lang, resolveExerciseName });
     onClose();
   };
 
