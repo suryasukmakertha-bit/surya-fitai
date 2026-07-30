@@ -1371,32 +1371,6 @@ export default function Results() {
                 {access.isFreeTier && !access.isUnlimited && <Lock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />}
               </span>
             </TabsTrigger>
-            <TabsTrigger
-              data-tour="tab-grocery"
-              value="grocery"
-              className="whitespace-nowrap"
-              onPointerDown={(e) => {
-                if (access.isFreeTier && !access.isUnlimited) { e.preventDefault(); e.stopPropagation(); openPopup('locked_tab' as any); }
-              }}
-            >
-              <span className="inline-flex items-center gap-1">
-                {t.groceryList}
-                {access.isFreeTier && !access.isUnlimited && <Lock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              data-tour="tab-info"
-              value="info"
-              className="whitespace-nowrap"
-              onPointerDown={(e) => {
-                if (access.isFreeTier && !access.isUnlimited) { e.preventDefault(); e.stopPropagation(); openPopup('locked_tab' as any); }
-              }}
-            >
-              <span className="inline-flex items-center gap-1">
-                {t.infoSafety}
-                {access.isFreeTier && !access.isUnlimited && <Lock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />}
-              </span>
-            </TabsTrigger>
             {planId && user && (
               <TabsTrigger
                 data-tour="tab-progress"
