@@ -1511,6 +1511,65 @@ export default function Results() {
                 {t.estimatedCalories.replace("{count}", String(plan.estimated_calories_burned))}
               </div>
             )}
+
+            {/* Deload Week (relocated from Info & Safety) */}
+            {plan.deloadWeek && (
+              <div className="card-gradient rounded-lg p-5 border border-border/50">
+                <h3 className="font-display font-bold text-foreground mb-2">{(t as any).deloadWeekLabel || "Deload Week"}</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.deloadWeek}</p>
+              </div>
+            )}
+
+            {/* Progress Projection (relocated from Info & Safety) */}
+            {plan.weight_projection && (
+              <div className="card-gradient rounded-lg p-5 border border-border/50">
+                <h3 className="font-display font-bold text-foreground mb-2">{t.progressProjection}</h3>
+                <p className="text-sm text-muted-foreground">{resolveTemplated(plan.weight_projection)}</p>
+              </div>
+            )}
+
+            {/* Program Details — collapsible (Safety Notes + Weekly Schedule) */}
+            {(plan.safety_notes?.length > 0 || plan.weekly_schedule?.length > 0) && (
+              <Collapsible>
+                <div className="card-gradient rounded-lg border border-border/50 overflow-hidden">
+                  <CollapsibleTrigger className="w-full flex items-center justify-between p-5 group">
+                    <span className="inline-flex items-center gap-2 font-display font-bold text-foreground">
+                      <Shield className="w-4 h-4 text-primary" />
+                      {(t as any).programDetailsLabel || "Program Details"}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-5 pb-5 space-y-5">
+                      {plan.safety_notes?.length > 0 && (
+                        <div>
+                          <h4 className="font-display font-bold text-foreground mb-3">{t.safetyNotes}</h4>
+                          <ul className="space-y-2">
+                            {plan.safety_notes.map((note, i) => (
+                              <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                                <span className="text-primary mt-1">⚠</span> {note}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {plan.weekly_schedule?.length > 0 && (
+                        <div>
+                          <h4 className="font-display font-bold text-foreground mb-3">{t.weeklySchedule}</h4>
+                          <div className="grid grid-cols-7 gap-2">
+                            {plan.weekly_schedule.map((day, i) => (
+                              <div key={i} className="bg-secondary/50 rounded-md p-2 text-center text-xs text-muted-foreground">
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            )}
           </TabsContent>
 
           <TabsContent value="meals" className="space-y-4">
