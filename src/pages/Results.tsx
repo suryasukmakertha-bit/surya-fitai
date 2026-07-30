@@ -1589,88 +1589,29 @@ export default function Results() {
                 </ul>
               </div>
             ))}
-          </TabsContent>
 
-          <TabsContent value="grocery">
-            <div className="card-gradient rounded-lg p-5 border border-border/50">
-              <div className="flex items-center gap-2 mb-4">
-                <ShoppingCart className="w-5 h-5 text-primary" />
-                <h3 className="font-display font-bold text-foreground">{t.weeklyGrocery}</h3>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {plan.grocery_list?.map((item, i) => (
-                  <div key={i} className="bg-secondary/50 rounded-md px-3 py-2 text-sm text-foreground">
-                    {resolveFoodLine(item)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="info" className="space-y-4">
-            {/* Warnings */}
-            {plan.warnings && plan.warnings.length > 0 && (
-              <div className="card-gradient rounded-lg p-5 border border-destructive/30">
-                <h3 className="font-display font-bold text-destructive mb-3 flex items-center gap-2">
-                  <Shield className="w-4 h-4" /> {(t as any).warningsLabel || "Warnings"}
-                </h3>
-                <ul className="space-y-2">
-                  {plan.warnings.map((w, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                      <span className="text-destructive mt-0.5">⚠</span> {w}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Recovery Tips */}
-            {plan.recoveryTips && (
-              <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-primary" /> {(t as any).recoveryTipsLabel || "Recovery Tips"}
-                </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.recoveryTips}</p>
-              </div>
-            )}
-
-            {/* Deload Week */}
-            {plan.deloadWeek && (
-              <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-2">{(t as any).deloadWeekLabel || "Deload Week"}</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.deloadWeek}</p>
-              </div>
-            )}
-
-            {plan.weight_projection && (
-              <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-2">{t.progressProjection}</h3>
-                <p className="text-sm text-muted-foreground">{resolveTemplated(plan.weight_projection)}</p>
-              </div>
-            )}
-            {plan.safety_notes?.length > 0 && (
-              <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-3">{t.safetyNotes}</h3>
-                <ul className="space-y-2">
-                  {plan.safety_notes.map((note, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                      <span className="text-primary mt-1">⚠</span> {note}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {plan.weekly_schedule?.length > 0 && (
-              <div className="card-gradient rounded-lg p-5 border border-border/50">
-                <h3 className="font-display font-bold text-foreground mb-3">{t.weeklySchedule}</h3>
-                <div className="grid grid-cols-7 gap-2">
-                  {plan.weekly_schedule.map((day, i) => (
-                    <div key={i} className="bg-secondary/50 rounded-md p-2 text-center text-xs text-muted-foreground">
-                      {day}
+            {/* Grocery List — collapsible (relocated from its own tab) */}
+            {plan.grocery_list?.length > 0 && (
+              <Collapsible>
+                <div className="card-gradient rounded-lg border border-border/50 overflow-hidden">
+                  <CollapsibleTrigger className="w-full flex items-center justify-between p-5 group">
+                    <span className="inline-flex items-center gap-2 font-display font-bold text-foreground">
+                      <ShoppingCart className="w-5 h-5 text-primary" />
+                      {t.weeklyGrocery}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-5 pb-5 grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {plan.grocery_list.map((item, i) => (
+                        <div key={i} className="bg-secondary/50 rounded-md px-3 py-2 text-sm text-foreground">
+                          {resolveFoodLine(item)}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </CollapsibleContent>
                 </div>
-              </div>
+              </Collapsible>
             )}
           </TabsContent>
 
