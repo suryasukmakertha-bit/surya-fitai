@@ -1313,22 +1313,6 @@ export default function Results() {
           </div>
         )}
 
-        {plan.estimatedSessionTimeMinutes && (
-          <>
-            <p className="text-muted-foreground text-xs mb-1.5 px-1">
-              {(t as any).coachCalibration}
-            </p>
-            <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
-              <Clock className="w-6 h-6 text-primary shrink-0" />
-              <p className="text-foreground font-semibold text-sm md:text-base">
-                {(t as any).sessionTimeBanner
-                  ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
-                  : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
-              </p>
-            </div>
-          </>
-        )}
-
         {/* Program Overview */}
         {plan.programOverview && (
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
@@ -1343,7 +1327,7 @@ export default function Results() {
                   <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
                 </div>
               </div>
-              <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+              <p className="text-foreground text-sm italic">{resolveProgramOverview(plan.programOverview)}</p>
             </div>
           </div>
         )}

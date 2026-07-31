@@ -34,7 +34,7 @@ interface MealPlan {
 type Templated = string | { key: string; params?: Record<string, string | number> };
 
 interface PlanData {
-  programOverview?: string;
+  programOverview?: Templated;
   warmUp?: string;
   coolDown?: string;
   weeklySplit?: string[];
@@ -223,11 +223,12 @@ export function exportPlanToPDF(
   }
 
   // Program Overview
-  if (plan.programOverview) {
+  const overviewText = resolveTemplated(plan.programOverview);
+  if (overviewText) {
     check(20);
     label("PROGRAM OVERVIEW", ML, y, 9);
     y += 5;
-    const lines = body(plan.programOverview, ML, y, PW, 8);
+    const lines = body(overviewText, ML, y, PW, 8);
     y += lines * 4 + 6;
   }
 
