@@ -337,7 +337,7 @@ const translations = {
     restDayTip: "Focus on mobility, nutrition, or light walks today.",
 
     // Enhanced Results
-    programOverviewTemplate: "A rule-based {days}-day {split}-anchored program tuned for {goal} at {level} level. Weeks 1-3 progress linearly; week 4 deloads to consolidate gains.",
+    programOverviewTemplate: "A rule-based {{days}}-day {{split}}-anchored program tuned for {{goal}} at {{level}} level. Weeks 1-3 progress linearly; week 4 deloads to consolidate gains.",
     warmUpLabel: "Warm-Up",
     coolDownLabel: "Cool-Down",
     weeklySplitLabel: "Weekly Split",
@@ -992,7 +992,7 @@ const translations = {
     restDayTip: "Fokus pada mobilitas, nutrisi, atau jalan santai hari ini.",
 
     // Enhanced Results
-    programOverviewTemplate: "Program berbasis aturan {days} hari per minggu dengan fokus utama {split}, disesuaikan untuk {goal} pada tingkat {level}. Minggu 1-3 naik secara bertahap; minggu 4 deload untuk mengonsolidasi hasil.",
+    programOverviewTemplate: "Program berbasis aturan {{days}} hari per minggu dengan fokus utama {{split}}, disesuaikan untuk {{goal}} pada tingkat {{level}}. Minggu 1-3 naik secara bertahap; minggu 4 deload untuk mengonsolidasi hasil.",
     warmUpLabel: "Pemanasan",
     coolDownLabel: "Pendinginan",
     weeklySplitLabel: "Pembagian Mingguan",
@@ -1638,7 +1638,7 @@ const translations = {
     restDayTip: "今天专注于灵活性训练、营养或轻松散步。",
 
     // Enhanced Results
-    programOverviewTemplate: "以规则为基础的每周 {days} 天训练计划，以 {split} 为核心，针对{goal}目标、{level}水平定制。第1-3周线性递进；第4周减负以巩固成果。",
+    programOverviewTemplate: "以规则为基础的每周 {{days}} 天训练计划，以 {{split}} 为核心，针对{{goal}}目标、{{level}}水平定制。第1-3周线性递进；第4周减负以巩固成果。",
     warmUpLabel: "热身",
     coolDownLabel: "拉伸放松",
     weeklySplitLabel: "每周安排",
