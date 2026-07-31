@@ -749,7 +749,7 @@ interface WorkoutEngineOutput {
   recoveryTips: string;
   safety_notes: string[];
   warnings: string[];
-  programOverview: string;
+  programOverview: { key: string; params: Record<string, string | number> };
   estimatedSessionTimeMinutes: number;
 }
 
@@ -823,7 +823,18 @@ export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput 
   }
   const warnings: string[] = [];
 
-  const programOverview = `A rule-based ${trainingDaysPerWeek}-day ${sessionLabel(sessionOrder[0])}-anchored program tuned for ${goal} at ${experience} level. Weeks 1-3 progress linearly; week 4 deloads to consolidate gains.`;
+  // Templated {key, params} so the client can localize the sentence.
+  // NOTE: `split` is intentionally passed through as the English split-type
+  // name — split names stay English in every language (locked decision).
+  const programOverview = {
+    key: 'programOverviewTemplate',
+    params: {
+      days: trainingDaysPerWeek,
+      split: sessionLabel(sessionOrder[0]),
+      goal,
+      level: experience,
+    },
+  };
 
   return {
     weeklySplit,
