@@ -57,7 +57,7 @@ interface MealPlan {
 
 interface PlanData {
   // New enhanced fields
-  programOverview?: string;
+  programOverview?: string | { key: string; params?: Record<string, string | number> };
   durationWeeks?: number;
   weeklySplit?: string[];
   estimatedSessionTimeMinutes?: number;
@@ -352,6 +352,32 @@ export default function Results() {
     if (!v) return "";
     if (typeof v === "string") return v;
     return tKey(v.key, v.params);
+  };
+  // Program overview: localize the goal/level tokens before interpolation.
+  // The `split` param stays English by design (split names are never translated).
+  const GOAL_KEY_MAP: Record<string, string> = {
+    "strength": "goalStrength",
+    "hypertrophy": "goalHypertrophy",
+    "fat loss": "goalFatLoss",
+    "body recomposition": "goalBodyRecomp",
+    "general fitness": "goalGeneralFitness",
+  };
+  const LEVEL_KEY_MAP: Record<string, string> = {
+    "beginner": "beginner",
+    "intermediate": "intermediate",
+    "advanced": "advanced",
+  };
+  const resolveProgramOverview = (
+    v: string | { key: string; params?: Record<string, string | number> } | undefined,
+  ): string => {
+    if (!v) return "";
+    if (typeof v === "string") return v; // legacy saved plans: literal EN string
+    const params = { ...(v.params || {}) };
+    const goalKey = GOAL_KEY_MAP[String(params.goal ?? "").toLowerCase()];
+    if (goalKey) params.goal = tKey(goalKey);
+    const levelKey = LEVEL_KEY_MAP[String(params.level ?? "").toLowerCase()];
+    if (levelKey) params.level = tKey(levelKey);
+    return tKey(v.key, params);
   };
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -1238,7 +1264,7 @@ export default function Results() {
         <div className="flex items-center justify-between mb-6">
           <div />
           <div className="flex items-center gap-2">
-            <Button onClick={() => exportPlanToPDF(plan, programType, userInfo?.name, tKey)} variant="secondary" size="sm">
+            <Button onClick={() => exportPlanToPDF({ ...plan, programOverview: resolveProgramOverview(plan.programOverview) }, programType, userInfo?.name, tKey)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
             <Button
@@ -1287,22 +1313,6 @@ export default function Results() {
           </div>
         )}
 
-        {plan.estimatedSessionTimeMinutes && (
-          <>
-            <p className="text-muted-foreground text-xs mb-1.5 px-1">
-              {(t as any).coachCalibration}
-            </p>
-            <div className="rounded-xl p-4 mb-8 bg-primary/10 border border-primary/30 flex items-center gap-3">
-              <Clock className="w-6 h-6 text-primary shrink-0" />
-              <p className="text-foreground font-semibold text-sm md:text-base">
-                {(t as any).sessionTimeBanner
-                  ? (t as any).sessionTimeBanner.replace("{minutes}", String(plan.estimatedSessionTimeMinutes))
-                  : `Session time matched: ${plan.estimatedSessionTimeMinutes} minutes (5 min warm-up + lifting + 5 min cool-down)`}
-              </p>
-            </div>
-          </>
-        )}
-
         {/* Program Overview */}
         {plan.programOverview && (
           <div className="neon-border rounded-lg p-4 mb-8 flex items-start gap-3">
@@ -1317,7 +1327,7 @@ export default function Results() {
                   <p className="text-muted-foreground/60 text-xs leading-none mt-0.5">{(t as any).coachCardSubtitle}</p>
                 </div>
               </div>
-              <p className="text-foreground text-sm italic">{plan.programOverview}</p>
+              <p className="text-foreground text-sm italic">{resolveProgramOverview(plan.programOverview)}</p>
             </div>
           </div>
         )}
