@@ -1,44 +1,73 @@
-## Goal
+# Results Header: Remove Calibration Card + Translate Program Overview
 
-Restructure the plan results screen from 5 tabs to 3: **Workout Plan / Meal Plan / Progress**. All changes are confined to `src/pages/Results.tsx` plus label strings in `src/contexts/LanguageContext.tsx`. No engine, PDF, PNG, subscription, or DB changes.
+Two independent fixes in the plan-overview area of the Results page.
 
-## Changes
+## Item 1 — Remove the "Coach's Program Calibration" card
 
-### 1. Tab list (`Results.tsx` 1357–1414)
-- Remove the `grocery` trigger (1373–1385) and the `info` trigger (1386–1398).
-- Keep `workout` (ungated), `meals` (gated), `progress` (gated, still wrapped in `planId && user`).
-- Keep the existing inline `onPointerDown` free-tier lock handler and `Lock` icon verbatim on `meals` and `progress` — same condition (`access.isFreeTier && !access.isUnlimited`), same `openPopup('locked_tab')`. Workout stays open.
-- Keep `data-tour="tab-workout" | "tab-meals" | "tab-progress"`; drop `tab-grocery` / `tab-info` (nothing consumes them).
+Delete the gear/clock card that says "Session time matched: 60 minutes (5 min warm-up + lifting + 5 min cool-down)".
 
-### 2. Meal Plan tab — Grocery List as collapsible
-- Move the grocery card body (current 1560–1574) to the end of `TabsContent value="meals"`, wrapped in a shadcn `Collapsible` (default collapsed) with a trigger row: `ShoppingCart` icon + `t.weeklyGrocery` + chevron.
-- Rendering logic unchanged: `plan.grocery_list?.map(...)` through `resolveFoodLine`, same 2/3-column grid. No new state beyond the collapsible's open flag.
-- Delete `TabsContent value="grocery"`.
+- Remove the JSX block at `src/pages/Results.tsx:1290-1304`.
+- Remove the now-orphaned i18n keys in `src/contexts/LanguageContext.tsx`:
+  - `coachCalibration` (EN L368, ID L1024, ZH L1671)
+  - `sessionTimeBanner` (EN L340, ID L996, ZH L1643)
+- Keep `plan.estimatedSessionTimeMinutes` in the data model untouched — it is still used by the PDF export (`src/lib/exportPdf.ts:200-204`) and written by the engine (`generate-plan/index.ts:840`).
+- Evidence that removal is safe: the block is a plain leaf fragment with no hooks, effects, state, or handlers; both keys have exactly one consumer each.
 
-### 3. Workout Plan tab — relocated content
-Appended after the existing Cool-Down / estimated-calories block (after 1538), preserving current markup and data fields:
-- **Deload Week** — `plan.deloadWeek`, heading `t.deloadWeekLabel` (always visible card).
-- **Progress Projection** — `plan.weight_projection` via `resolveTemplated`, heading `t.progressProjection` (always visible card).
-- **Collapsible group** (default collapsed) containing:
-  - Safety Notes — `plan.safety_notes[]`, heading `t.safetyNotes`
-  - Weekly Schedule Overview — `plan.weekly_schedule[]`, 7-column grid, heading `t.weeklySchedule`
-  - The collapsible only renders if at least one of the two arrays is non-empty.
+## Item 2 — Make the Coach Surya program overview translatable
 
-### 4. Info & Safety tab — deleted
-- Remove `TabsContent value="info"` (1576–1641) entirely after the moves above.
-- **Warnings** (`plan.warnings`) and **Recovery Tips** (`plan.recoveryTips`) are removed from the UI for good — no relocation.
-- Progression Rules stays where it already is (Progress tab, 1650–1663) — untouched.
+Today `programOverview` is a fully English server-composed string (`supabase/functions/generate-plan/index.ts:826`) rendered raw (`src/pages/Results.tsx:1320`), so it never translates.
 
-### 5. i18n (`LanguageContext.tsx`)
-- No new strings needed. Reused: `workoutPlan`, `mealPlan`, `progressTab`, `weeklyGrocery`, `deloadWeekLabel`, `progressProjection`, `safetyNotes`, `weeklySchedule` — all three languages already present.
-- One new key trio only if the Workout-tab collapsible needs its own header label (e.g. "Program Details" / "Detail Program" / "计划详情"); otherwise the collapsible is unlabeled and shows the two headings inside.
-- Leave `groceryList`, `infoSafety`, `warningsLabel`, `recoveryTipsLabel` in the dictionary (harmless, avoids touching unrelated consumers).
+Convert it to the existing `{key, params}` + `resolveTemplated()` pattern already used by `motivational_message` and `weight_projection`.
 
-## Explicitly not touched
-`generate-plan` edge function (still emits `warnings`, `recoveryTips`, `grocery_list`, `deloadWeek`, `weight_projection` unchanged), `exportPdf.ts` (PDF still prints Grocery List, Progression Rules, Deload Week, Recovery Tips), PNG share cards, `WorkoutChecklist`, `WorkoutProgressSummary`, `useSubscription.ts`, routes, completion tracking.
+### Locked rule: split-type names stay English
+
+New i18n keys cover ONLY the surrounding sentence template. The split-type name ("Upper Body A", "Push", "Full Body B", ...) is passed through as a plain English parameter and is NOT translated in any language. No `split.*` keys will be created.
+
+### Server change (`generate-plan/index.ts`)
+
+Emit an object instead of a string:
+
+```text
+programOverview = {
+  key: "programOverviewTemplate",
+  params: {
+    days:  trainingDaysPerWeek,           // number
+    split: sessionLabel(sessionOrder[0]), // English, passed through as-is
+    goal:  goal,                          // canonical token -> resolved client-side
+    level: experience                     // canonical token -> resolved client-side
+  }
+}
+```
+
+`goal` and `level` are sent as canonical tokens so the client can map them to existing localized labels.
+
+### Client change (`src/pages/Results.tsx`)
+
+- Render via `resolveTemplated(plan.programOverview)` (helper already exists at L349-355), keeping the existing string branch so old saved plans holding a literal English string still render unchanged.
+- Before resolving, map the `goal` and `level` params to localized labels using existing keys:
+  - goals: `goalStrength`, `goalHypertrophy`, `goalFatLoss`, `goalBodyRecomp`, `goalGeneralFitness`
+  - levels: `beginner`, `intermediate`, `advanced`
+- `src/lib/exportPdf.ts:226-230` also renders `programOverview` raw; it will be updated to accept the new object shape (resolved the same way) so PDF export never prints `[object Object]`.
+
+### New i18n key (EN / ID / ZH)
+
+One key, `programOverviewTemplate`, e.g. EN:
+`"A rule-based {days}-day {split}-anchored program tuned for {goal} at {level} level. Weeks 1-3 progress linearly; week 4 deloads to consolidate gains."`
+plus ID and ZH equivalents. `{split}` renders the English split name in all three languages by design.
+
+### Reused, not recreated
+
+- Goal labels: EN L79-83 / ID L735-739 / ZH L1382-1386
+- Experience labels: EN L86-88 / ID L742-744 / ZH L1389-1391
+- `deloadWeekLabel` is not reused — the deload phrasing lives inside the single template sentence.
+
+## Out of scope
+
+Workout engine logic, `estimatedSessionTimeMinutes` computation, split naming, tab structure, completion tracking, quota/subscription logic.
 
 ## Verification
-- Full build + typecheck.
-- Playwright with the fixture account (`surya.sukmakertha+apptest123@gmail.com`): confirm exactly 3 triggers, Grocery collapsible expands with resolved food names, Deload/Projection/Safety/Schedule render in the Workout tab, Progress tab still loads.
-- Confirm all three languages render translated tab labels and section headings.
-- Free-tier lock check: confirm Meal Plan and Progress still fire the locked popup and Workout does not.
+
+- Full build.
+- Playwright with the fixture account: open a plan, confirm the calibration card is gone, and confirm the Coach Surya paragraph changes across EN/ID/ZH while the split name stays English.
+- Confirm an old saved plan (literal-string `programOverview`) still renders.
+- Redeploy the edge function and confirm with a log timestamp.
