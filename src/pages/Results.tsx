@@ -57,7 +57,7 @@ interface MealPlan {
 
 interface PlanData {
   // New enhanced fields
-  programOverview?: string;
+  programOverview?: string | { key: string; params?: Record<string, string | number> };
   durationWeeks?: number;
   weeklySplit?: string[];
   estimatedSessionTimeMinutes?: number;
@@ -352,6 +352,32 @@ export default function Results() {
     if (!v) return "";
     if (typeof v === "string") return v;
     return tKey(v.key, v.params);
+  };
+  // Program overview: localize the goal/level tokens before interpolation.
+  // The `split` param stays English by design (split names are never translated).
+  const GOAL_KEY_MAP: Record<string, string> = {
+    "strength": "goalStrength",
+    "hypertrophy": "goalHypertrophy",
+    "fat loss": "goalFatLoss",
+    "body recomposition": "goalBodyRecomp",
+    "general fitness": "goalGeneralFitness",
+  };
+  const LEVEL_KEY_MAP: Record<string, string> = {
+    "beginner": "beginner",
+    "intermediate": "intermediate",
+    "advanced": "advanced",
+  };
+  const resolveProgramOverview = (
+    v: string | { key: string; params?: Record<string, string | number> } | undefined,
+  ): string => {
+    if (!v) return "";
+    if (typeof v === "string") return v; // legacy saved plans: literal EN string
+    const params = { ...(v.params || {}) };
+    const goalKey = GOAL_KEY_MAP[String(params.goal ?? "").toLowerCase()];
+    if (goalKey) params.goal = tKey(goalKey);
+    const levelKey = LEVEL_KEY_MAP[String(params.level ?? "").toLowerCase()];
+    if (levelKey) params.level = tKey(levelKey);
+    return tKey(v.key, params);
   };
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
