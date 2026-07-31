@@ -337,7 +337,7 @@ const translations = {
     restDayTip: "Focus on mobility, nutrition, or light walks today.",
 
     // Enhanced Results
-    sessionTimeBanner: "Session time matched: {minutes} minutes (5 min warm-up + lifting + 5 min cool-down)",
+    programOverviewTemplate: "A rule-based {days}-day {split}-anchored program tuned for {goal} at {level} level. Weeks 1-3 progress linearly; week 4 deloads to consolidate gains.",
     warmUpLabel: "Warm-Up",
     coolDownLabel: "Cool-Down",
     weeklySplitLabel: "Weekly Split",
@@ -365,7 +365,6 @@ const translations = {
     coachCredential: "Certified PT & Sports Nutritionist",
     coachCardTitle: "Coach Surya",
     coachCardSubtitle: "Personal Trainer & Sports Nutritionist",
-    coachCalibration: "⚙️ Coach's Program Calibration",
     coachWeeklySplitSub: "Coach Surya's recommended training structure for your goals and schedule",
     coachWorkoutActivitySub: "Coach Surya is tracking your consistency. Every session counts.",
     coachProgressionLabel: "Coach Surya's Progressive Overload Protocol",
@@ -993,7 +992,7 @@ const translations = {
     restDayTip: "Fokus pada mobilitas, nutrisi, atau jalan santai hari ini.",
 
     // Enhanced Results
-    sessionTimeBanner: "Waktu sesi cocok: {minutes} menit (5 mnt pemanasan + angkat beban + 5 mnt pendinginan)",
+    programOverviewTemplate: "Program berbasis aturan {days} hari per minggu dengan fokus utama {split}, disesuaikan untuk {goal} pada tingkat {level}. Minggu 1-3 naik secara bertahap; minggu 4 deload untuk mengonsolidasi hasil.",
     warmUpLabel: "Pemanasan",
     coolDownLabel: "Pendinginan",
     weeklySplitLabel: "Pembagian Mingguan",
@@ -1021,7 +1020,6 @@ const translations = {
     coachCredential: "Pelatih Bersertifikat & Ahli Gizi",
     coachCardTitle: "Coach Surya",
     coachCardSubtitle: "Pelatih Pribadi & Ahli Gizi Olahraga",
-    coachCalibration: "⚙️ Kalibrasi Program Coach",
     coachWeeklySplitSub: "Struktur latihan yang direkomendasikan Coach Surya untuk tujuan dan jadwalmu",
     coachWorkoutActivitySub: "Coach Surya memantau konsistensimu. Setiap sesi itu berarti.",
     coachProgressionLabel: "Protokol Progressive Overload Coach Surya",
@@ -1640,7 +1638,7 @@ const translations = {
     restDayTip: "今天专注于灵活性训练、营养或轻松散步。",
 
     // Enhanced Results
-    sessionTimeBanner: "训练时间匹配：{minutes} 分钟（5分钟热身 + 力量训练 + 5分钟拉伸）",
+    programOverviewTemplate: "以规则为基础的每周 {days} 天训练计划，以 {split} 为核心，针对{goal}目标、{level}水平定制。第1-3周线性递进；第4周减负以巩固成果。",
     warmUpLabel: "热身",
     coolDownLabel: "拉伸放松",
     weeklySplitLabel: "每周安排",
@@ -1668,7 +1666,6 @@ const translations = {
     coachCredential: "认证私人教练及运动营养师",
     coachCardTitle: "Coach Surya",
     coachCardSubtitle: "私人教练及运动营养师",
-    coachCalibration: "⚙️ 教练程序校准",
     coachWeeklySplitSub: "Surya教练根据您的目标和时间表推荐的训练结构",
     coachWorkoutActivitySub: "Surya教练正在追踪您的坚持程度。每次训练都很重要。",
     coachProgressionLabel: "Surya教练的渐进超负荷方案",
