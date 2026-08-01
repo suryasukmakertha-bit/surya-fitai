@@ -1,0 +1,1 @@
+update public.profiles set period_generate_count = 0 where user_id = '1e0dd5cf-9342-4df0-b1fc-c02d192e8793';
