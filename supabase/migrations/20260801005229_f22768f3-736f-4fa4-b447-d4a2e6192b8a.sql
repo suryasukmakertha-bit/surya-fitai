@@ -1,0 +1,1 @@
+update public.subscriptions set status='active', subscription_end='2099-12-31T00:00:00Z' where user_id='1e0dd5cf-9342-4df0-b1fc-c02d192e8793';
