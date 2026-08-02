@@ -60,6 +60,7 @@ interface PlanData {
   programOverview?: string | { key: string; params?: Record<string, string | number> };
   durationWeeks?: number;
   weeklySplit?: string[];
+  weeklySplitDisplay?: Array<{ dayKey: { key: string; params?: Record<string, string | number> }; splitName: string }>;
   estimatedSessionTimeMinutes?: number;
   warmUp?: string;
   coolDown?: string;
@@ -76,6 +77,7 @@ interface PlanData {
   fat: number;
   water_liters: number;
   weekly_schedule: string[];
+  weekly_scheduleDisplay?: Array<{ weekdayIndex: number; splitName: string | null }>;
   safety_notes: string[];
   motivational_message: string | { key: string; params?: Record<string, string | number> };
   grocery_list: string[];
