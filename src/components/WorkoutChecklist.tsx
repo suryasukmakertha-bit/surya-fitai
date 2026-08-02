@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, resolveExerciseKeyToEnglish } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
+import { localizeDayLabel } from "@/lib/weekdayNames";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -127,6 +128,9 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
   // completedExercises arrays) so this helper is only used at render.
   const resolveExerciseName = (raw: string): string =>
     raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
+  // Cues are emitted as i18n keys ("cue.*"); legacy plans hold literal EN text.
+  const resolveEngineText = (raw: string | undefined): string =>
+    raw && /^(cue|warmup|cooldown)\./.test(raw) ? tKey(raw) : (raw ?? "");
   const { toast } = useToast();
   const [completionState, setCompletionState] = useState<CompletionState>({});
   const [loading, setLoading] = useState(true);
@@ -325,7 +329,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
             return (
               <div key={`day-${day.day}-${i}`} className="card-gradient rounded-lg p-5 border border-border/50">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-display font-bold text-foreground">{day.day}</h3>
+                  <h3 className="font-display font-bold text-foreground">{localizeDayLabel(day.day, lang)}</h3>
                   <span className="inline-flex items-center justify-center w-7 h-7 rounded-full" style={{ background: "rgba(255,107,0,0.12)" }} aria-label="Rest day">
                     <Moon className="w-3.5 h-3.5" style={{ color: "#ff6b00" }} />
                   </span>
@@ -346,7 +350,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
           return (
             <div key={`day-${day.day}-${i}`} className="card-gradient rounded-lg p-5 border border-border/50">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-display font-bold text-foreground">{day.day}</h3>
+                <h3 className="font-display font-bold text-foreground">{localizeDayLabel(day.day, lang)}</h3>
                 <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
                   {done}/{total} {t.done}
                 </span>
@@ -436,7 +440,7 @@ export default function WorkoutChecklist({ workoutPlan, planId, selectedWeek, pl
                 <p className="text-xs font-semibold text-primary uppercase tracking-wide inline-flex items-center gap-1.5">
                   <Lightbulb className="w-3.5 h-3.5" /> {(t as any).tipsLabel}
                 </p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{selectedExercise.cues}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{resolveEngineText(selectedExercise.cues)}</p>
               </div>
             )}
 

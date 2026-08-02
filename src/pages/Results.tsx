@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { exportPlanToPDF } from "@/lib/exportPdf";
+import { localizeDayLabel, localizeScheduleLine } from "@/lib/weekdayNames";
 import WorkoutChecklist from "@/components/WorkoutChecklist";
 import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
 import ProgressDownloadCard from "@/components/ProgressDownloadCard";
@@ -60,6 +61,7 @@ interface PlanData {
   programOverview?: string | { key: string; params?: Record<string, string | number> };
   durationWeeks?: number;
   weeklySplit?: string[];
+  weeklySplitDisplay?: Array<{ dayKey: { key: string; params?: Record<string, string | number> }; splitName: string }>;
   estimatedSessionTimeMinutes?: number;
   warmUp?: string;
   coolDown?: string;
@@ -76,6 +78,7 @@ interface PlanData {
   fat: number;
   water_liters: number;
   weekly_schedule: string[];
+  weekly_scheduleDisplay?: Array<{ weekdayIndex: number; splitName: string | null }>;
   safety_notes: string[];
   motivational_message: string | { key: string; params?: Record<string, string | number> };
   grocery_list: string[];
@@ -346,6 +349,12 @@ export default function Results() {
   // to the raw value for backward compatibility.
   const resolveExerciseName = (raw: string): string =>
     raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
+  // Round-3 i18n: coaching cues, warm-up and cool-down bodies are emitted as
+  // i18n keys by the engine. Legacy saved plans hold literal EN sentences and
+  // fall through unchanged.
+  const ENGINE_KEY_RE = /^(cue|warmup|cooldown)\./;
+  const resolveEngineText = (raw: string | undefined): string =>
+    raw && ENGINE_KEY_RE.test(raw) ? tKey(raw) : (raw ?? "");
   const resolveTemplated = (
     v: string | { key: string; params?: Record<string, string | number> } | undefined,
   ): string => {
@@ -1264,7 +1273,7 @@ export default function Results() {
         <div className="flex items-center justify-between mb-6">
           <div />
           <div className="flex items-center gap-2">
-            <Button onClick={() => exportPlanToPDF({ ...plan, programOverview: resolveProgramOverview(plan.programOverview) }, programType, userInfo?.name, tKey)} variant="secondary" size="sm">
+            <Button onClick={() => exportPlanToPDF({ ...plan, programOverview: resolveProgramOverview(plan.programOverview) }, programType, userInfo?.name, tKey, lang)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
             <Button
@@ -1437,7 +1446,7 @@ export default function Results() {
                 <h3 className="font-display font-bold text-primary mb-2 flex items-center gap-2">
                   <RefreshCw className="w-4 h-4" /> {(t as any).warmUpLabel || "Warm-Up"}
                 </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.warmUp}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{resolveEngineText(plan.warmUp)}</p>
               </div>
             )}
 
@@ -1447,7 +1456,10 @@ export default function Results() {
                 <h3 className="font-display font-bold text-foreground mb-1">{(t as any).weeklySplitLabel || "Weekly Split"}</h3>
                 <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeeklySplitSub}</p>
                 <div className="flex flex-wrap gap-2">
-                  {plan.weeklySplit.map((split, i) => (
+                  {(plan.weeklySplitDisplay && plan.weeklySplitDisplay.length > 0
+                    ? plan.weeklySplitDisplay.map((d) => `${resolveTemplated(d.dayKey)}: ${d.splitName}`)
+                    : plan.weeklySplit
+                  ).map((split, i) => (
                     <span key={i} className="bg-primary/10 text-primary text-xs px-3 py-1.5 rounded-full font-medium">{split}</span>
                   ))}
                 </div>
@@ -1463,7 +1475,7 @@ export default function Results() {
                 if (isRestDay) {
                   return (
                     <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
-                      <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
+                      <h3 className="font-display font-bold text-foreground mb-3">{localizeDayLabel(day.day, lang)}</h3>
                        <div className="flex items-center gap-3 bg-secondary/50 rounded-md px-4 py-4 text-sm">
                         <Moon className="w-8 h-8 shrink-0" style={{ color: "#ff6b00" }} aria-hidden />
                         <div>
@@ -1477,7 +1489,7 @@ export default function Results() {
                 }
                 return (
                   <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
-                    <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
+                    <h3 className="font-display font-bold text-foreground mb-3">{localizeDayLabel(day.day, lang)}</h3>
                     <div className="space-y-2">
                       {day.exercises.map((ex, j) => (
                         <div key={j} className="bg-secondary/50 rounded-md px-4 py-3 text-sm space-y-1">
@@ -1489,7 +1501,7 @@ export default function Results() {
                             </span>
                           </div>
                           {ex.cues && (
-                            <p className="text-xs text-muted-foreground/80 italic inline-flex items-center gap-1.5"><Lightbulb className="w-3 h-3" /> {ex.cues}</p>
+                            <p className="text-xs text-muted-foreground/80 italic inline-flex items-center gap-1.5"><Lightbulb className="w-3 h-3" /> {resolveEngineText(ex.cues)}</p>
                           )}
                           {ex.alternative && (
                             <p className="text-xs text-muted-foreground/70 inline-flex items-center gap-1.5"><ArrowLeftRight className="w-3 h-3" /> {(t as any).alternativeLabel || "Alt"}: {ex.alternative}</p>
@@ -1511,7 +1523,7 @@ export default function Results() {
                 <h3 className="font-display font-bold text-primary mb-2 flex items-center gap-2">
                   <RefreshCw className="w-4 h-4" /> {(t as any).coolDownLabel || "Cool-Down"}
                 </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.coolDown}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{resolveEngineText(plan.coolDown)}</p>
               </div>
             )}
 
@@ -1567,7 +1579,7 @@ export default function Results() {
                         <div>
                           <h4 className="font-display font-bold text-foreground mb-3">{t.weeklySchedule}</h4>
                           <div className="grid grid-cols-7 gap-2">
-                            {plan.weekly_schedule.map((day, i) => (
+                            {plan.weekly_schedule.map((day, i) => localizeScheduleLine(day, lang)).map((day, i) => (
                               <div key={i} className="bg-secondary/50 rounded-md p-2 text-center text-xs text-muted-foreground">
                                 {day}
                               </div>
