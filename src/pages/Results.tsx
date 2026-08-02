@@ -346,6 +346,12 @@ export default function Results() {
   // to the raw value for backward compatibility.
   const resolveExerciseName = (raw: string): string =>
     raw && raw.startsWith("exercise.") ? tKey(raw) : raw;
+  // Round-3 i18n: coaching cues, warm-up and cool-down bodies are emitted as
+  // i18n keys by the engine. Legacy saved plans hold literal EN sentences and
+  // fall through unchanged.
+  const ENGINE_KEY_RE = /^(cue|warmup|cooldown)\./;
+  const resolveEngineText = (raw: string | undefined): string =>
+    raw && ENGINE_KEY_RE.test(raw) ? tKey(raw) : (raw ?? "");
   const resolveTemplated = (
     v: string | { key: string; params?: Record<string, string | number> } | undefined,
   ): string => {
