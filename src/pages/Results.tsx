@@ -1273,7 +1273,7 @@ export default function Results() {
         <div className="flex items-center justify-between mb-6">
           <div />
           <div className="flex items-center gap-2">
-            <Button onClick={() => exportPlanToPDF({ ...plan, programOverview: resolveProgramOverview(plan.programOverview) }, programType, userInfo?.name, tKey)} variant="secondary" size="sm">
+            <Button onClick={() => exportPlanToPDF({ ...plan, programOverview: resolveProgramOverview(plan.programOverview) }, programType, userInfo?.name, tKey, lang)} variant="secondary" size="sm">
               <Download className="w-4 h-4 mr-1" /> {t.exportPdf}
             </Button>
             <Button
@@ -1475,7 +1475,7 @@ export default function Results() {
                 if (isRestDay) {
                   return (
                     <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
-                      <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
+                      <h3 className="font-display font-bold text-foreground mb-3">{localizeDayLabel(day.day, lang)}</h3>
                        <div className="flex items-center gap-3 bg-secondary/50 rounded-md px-4 py-4 text-sm">
                         <Moon className="w-8 h-8 shrink-0" style={{ color: "#ff6b00" }} aria-hidden />
                         <div>
@@ -1489,7 +1489,7 @@ export default function Results() {
                 }
                 return (
                   <div key={i} className="card-gradient rounded-lg p-5 border border-border/50">
-                    <h3 className="font-display font-bold text-foreground mb-3">{day.day}</h3>
+                    <h3 className="font-display font-bold text-foreground mb-3">{localizeDayLabel(day.day, lang)}</h3>
                     <div className="space-y-2">
                       {day.exercises.map((ex, j) => (
                         <div key={j} className="bg-secondary/50 rounded-md px-4 py-3 text-sm space-y-1">
