@@ -1443,7 +1443,7 @@ export default function Results() {
                 <h3 className="font-display font-bold text-primary mb-2 flex items-center gap-2">
                   <RefreshCw className="w-4 h-4" /> {(t as any).warmUpLabel || "Warm-Up"}
                 </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.warmUp}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{resolveEngineText(plan.warmUp)}</p>
               </div>
             )}
 
@@ -1453,7 +1453,10 @@ export default function Results() {
                 <h3 className="font-display font-bold text-foreground mb-1">{(t as any).weeklySplitLabel || "Weekly Split"}</h3>
                 <p className="text-muted-foreground text-xs mb-3">{(t as any).coachWeeklySplitSub}</p>
                 <div className="flex flex-wrap gap-2">
-                  {plan.weeklySplit.map((split, i) => (
+                  {(plan.weeklySplitDisplay && plan.weeklySplitDisplay.length > 0
+                    ? plan.weeklySplitDisplay.map((d) => `${resolveTemplated(d.dayKey)}: ${d.splitName}`)
+                    : plan.weeklySplit
+                  ).map((split, i) => (
                     <span key={i} className="bg-primary/10 text-primary text-xs px-3 py-1.5 rounded-full font-medium">{split}</span>
                   ))}
                 </div>
@@ -1495,7 +1498,7 @@ export default function Results() {
                             </span>
                           </div>
                           {ex.cues && (
-                            <p className="text-xs text-muted-foreground/80 italic inline-flex items-center gap-1.5"><Lightbulb className="w-3 h-3" /> {ex.cues}</p>
+                            <p className="text-xs text-muted-foreground/80 italic inline-flex items-center gap-1.5"><Lightbulb className="w-3 h-3" /> {resolveEngineText(ex.cues)}</p>
                           )}
                           {ex.alternative && (
                             <p className="text-xs text-muted-foreground/70 inline-flex items-center gap-1.5"><ArrowLeftRight className="w-3 h-3" /> {(t as any).alternativeLabel || "Alt"}: {ex.alternative}</p>
@@ -1517,7 +1520,7 @@ export default function Results() {
                 <h3 className="font-display font-bold text-primary mb-2 flex items-center gap-2">
                   <RefreshCw className="w-4 h-4" /> {(t as any).coolDownLabel || "Cool-Down"}
                 </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{plan.coolDown}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{resolveEngineText(plan.coolDown)}</p>
               </div>
             )}
 
