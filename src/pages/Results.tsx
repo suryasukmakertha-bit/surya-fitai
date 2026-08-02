@@ -1578,7 +1578,7 @@ export default function Results() {
                         <div>
                           <h4 className="font-display font-bold text-foreground mb-3">{t.weeklySchedule}</h4>
                           <div className="grid grid-cols-7 gap-2">
-                            {plan.weekly_schedule.map((day, i) => (
+                            {plan.weekly_schedule.map((day, i) => localizeScheduleLine(day, lang)).map((day, i) => (
                               <div key={i} className="bg-secondary/50 rounded-md p-2 text-center text-xs text-muted-foreground">
                                 {day}
                               </div>
