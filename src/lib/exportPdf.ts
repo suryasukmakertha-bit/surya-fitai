@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { localizeDayLabel, type Lang } from "./weekdayNames";
 
 interface DayPlan {
   day: string;
@@ -96,6 +97,7 @@ export function exportPlanToPDF(
   programType?: string,
   userName?: string,
   tKey?: (key: string, params?: Record<string, string | number>) => string,
+  lang: Lang = "en",
 ) {
   // Prompt-4 helpers. Keep resolvers local so callers that don't pass
   // tKey still produce a valid (English-key) PDF instead of crashing.
@@ -118,6 +120,13 @@ export function exportPlanToPDF(
   // unchanged so the PDF never renders raw keys.
   const resolveExerciseName = (raw: string): string =>
     raw && raw.startsWith("exercise.") ? (tKey ? tKey(raw) : raw) : raw;
+  // Round-3 i18n: cues / warm-up / cool-down are emitted as i18n keys.
+  // Legacy saved plans hold literal EN sentences — pass those through.
+  const ENGINE_KEY_RE = /^(cue|warmup|cooldown)\./;
+  const resolveEngineText = (raw: string | undefined): string => {
+    if (!raw) return "";
+    return ENGINE_KEY_RE.test(raw) ? (tKey ? tKey(raw) : raw) : raw;
+  };
   const doc = new jsPDF();
   let y = 28;
 
@@ -237,7 +246,7 @@ export function exportPlanToPDF(
     check(20);
     label("WARM-UP", ML, y, 10);
     y += 5;
-    const lines = body(plan.warmUp, ML, y, PW);
+    const lines = body(resolveEngineText(plan.warmUp), ML, y, PW);
     y += lines * 4 + 6;
   }
 
@@ -255,7 +264,7 @@ export function exportPlanToPDF(
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(...BRAND);
-      doc.text(day.day, ML + 4, y + 2);
+      doc.text(localizeDayLabel(day.day, lang), ML + 4, y + 2);
       y += 10;
 
       if (day.exercises.length === 0) {
@@ -300,7 +309,7 @@ export function exportPlanToPDF(
           doc.setFont("helvetica", "italic");
           doc.setFontSize(7.5);
           doc.setTextColor(...BRAND);
-          const cueLines = doc.splitTextToSize(`Tips: ${ex.cues}`, PW - 6);
+          const cueLines = doc.splitTextToSize(`Tips: ${resolveEngineText(ex.cues)}`, PW - 6);
           doc.text(cueLines, ML + 6, y);
           y += cueLines.length * 3.5;
         }
@@ -344,7 +353,7 @@ export function exportPlanToPDF(
     check(20);
     label("COOL-DOWN", ML, y, 10);
     y += 5;
-    const lines = body(plan.coolDown, ML, y, PW);
+    const lines = body(resolveEngineText(plan.coolDown), ML, y, PW);
     y += lines * 4 + 6;
   }
 
