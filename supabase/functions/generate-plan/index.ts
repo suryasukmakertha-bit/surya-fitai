@@ -698,9 +698,9 @@ function buildExerciseOutput(
     reps,
     rest,
     tempo,
-    cues: isCardio ? 'Steady breathing, controlled cadence.' :
-          compound ? 'Brace core, controlled eccentric, full range of motion.' :
-                     'Slow controlled tempo, squeeze target muscle at peak.',
+    // i18n keys — resolved client-side via tKey(). Old saved plans still hold
+    // literal EN sentences and fall through the client-side fallback.
+    cues: isCardio ? 'cue.cardio' : compound ? 'cue.compound' : 'cue.isolation',
     alternative: '',
     estimatedTimeMinutes: Math.round(parseInt(sets) * estMinutesPerSet(compound, isCardio)),
     weight_kg: baseWeight,
@@ -740,7 +740,9 @@ interface WorkoutEngineInput {
 
 interface WorkoutEngineOutput {
   weeklySplit: string[];
+  weeklySplitDisplay: Array<{ dayKey: { key: string; params: Record<string, number> }; splitName: string }>;
   weekly_schedule: string[];
+  weekly_scheduleDisplay: Array<{ weekdayIndex: number; splitName: string | null }>;
   workout_plan: Array<{ day: string; exercises: ExerciseOutput[] }>;
   warmUp: string;
   coolDown: string;
@@ -771,14 +773,24 @@ export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput 
   const weeklySplit: string[] = sessionOrder.map((s, i) =>
     `Day ${i + 1}: ${sessionLabel(s)}`
   );
+  // Structured, localizable mirror of `weeklySplit`. The plain-string array is
+  // kept byte-identical because it is a parsing contract (Results.parseWeeklySplit
+  // and the SQL streak functions read it). `splitName` stays English by design.
+  const weeklySplitDisplay = sessionOrder.map((s, i) => ({
+    dayKey: { key: 'workoutDayPrefix', params: { n: i + 1 } },
+    splitName: sessionLabel(s),
+  }));
   const weekly_schedule: string[] = [];
+  const weekly_scheduleDisplay: Array<{ weekdayIndex: number; splitName: string | null }> = [];
   const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   for (let d = 0; d < 7; d++) {
     const trainingSlot = trainingDayIndexes.indexOf(d);
     if (trainingSlot >= 0) {
       weekly_schedule.push(`${dayNames[d]}: ${sessionLabel(sessionOrder[trainingSlot])}`);
+      weekly_scheduleDisplay.push({ weekdayIndex: d, splitName: sessionLabel(sessionOrder[trainingSlot]) });
     } else {
       weekly_schedule.push(`${dayNames[d]}: Rest`);
+      weekly_scheduleDisplay.push({ weekdayIndex: d, splitName: null });
     }
   }
 
@@ -804,11 +816,10 @@ export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput 
     }
   }
 
-  const warmUp = equipment === 'gym'
-    ? '5-7 min: (1) 5 min light cardio (treadmill/bike/marching); (2) Arm circles 10x each direction; (3) Leg swings 10x per leg; (4) Bodyweight squat 10x; (5) Cat-cow stretch 30s.'
-    : '5-7 min: (1) Marching/light jumping jacks 2-3 min; (2) Arm circles 10x each direction; (3) Leg swings 10x per leg; (4) Bodyweight squat 10x; (5) Cat-cow stretch 30s.';
+  // i18n keys (resolved client-side); legacy plans keep literal sentences.
+  const warmUp = equipment === 'gym' ? 'warmup.gym' : 'warmup.bodyweight';
 
-  const coolDown = '5 min: (1) Easy walk/march in place 1-2 min, breathing focus; (2) Static hamstring stretch 30s per leg; (3) Static quad stretch 30s per leg; (4) Static chest/shoulder stretch 30s per side; (5) Deep breathing 5 breaths.';
+  const coolDown = 'cooldown.default';
 
   const progressionRules = 'W1: baseline reps at the low end of the rep range. W2: +1-2 reps at the same weight. W3: top of the rep range, RIR -1 (closer to failure). W4: deload — reduce load ~15% and return reps to the low end.';
   const deloadWeek = 'Week 4 is a planned deload: reduce weight by ~15%, drop reps back to the low end, and prioritize clean technique so you enter the next cycle recovered.';
@@ -838,7 +849,9 @@ export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput 
 
   return {
     weeklySplit,
+    weeklySplitDisplay,
     weekly_schedule,
+    weekly_scheduleDisplay,
     workout_plan,
     warmUp,
     coolDown,
