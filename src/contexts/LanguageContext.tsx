@@ -338,6 +338,13 @@ const translations = {
 
     // Enhanced Results
     programOverviewTemplate: "A rule-based {{days}}-day {{split}}-anchored program tuned for {{goal}} at {{level}} level. Weeks 1-3 progress linearly; week 4 deloads to consolidate gains.",
+    "cue.cardio": "Steady breathing, controlled cadence.",
+    "cue.compound": "Brace core, controlled eccentric, full range of motion.",
+    "cue.isolation": "Slow controlled tempo, squeeze target muscle at peak.",
+    "warmup.gym": "5-7 min: (1) 5 min light cardio (treadmill/bike/marching); (2) Arm circles 10x each direction; (3) Leg swings 10x per leg; (4) Bodyweight squat 10x; (5) Cat-cow stretch 30s.",
+    "warmup.bodyweight": "5-7 min: (1) Marching/light jumping jacks 2-3 min; (2) Arm circles 10x each direction; (3) Leg swings 10x per leg; (4) Bodyweight squat 10x; (5) Cat-cow stretch 30s.",
+    "cooldown.default": "5 min: (1) Easy walk/march in place 1-2 min, breathing focus; (2) Static hamstring stretch 30s per leg; (3) Static quad stretch 30s per leg; (4) Static chest/shoulder stretch 30s per side; (5) Deep breathing 5 breaths.",
+    workoutDayPrefix: "Day {{n}}",
     warmUpLabel: "Warm-Up",
     coolDownLabel: "Cool-Down",
     weeklySplitLabel: "Weekly Split",
@@ -993,6 +1000,13 @@ const translations = {
 
     // Enhanced Results
     programOverviewTemplate: "Program berbasis aturan {{days}} hari per minggu dengan fokus utama {{split}}, disesuaikan untuk {{goal}} pada tingkat {{level}}. Minggu 1-3 naik secara bertahap; minggu 4 deload untuk mengonsolidasi hasil.",
+    "cue.cardio": "Napas stabil, tempo terkontrol.",
+    "cue.compound": "Kencangkan core, turun terkontrol, gerakan penuh.",
+    "cue.isolation": "Tempo lambat terkontrol, kontraksikan otot target di puncak gerakan.",
+    "warmup.gym": "5-7 menit: (1) 5 menit kardio ringan (treadmill/sepeda statis/jalan di tempat); (2) Putar lengan 10x tiap arah; (3) Ayun kaki 10x per kaki; (4) Squat tanpa beban 10x; (5) Stretch cat-cow 30 detik.",
+    "warmup.bodyweight": "5-7 menit: (1) Jalan di tempat/jumping jack ringan 2-3 menit; (2) Putar lengan 10x tiap arah; (3) Ayun kaki 10x per kaki; (4) Squat tanpa beban 10x; (5) Stretch cat-cow 30 detik.",
+    "cooldown.default": "5 menit: (1) Jalan santai/di tempat 1-2 menit, fokus pernapasan; (2) Stretch hamstring statis 30 detik per kaki; (3) Stretch paha depan statis 30 detik per kaki; (4) Stretch dada/bahu statis 30 detik per sisi; (5) Napas dalam 5 kali.",
+    workoutDayPrefix: "Hari {{n}}",
     warmUpLabel: "Pemanasan",
     coolDownLabel: "Pendinginan",
     weeklySplitLabel: "Pembagian Mingguan",
@@ -1639,6 +1653,13 @@ const translations = {
 
     // Enhanced Results
     programOverviewTemplate: "以规则为基础的每周 {{days}} 天训练计划，以 {{split}} 为核心，针对{{goal}}目标、{{level}}水平定制。第1-3周线性递进；第4周减负以巩固成果。",
+    "cue.cardio": "呼吸平稳，节奏可控。",
+    "cue.compound": "收紧核心，离心阶段可控，全程活动范围。",
+    "cue.isolation": "缓慢可控的节奏，顶点处收紧目标肌肉。",
+    "warmup.gym": "5-7分钟：(1) 5分钟轻度有氧运动（跑步机/单车/原地踏步）；(2) 手臂绕环，每个方向10次；(3) 腿部摆动，每腿10次；(4) 徒手深蹲10次；(5) 猫牛式拉伸30秒。",
+    "warmup.bodyweight": "5-7分钟：(1) 原地踏步/轻度开合跳2-3分钟；(2) 手臂绕环，每个方向10次；(3) 腿部摆动，每腿10次；(4) 徒手深蹲10次；(5) 猫牛式拉伸30秒。",
+    "cooldown.default": "5分钟：(1) 轻松走动/原地踏步1-2分钟，专注呼吸；(2) 静态腘绳肌拉伸，每腿30秒；(3) 静态股四头肌拉伸，每腿30秒；(4) 静态胸部/肩部拉伸，每侧30秒；(5) 深呼吸5次。",
+    workoutDayPrefix: "第{{n}}天",
     warmUpLabel: "热身",
     coolDownLabel: "拉伸放松",
     weeklySplitLabel: "每周安排",
