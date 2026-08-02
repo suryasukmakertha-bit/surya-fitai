@@ -1,3 +1,5 @@
+import { WEEKDAY_NAMES, MONTH_NAMES } from "./weekdayNames";
+
 interface Exercise { name: string; sets: string; reps: string; rest: string; }
 
 export function downloadDailyProgress(opts: {
@@ -22,16 +24,8 @@ export function downloadDailyProgress(opts: {
     const date = dateMatch
       ? (() => { const [y, m, d] = dateMatch[1].split("-").map(Number); return new Date(y, m - 1, d); })()
       : new Date();
-    const dayNames: Record<string, string[]> = {
-      en: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
-      id: ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"],
-      zh: ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],
-    };
-    const monthNames: Record<string, string[]> = {
-      en: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-      id: ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"],
-      zh: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
-    };
+    const dayNames: Record<string, string[]> = WEEKDAY_NAMES;
+    const monthNames: Record<string, string[]> = MONTH_NAMES;
     const dayName = (dayNames[lang] || dayNames.en)[date.getDay()];
     const monthName = (monthNames[lang] || monthNames.en)[date.getMonth()];
     return `${dayName}, ${String(date.getDate()).padStart(2,"0")} ${monthName} ${date.getFullYear()}`;
