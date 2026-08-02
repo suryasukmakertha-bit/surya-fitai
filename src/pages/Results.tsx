@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { exportPlanToPDF } from "@/lib/exportPdf";
+import { localizeDayLabel, localizeScheduleLine } from "@/lib/weekdayNames";
 import WorkoutChecklist from "@/components/WorkoutChecklist";
 import WorkoutProgressSummary from "@/components/WorkoutProgressSummary";
 import ProgressDownloadCard from "@/components/ProgressDownloadCard";
