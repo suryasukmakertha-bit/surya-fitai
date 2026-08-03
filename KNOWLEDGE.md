@@ -1,6 +1,6 @@
 # SURYA-FITAI SYSTEM KNOWLEDGE
 > Single source of truth. Read this before making ANY change.
-> Last updated: 27 Jul 2026
+> Last updated: 2 Aug 2026
 
 ---
 
@@ -13,7 +13,7 @@
 **AI:** NONE. Plan generation (both workout and meal) is fully rule-based/deterministic as of 4 Jul 2026 — see WORKOUT_TEMPLATE_LOGIC.md and MEAL_TEMPLATE_LOGIC.md for the complete generation logic. **Historical correction:** earlier versions of this document stated "Claude API (claude-sonnet-4) for plan generation" — this was never accurate. The actual prior implementation called the Lovable AI Gateway using `google/gemini-3-flash-preview` (confirmed via code read of `generate-plan/index.ts`, lines 877-895), not Claude/Anthropic. This AI dependency has now been removed entirely — the pivot was triggered by Lovable Cloud & AI credit exhaustion but the decision to go fully rule-based is permanent, not a temporary workaround.
 **Dev tool:** Lovable (prompt-based, English only)
 **Assets:** GitHub CDN (https://raw.githubusercontent.com/suryasukmakertha-bit/surya-fitai-assets/main/)
-**Publish status:** App has NOT been published as of 27 Jul 2026. Real users remain on the old AI-based live version with old form fields. All rule-based engine work, form redesign, Programs-page removal, and i18n fixes described below exist only in Lovable dev/preview — zero impact on real users until Coach publishes.
+**Publish status:** App has NOT been published as of 2 Aug 2026. Real users remain on the old AI-based live version with old form fields. All rule-based engine work, form redesign, Programs-page removal, i18n fixes, and tab restructuring described below exist only in Lovable dev/preview — zero impact on real users until Coach publishes. As of this update, the full "ship together" rollout scope is complete (see Section 18) — publish decision is now the open item.
 
 ---
 
@@ -41,8 +41,33 @@
 - Purpose: permanent active-tier (PAID-equivalent) account for Playwright/E2E verification, created 27 Jul 2026 specifically to stop repeated blocking on locked-tab checks (previously required extending a random trial user's date each time, or was blocked entirely with no viable account in the DB).
 - `subscriptions` row: `status='active'`, `subscription_end='2099-12-31'` — this date is intentional, not a data error. Do not "fix" or flag this in future audits/scans.
 - Distinct from the ADMIN account above (`surya.sukmakertha@gmail.com`, no plus-sign). This fixture uses Gmail plus-addressing (`+apptest123`) and is a normal non-admin user — confirmed via `is_app_admin()` (no match, since that check is an exact-string match on the ADMIN email with no plus-sign).
-- Safe to generate/delete test plans on this account repeatedly — not a real customer, no cleanup obligation. Existing test plans on it (SmokeTest, PWVerify2, FixtureTest, etc.) may slightly skew `admin-report` program_type distribution — check current numbers before relying on that report for real business decisions.
+- Safe to generate/delete test plans on this account repeatedly — not a real customer, no cleanup obligation. Existing test plans on it (SmokeTest, PWVerify2, FixtureTest, i18nVerify, etc.) may slightly skew `admin-report` program_type distribution — check current numbers before relying on that report for real business decisions.
+- `profiles.period_generate_count` on this account gets reset to 0 whenever it hits the tier's real generate limit during testing — expected maintenance, not a bug, and confined to this account only.
 - **Do not confuse with a prior mislabel:** an earlier investigation turn incorrectly called user_id `7887903d-bd3a-4fd3-865a-061543abb9f7` a "test/dev account." That user_id is actually Coach's own personal ADMIN account — off-limits for test fixture writes. This fixture (2a) is the only account that should be used for E2E testing.
+
+---
+
+## 2b. RESULTS PAGE — TAB STRUCTURE (restructured 30 Jul 2026)
+
+**Current state: 3 tabs** (down from 5: Workout Plan / Meal Plan / Grocery List / Info & Safety / Progress). Single location: `src/pages/Results.tsx`. The Progress tab only renders after the plan has been saved (`planId && user` guard, pre-existing conditional) — this is by design, not a bug.
+
+| Tab | `value` | Gated? | Contents |
+|---|---|---|---|
+| Workout Plan | `workout` | **No — always free**, no gate handler exists on this trigger at all | Extend Month banner, Week Selector, Warm-Up card, Weekly Split Overview, daily WorkoutChecklist (exercises with sets/reps/rest/tempo/cues), Cool-Down card, estimated calories burned, Deload Week, Progress Projection, "Coach Surya" program overview paragraph, collapsible "Program Details" section (Safety Notes + Weekly Schedule Overview) |
+| Meal Plan | `meals` | Yes — FREE/EXPIRED locked | Meal cards (breakfast/snacks/lunch/dinner, resolved via `resolveMealName`/`resolveFoodLine`), collapsible Grocery List (resolved via `resolveFoodLine`) |
+| Progress | `progress` | Yes — FREE/EXPIRED locked | WorkoutProgressSummary, Progression Rules, Program Duration, weight tiles, ProgressDownloadCard (PNG export), weight chart, Check-In form, History list |
+
+**Removed 30 Jul 2026:** Grocery List and Info & Safety as standalone tabs (folded into Meal Plan and Workout Plan respectively). Warnings and Recovery Tips sections deleted entirely, not relocated.
+
+**Removed 1 Aug 2026:** the "Coach's Program Calibration" gear-icon card (showed session-time confirmation text like "Session time matched: 60 minutes..."). Pure display, no side effects — `estimatedSessionTimeMinutes` itself was kept in the data model (still used by PDF export), only the on-screen card and its 2 i18n keys (`coachCalibration`, `sessionTimeBanner`) were removed.
+
+**Gating mechanism:** inline `onPointerDown` handler duplicated per-`TabsTrigger` (not a shared function — 2 copies, on `meals` and `progress`), keyed on `access.isFreeTier && !access.isUnlimited` (from `useSubscription()`), calls `openPopup('locked_tab')`. The Workout tab's trigger has no handler at all — free by construction. Verified working for the Meal tab under a FREE-tier test (popup fires correctly). The identical handler on Progress uses the same code but was not independently re-verified in that same test run (a UI dialog got stuck mid-test) — low risk given it's the exact same mechanism, not urgent to re-check.
+
+**⚠️ Deliberate gating decision (30 Jul 2026, Coach's explicit call) — do not "fix" this:** the 4 content blocks relocated into the Workout Plan tab (Deload Week, Progress Projection, Safety Notes, Weekly Schedule Overview) are INTENTIONALLY left free/ungated, even though they used to live behind the locked Info & Safety tab pre-restructuring. This was a conscious product decision: the content is thin-value relative to the real paid differentiators (Meal Plan detail, Grocery List, Progress history/charts — all of which remain fully gated), and there are no active paying users yet to lose revenue from. Reversible later via a new gating decision if user data suggests otherwise — do not silently add a lock back without Coach re-confirming the reasoning no longer applies.
+
+**"Coach Surya" program overview paragraph (added i18n 1 Aug 2026):** this narrative sentence ("A rule-based 4-day Upper Body A-anchored program tuned for Fat Loss at Intermediate level...") is emitted by `generate-plan/index.ts` as `{key: "programOverviewTemplate", params: {days, split, goal, level}}` and resolved client-side via `resolveTemplated()` (`Results.tsx`, same helper used by `motivational_message`/`weight_projection`). `goal`/`level` are canonical tokens mapped to existing localized labels client-side; `split` (e.g. "Upper Body A") is passed through as a plain English parameter and is NOT translated — consistent with the split-name-stays-English rule below. `exportPdf.ts` resolves the same object shape. Legacy saved plans with a literal English string for this field still render unchanged (fallback path confirmed).
+
+**i18n:** tab labels reuse existing keys `workoutPlan`/`mealPlan`/`progressTab`. New key `programDetailsLabel` added for the collapsible section header. Orphaned/repurposed keys after the restructuring: `groceryList` — repurposed as the `weeklyGrocery` section heading inside Meal Plan; `infoSafety`/`coachCalibration`/`sessionTimeBanner` — fully orphaned/removed.
 
 ---
 
@@ -287,7 +312,7 @@ Reference if similar symptoms reappear (e.g. in PNG share card, which reuses pro
 **Visual transparency rules (NEW 21 Jun 2026) — applies to BOTH PNG cards below:**
 Same transparency pattern as the Running/Cycling PNG share card (Section 10) — canvas base fully transparent, every content block keeps its own `rgba(0,0,0,0.72)` background, all text uses strong drop shadow (`shadowColor rgba(0,0,0,0.95)`, `shadowBlur 12`, `shadowOffsetY 2`, painted twice).
 
-**⚠️ Renderer mismatch lesson (21 Jun 2026):** there can be MORE than one canvas renderer for visually-similar cards (e.g. a separate "celebration popup" renderer vs. the actual download-button renderer). Before editing, always confirm with Lovable which renderer is actually wired to the specific button/trigger being changed — do not assume there's only one. After any change, require a freshly generated PNG for visual comparison before accepting "done." Do not accept a text description of changes as proof they were applied to the live code path. **Same renderer-fragmentation risk applies to exercise-name display** — see Section 15's exercise-name i18n history: two additional exercise-name render sites (WorkoutChecklist, PNG progress card) were missed on the first fix pass for exactly this reason.
+**⚠️ Renderer mismatch lesson (21 Jun 2026):** there can be MORE than one canvas renderer for visually-similar cards (e.g. a separate "celebration popup" renderer vs. the actual download-button renderer). Before editing, always confirm with Lovable which renderer is actually wired to the specific button/trigger being changed — do not assume there's only one. After any change, require a freshly generated PNG for visual comparison before accepting "done." Do not accept a text description of changes as proof they were applied to the live code path. **Same renderer-fragmentation risk applies to translatable text generally** — see Section 15's i18n history: multiple render sites (WorkoutChecklist, PNG progress card, PDF export) were missed on first-pass fixes more than once for exactly this reason. Always audit ALL render sites of a field, not just the most obvious one.
 
 **Card A — "Download Daily Progress" (exercise checklist, triggered from workout plan / exercises section):**
 - Layout: centered eyebrow (brand + "·" + "Month N" pill) → centered title "YOU VS YOU." (white/white/orange) → centered thin orange accent rule (48px wide, 3px tall) → centered subtitle (e.g. "6 of 6 exercises done · [date]") → 2-column exercise grid at 88% width, centered (intentional inset, NOT full width) → thin divider line (rgba(255,255,255,0.12)) → centered footer, fraction (e.g. "6/6") stacked above "surya-fitai.com"
@@ -453,9 +478,16 @@ If more mismatches are found during future work, add them here rather than re-di
 
 **No ExerciseDB:** Removed due to commercial licensing. Exercise pool (47 exercises: 27 gym + 15 bodyweight + 5 cardio finisher, with difficulty tags, limitation-exclusion mapping, and confirmed demo images) is fully defined in WORKOUT_TEMPLATE_LOGIC.md — not a third-party database, not AI-generated.
 
-**Exercise & food name i18n:** Exercise names (WORKOUT_TEMPLATE_LOGIC.md) and food item names (MEAL_TEMPLATE_LOGIC.md) use static i18n KEYS (e.g. `exercise.barbell_bench_press`, `food.tempe_goreng`) resolved via the standard t('key') pattern — NOT on-the-fly/AI-based translation. On-the-fly translation would reintroduce an AI/API dependency, contradicting the whole point of the AI-removal pivot. Add all ~47 exercise keys + ~54 food keys to id.json/en.json/zh.json as one-time manual translation work.
+**Exercise & food name i18n:** Exercise names (WORKOUT_TEMPLATE_LOGIC.md) and food item names (MEAL_TEMPLATE_LOGIC.md) use static i18n KEYS (e.g. `exercise.barbell_bench_press`, `food.tempe_goreng`) resolved via the standard t('key') pattern — NOT on-the-fly/AI-based translation. On-the-fly translation would reintroduce an AI/API dependency, contradicting the whole point of the AI-removal pivot.
 
-**⚠️ Historical correction — exercise-name i18n gap, found 25 Jul, fixed in 2 rounds 25-27 Jul 2026:** the meal-side of the pattern above was correct from the start (`food.*`/`meal.*` keys resolved via `tKey()`). The workout-side was NOT, despite an earlier turn (6 Jul 2026) being signed off as complete — `EXERCISE_POOL` emitted plain English literals with zero i18n path, and `Results.tsx`/`exportPdf.ts` rendered them raw. **Round 1** (confirmed 0 gaps: all 44 unique exercise names already had a matching key from the original translation work) wired `generate-plan/index.ts`, `Results.tsx`, and `exportPdf.ts` to emit/resolve the existing keys, with a backward-compat fallback for old saved plans that still have literal names stored in `plan_data`. **Round 2** closed a regression Round 1 introduced: `WorkoutChecklist.tsx` and the PNG progress share card (`dailyProgressDownload.ts` / `DailyProgressImage.tsx` / `DailyCelebrationPopup.tsx`) also display exercise names but were missed initially (see Section 11's renderer-fragmentation lesson) — fixed with the same resolver pattern; GIF-asset lookup (needs literal English) and completion-matching logic (uses the same key-form string on both write and read sides, unaffected either way) were deliberately left untouched. Scope was also widened beyond exercise names to cover coaching cues, warmUp/coolDown body text, and calendar weekday names (`weekly_schedule`, `formatDayLabel`) — **split-type labels are the one deliberate exception** (e.g. "Upper Body A", "Push" stay English in all languages, treated as fitness jargon rather than content needing translation). Status as of 27 Jul 2026: Round 1 fully runtime-verified (raw API response + rendered EN/ID/ZH). Round 2 is code-complete and typechecks clean but NOT yet runtime-verified end-to-end — was blocked on no active-tier test account; now unblocked via the fixture in Section 2a, verification still pending.
+**⚠️ Full history of the workout-engine i18n gap — three separate turns, now fully closed as of 1 Aug 2026. Read this if anything about workout-text translation looks wrong again:**
+
+- **Original gap (found 25 Jul 2026):** despite a 6 Jul 2026 turn being signed off as "complete," `EXERCISE_POOL` emitted plain English literals with zero i18n path, and `Results.tsx`/`exportPdf.ts` rendered them raw. The meal-side equivalent (`food.*`/`meal.*` keys resolved via `tKey()`) was correctly implemented from the start and was never affected.
+- **Round 1 (25-26 Jul 2026):** wired exercise NAMES ONLY to their existing i18n keys (all 44 unique names already had a matching key — 0 gaps, pure wiring fix) across `generate-plan/index.ts`, `Results.tsx`, `exportPdf.ts`. Coaching cues, warm-up/cool-down text, weeklySplit day labels, and weekday names were explicitly deferred to a separate prompt at this point — NOT fixed yet, despite Coach having already decided (same day) that they should be in scope.
+- **Round 2 (27 Jul 2026):** closed a regression Round 1 introduced — `WorkoutChecklist.tsx` and the PNG progress share card (`dailyProgressDownload.ts`/`DailyProgressImage.tsx`/`DailyCelebrationPopup.tsx`) also render exercise names but were missed in Round 1's render-site audit. Fixed with the same resolver pattern. GIF-asset lookup (needs literal English) and completion-matching logic (same key-form string on both write and read sides) deliberately left untouched.
+- **⚠️ Documentation gap (self-correcting note):** an earlier version of this document claimed the Round 1/2 work already covered coaching cues/warmUp/coolDown/weekday names ("scope was widened... both rounds fully verified"). That was inaccurate — those items were decided-in-scope but not actually built until the fix below. If you ever find a KNOWLEDGE.md claim that something is "done" but the live app disagrees, trust the live app and re-verify; this file has been wrong before.
+- **Final fix (1 Aug 2026):** coaching cues, warm-up/cool-down body text, weeklySplit day labels, and calendar weekday names all converted. Engine now emits `cue.cardio`/`cue.compound`/`cue.isolation`, `warmup.gym`/`warmup.bodyweight`, `cooldown.default` (key strings, resolved via `tKey()`/`resolveEngineText()` with legacy-literal passthrough for old saved plans). The `Day N: {splitName}` line was split into `{dayKey: {key:"workoutDayPrefix", params:{n}}, splitName}` — the day-number prefix resolves via `resolveTemplated()`, `splitName` passes through as plain English (split-type names — "Upper Body A", "Push", etc. — are the ONE deliberate exception across this entire i18n effort and stay English in all languages, per a locked product decision; do not create `split.*` keys). Calendar weekday names (`weekly_schedule`, `formatDayLabel`) reuse the existing EN/ID/ZH weekday arrays already in `src/lib/dailyProgressDownload.ts` rather than duplicating new translations. `WorkoutChecklist.tsx` day headings resolve via a new `localizeDayLabel` helper. Completion-tracking keys (`day.day`, `ex.name`) deliberately left as raw/untouched — only DISPLAY changed. Verified end-to-end: fresh-plan raw response confirmed key-based shapes; rendered EN/ID/ZH text confirmed correct (warm-up, cool-down, cues, split-chip day-prefix, day-heading weekday name) with split names staying English throughout; an old legacy saved plan (literal strings, no `*Display` fields) rendered its original English unchanged with no `[object Object]` and no raw keys; build passed; console clean.
+- **Known remaining gap (LOW priority, not fixed):** the rest-interval string still prints as "90-180 seconds" untranslated in ID/ZH (only the word "seconds" is unlocalized — the numbers are fine). Deliberately deferred, not urgent — see Section 18 backlog.
 
 ---
 
@@ -472,37 +504,37 @@ If more mismatches are found during future work, add them here rather than re-di
 
 1. Generate plan works for all tiers
 2. Subscription popup correct for FREE/EXPIRED
-3. Locked tabs locked for FREE/EXPIRED
+3. Locked tabs (Meal Plan, Progress) locked for FREE/EXPIRED — Workout Plan tab (including the relocated Deload Week/Progress Projection/Program Details blocks) is INTENTIONALLY free for all tiers, see Section 2b — do not treat this as a bug
 4. Workout checklist renders correctly (sequential, no remap)
 5. Extended month: 4 full weeks, correct progression, no extra rest days
 6. streak_carry_over written correctly on extend confirm
 7. Push notification cron active
 8. ADMIN account: no locks, no counters
 9. PNG export: native Canvas only, transparent background
-10. All UI text present in EN/ID/ZH
+10. All UI text present in EN/ID/ZH — including exercise names, coaching cues, warm-up/cool-down, split day-prefix, weekday names, and the Program Overview paragraph (all confirmed as of 1 Aug 2026; only the rest-interval "seconds" unit label is a known, deliberately-deferred exception — see Section 15)
 11. Dark + light mode correct on all pages
 12. Route map visible for all tiers
 13. Extend Month button: shows only at >= 80% of VIEWED plan
 14. Download Progress PNG: fresh data from DB, matches dashboard %
-15. Exercise names render as translated text (not raw `exercise.*` keys) in WorkoutChecklist and PNG progress card, in EN/ID/ZH — Round 2 fix (Section 15), pending verification
-16. `/programs` legacy URL redirects to `/program/custom`, no dead nav links remain
+15. `/programs` legacy URL redirects to `/program/custom`, no dead nav links remain
+16. Results page shows exactly 3 tabs (Workout Plan / Meal Plan / Progress) — no leftover references to the old Grocery List or Info & Safety tabs anywhere (nav, deep links, i18n)
+17. "Coach's Program Calibration" card is gone from the Results page in all 3 languages
 
 ---
 
-## 18. BACKLOG (as of 27 Jul 2026)
+## 18. BACKLOG (as of 2 Aug 2026)
 
 **MAJOR PIVOT — RESOLVED 4 Jul 2026:**
-- ✅ AI dependency fully removed from generate-plan. Trigger was Lovable Cloud & AI credit exhaustion, but the decision to go fully rule-based is permanent product direction, not a stopgap. Both WORKOUT_TEMPLATE_LOGIC.md and MEAL_TEMPLATE_LOGIC.md are complete and define the entire generation logic deterministically. See Section 3 for the pointer and historical context. Implementation to Lovable (form redesign, both backend engines, i18n translation keys, UI tab restructuring 5→3 tabs) is bundled as one coordinated rollout — see the separate implementation prompts, not done piecemeal.
+- ✅ AI dependency fully removed from generate-plan. Trigger was Lovable Cloud & AI credit exhaustion, but the decision to go fully rule-based is permanent product direction, not a stopgap. Both WORKOUT_TEMPLATE_LOGIC.md and MEAL_TEMPLATE_LOGIC.md are complete and define the entire generation logic deterministically.
 
-**RESOLVED since 4 Jul (rollout continuation):**
-- ✅ Programs-page removal — deleted `Programs.tsx` + `ProgramCard.tsx`, retargeted all `/programs` navigation (`App.tsx` route + `SavedPlans.tsx` + `Results.tsx` + `Index.tsx` — 9 nav/redirect sites across 5 files once server/DB/generated-types/i18n were included in scope, wider than the original 8-location estimate), removed the now-dead title fallback in favor of the existing `${type}Title` i18n key. `normalizeGoal(programType)` fallback in `generate-plan` explicitly RETAINED, not removed — confirmed via live `saved_plans` data audit that 9 of 11 existing rows depend on it for correct Extend Month goal mapping (see Section 4). Fixed & verified 24-25 Jul 2026.
-- ✅ Exercise name i18n gap (2 rounds) — see Section 15 for full detail. Round 1 fully verified; Round 2 code-complete, runtime verification pending (see Section 17 item 15).
-- ✅ Permanent E2E fixture test account created — see Section 2a. Resolves the recurring "no active-tier account available to test locked tabs" blocker hit repeatedly during this rollout.
+**RESOLVED since 4 Jul (rollout continuation) — this entire rollout is now COMPLETE:**
+- ✅ Programs-page removal (24-25 Jul) — see Section 4 for the retained `normalizeGoal` safety net.
+- ✅ Exercise/workout-engine i18n gap, full history (25 Jul – 1 Aug) — see Section 15 for the complete three-round history. Nothing outstanding except the LOW-priority rest-interval unit label.
+- ✅ Permanent E2E fixture test account (27 Jul) — see Section 2a.
+- ✅ UI tab restructuring 5→3 tabs (30 Jul) — see Section 2b, including the deliberate gating decision.
+- ✅ "Coach's Program Calibration" card removed + "Coach Surya" program overview paragraph made translatable (1 Aug) — see Section 2b.
 
-**IN PROGRESS / NOT YET STARTED:**
-- Exercise-name i18n Round 2 runtime verification (WorkoutChecklist + PNG share card, EN/ID/ZH) — use the Section 2a fixture account, now that its session is captured in the Lovable preview sandbox
-- UI tab restructuring 5→3 tabs (Workout Plan / Meal Plan / Progress) — planned to ship together with the rest of this rollout, not yet executed
-- App has NOT been published yet — all rollout work above exists only in Lovable dev/preview; real users remain on the old AI-based live version until Coach publishes (see Section 1)
+**Publish readiness:** with the above complete, the full "ship together" scope (rule-based engine + form redesign + Programs removal + i18n + tab restructuring) is done. Publish is now a decision for Coach to make, not blocked by any known outstanding technical item. A full combined smoke test (generation → all 3 tabs → all 3 languages → FREE vs PAID tier behavior) was run 2 Aug 2026 and passed clean.
 
 **RESOLVED since 17 Jun:**
 - ✅ Push notification fix (evening branch + test mode) — deployed
@@ -524,8 +556,10 @@ If more mismatches are found during future work, add them here rather than re-di
 - Subscription Reminder H-3
 - XP Reward System
 - Admin Report Charts verify
+- Independent Playwright re-check of Progress-tab gating under FREE tier specifically (Meal tab gating confirmed working; Progress uses the identical handler but a test run got stuck on a lingering dialog before it could confirm that specific tab) — very low risk, same code path as the already-confirmed Meal tab
 
 **LOW PRIORITY / PENDING:**
+- Rest-interval string ("90-180 seconds") not translated in ID/ZH — only the unit word, deliberately deferred 1 Aug 2026, low value
 - FCM Migration (Android Doze fix for Web Push)
 - Weight Tracking full feature
 - Social Sharing
