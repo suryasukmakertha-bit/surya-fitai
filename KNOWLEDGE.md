@@ -1,6 +1,6 @@
 # SURYA-FITAI SYSTEM KNOWLEDGE
 > Single source of truth. Read this before making ANY change.
-> Last updated: 2 Aug 2026
+> Last updated: 3 Aug 2026
 
 ---
 
@@ -68,6 +68,23 @@
 **"Coach Surya" program overview paragraph (added i18n 1 Aug 2026):** this narrative sentence ("A rule-based 4-day Upper Body A-anchored program tuned for Fat Loss at Intermediate level...") is emitted by `generate-plan/index.ts` as `{key: "programOverviewTemplate", params: {days, split, goal, level}}` and resolved client-side via `resolveTemplated()` (`Results.tsx`, same helper used by `motivational_message`/`weight_projection`). `goal`/`level` are canonical tokens mapped to existing localized labels client-side; `split` (e.g. "Upper Body A") is passed through as a plain English parameter and is NOT translated — consistent with the split-name-stays-English rule below. `exportPdf.ts` resolves the same object shape. Legacy saved plans with a literal English string for this field still render unchanged (fallback path confirmed).
 
 **i18n:** tab labels reuse existing keys `workoutPlan`/`mealPlan`/`progressTab`. New key `programDetailsLabel` added for the collapsible section header. Orphaned/repurposed keys after the restructuring: `groceryList` — repurposed as the `weeklyGrocery` section heading inside Meal Plan; `infoSafety`/`coachCalibration`/`sessionTimeBanner` — fully orphaned/removed.
+
+---
+
+## 2c. LEGACY (PRE-4-JUL-2026) SAVED PLANS — BACKWARD COMPATIBILITY CONFIRMED (3 Aug 2026)
+
+**Context:** preview and the published app (surya-fitai.com) share the SAME Supabase project/database (`hrxqvheudexwswmlqbgw`) — there is no separate prod DB. This means any real pre-pivot user data is exposed to new code the moment it's published, not just test data.
+
+**11 genuine pre-4-Jul-2026 rows exist in `saved_plans`, belonging to 8 real users** (distinct from the fixture/admin accounts). Two distinct legacy shapes:
+- **Shape A** (13 top-level keys, oldest rows e.g. `314ec768…` from 2026-02-15): missing `programOverview`, `weeklySplit`, `deloadWeek`, `warmUp`, `coolDown`, `progressionRules`, etc. entirely (not just as strings — the keys don't exist).
+- **Shape B** (22 keys, e.g. `02911c4a…` from 2026-06-09): has those fields present as plain strings (not the `{key,params}` object shape the current engine emits).
+- Both shapes: `exercises[].name` and `meal.foods[]` are literal Indonesian/English text, not i18n keys; `weekly_schedule`/day labels use literal Indonesian weekday names.
+
+**Verified safe via an actual render test (not just code audit):** a temporary clone of one Shape-A and one Shape-B row was inserted under the fixture account (2a), rendered on `/results` via Playwright in EN/ID/ZH, then deleted. Result: both render without any crash or console error. Missing fields degrade silently and cleanly (no `[object Object]`, no raw i18n keys, no placeholder text) — sections like Select Week/Warm-Up/Weekly Split/Progression Rules simply don't appear when their source field is absent (Shape A), while Shape B's literal-string fields render as plain unlocalized text (expected — these are one-time historical snapshots, not something users regenerate). Cleanup confirmed via MD5 hash comparison of the two ORIGINAL rows' `plan_data` before and after the test — byte-identical, proving the test never touched real user data, only fixture-owned clones.
+
+**Conclusion: safe to publish against this legacy data.** No further action needed on this specific risk. If a similar concern arises again for some other pre-pivot field, the pattern to follow is: clone the specific row under the fixture account, render-test, delete — never render-test against a real user's row directly, and never accept a code-only audit as sufficient proof for a real-user-data risk this significant.
+
+**Known lower-priority gaps not covered by this specific test** (low risk, see Section 18): Shape A was not language-switched (only Shape B was, and passed); the "Export PDF" button was not directly clicked for a legacy plan (only code-audited, which showed the specific fields it depends on are present in all 11 rows).
 
 ---
 
@@ -534,7 +551,7 @@ If more mismatches are found during future work, add them here rather than re-di
 - ✅ UI tab restructuring 5→3 tabs (30 Jul) — see Section 2b, including the deliberate gating decision.
 - ✅ "Coach's Program Calibration" card removed + "Coach Surya" program overview paragraph made translatable (1 Aug) — see Section 2b.
 
-**Publish readiness:** with the above complete, the full "ship together" scope (rule-based engine + form redesign + Programs removal + i18n + tab restructuring) is done. Publish is now a decision for Coach to make, not blocked by any known outstanding technical item. A full combined smoke test (generation → all 3 tabs → all 3 languages → FREE vs PAID tier behavior) was run 2 Aug 2026 and passed clean.
+**Publish readiness:** with the above complete, the full "ship together" scope (rule-based engine + form redesign + Programs removal + i18n + tab restructuring) is done. A full combined smoke test (generation → all 3 tabs → all 3 languages → FREE vs PAID tier behavior) was run 2 Aug 2026 and passed clean. The remaining open question — whether real pre-4-Jul-2026 legacy plans (8 real users, same shared DB as production) would break under the new code — was closed 3 Aug 2026 via an actual render test with hash-verified proof the original rows were untouched (see Section 2c). Publish is now a decision for Coach to make, not blocked by any known outstanding technical item.
 
 **RESOLVED since 17 Jun:**
 - ✅ Push notification fix (evening branch + test mode) — deployed
@@ -560,6 +577,8 @@ If more mismatches are found during future work, add them here rather than re-di
 
 **LOW PRIORITY / PENDING:**
 - Rest-interval string ("90-180 seconds") not translated in ID/ZH — only the unit word, deliberately deferred 1 Aug 2026, low value
+- Legacy-plan (Section 2c) language switch not tested on Shape A (only Shape B) — very low risk, same mechanism confirmed working on B
+- Legacy-plan "Export PDF" button not directly clicked/tested for a real pre-pivot plan — code-audited only (fields it depends on confirmed present in all 11 rows)
 - FCM Migration (Android Doze fix for Web Push)
 - Weight Tracking full feature
 - Social Sharing
