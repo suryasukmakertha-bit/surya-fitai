@@ -519,10 +519,10 @@ function selectSessionExercises(
     }
   }
 
-  // Fill remaining slots from any allowed muscle group in the pool.
+  // Fill remaining slots ONLY from this session's own target muscle groups.
   if (picked.length < strengthCap) {
-    const allMuscles: WMuscle[] = ['chest','back','shoulder','quad','hamstring','tricep','bicep','core','calf'];
-    for (const m of allMuscles) {
+    const fillMuscles: WMuscle[] = Array.from(new Set(SESSION_TARGETS[session]));
+    for (const m of fillMuscles) {
       while (picked.length < strengthCap) {
         const ex = pickForMuscle(m);
         if (!ex) break;
