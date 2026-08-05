@@ -496,9 +496,15 @@ function selectSessionExercises(
   const pickForMuscle = (m: WMuscle): ExerciseDef | null => {
     const cap = MAX_PER_MUSCLE[m] ?? 1;
     if ((perMuscleUsed[m] ?? 0) >= cap) return null;
-    const candidates = pool
-      .filter(ex => ex.muscle === m && !usedThisWeek.has(ex.name))
+    // Same-day dedup is absolute: never pick something already in this session.
+    const pickedNames = new Set(picked.map(p => p.name));
+    const inCategory = pool
+      .filter(ex => ex.muscle === m && !pickedNames.has(ex.name))
       .sort((a, b) => Number(b.isCompound) - Number(a.isCompound));
+    // C4 (relaxed): prefer exercises not yet used this week; if none remain in
+    // this muscle group, fall back to one already used on an EARLIER day.
+    const fresh = inCategory.filter(ex => !usedThisWeek.has(ex.name));
+    const candidates = fresh.length > 0 ? fresh : inCategory;
     if (candidates.length === 0) return null;
     // Rotation-with-memory: exclude last-used if any alternative remains.
     const lastUsed = rotationMemory[m];
