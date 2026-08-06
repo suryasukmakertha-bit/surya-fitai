@@ -390,6 +390,18 @@ const MAX_PER_MUSCLE: Record<WMuscle, number> = {
   quad: 2, hamstring: 1, calf: 1, core: 1, cardio: 3,
 };
 
+// Session-specific cap overrides. PPL_PULL targets only back+bicep, so the
+// global caps (back 2 + bicep 1 = 3) structurally undersize it below the C1
+// minimum for 60/75-min sessions. Pull-only override; all other sessions
+// keep the global caps unchanged.
+const SESSION_MUSCLE_CAP_OVERRIDES: Partial<Record<SessionType, Partial<Record<WMuscle, number>>>> = {
+  PPL_PULL: { back: 3, bicep: 2 },
+};
+
+function maxForMuscle(session: SessionType, m: WMuscle): number {
+  return SESSION_MUSCLE_CAP_OVERRIDES[session]?.[m] ?? MAX_PER_MUSCLE[m] ?? 1;
+}
+
 function exerciseCountRange(sessionMinutes: number): { min: number; max: number } {
   if (sessionMinutes <= 45) return { min: 3, max: 4 };
   if (sessionMinutes <= 60) return { min: 4, max: 5 };
@@ -494,7 +506,7 @@ function selectSessionExercises(
   // Two passes: 1) primary picks per target muscle (compound first),
   // 2) fill remaining slots with any allowed muscle.
   const pickForMuscle = (m: WMuscle): ExerciseDef | null => {
-    const cap = MAX_PER_MUSCLE[m] ?? 1;
+    const cap = maxForMuscle(session, m);
     if ((perMuscleUsed[m] ?? 0) >= cap) return null;
     // Same-day dedup is absolute: never pick something already in this session.
     const pickedNames = new Set(picked.map(p => p.name));
