@@ -1,8 +1,8 @@
-# Fix: bodyweight sessions falling below the minimum exercise count
+- Fix: bodyweight sessions falling below the minimum exercise count
 
 ## Problem (measured, not assumed)
 
-With `equipment = bodyweight`, three muscle groups have an empty pool: **shoulder (0), bicep (0), calf (0)**. Every session type whose target list leans on those groups cannot physically reach the required exercise count, so users get 3-4 exercise sessions where 5 are expected at 75 minutes.
+- With `equipment = bodyweight`, three muscle groups have an empty pool: **shoulder (0), bicep (0), calf (0)**. Every session type whose target list leans on those groups cannot physically reach the required exercise count, so users get 3-4 exercise sessions where 5 are expected at 75 minutes.
 
 Measured on Hypertrophy / Intermediate / 5 days / 75 min / bodyweight:
 Push 3, Pull 3, Legs 4, Upper A 5, Lower A 4 — four of five days short. Category correctness is fine (0 violations); this is purely a count shortfall.
@@ -15,15 +15,17 @@ Two bodyweight-only adjustments in the workout engine. Gym behaviour, session la
 
 Today one global cap table applies to both equipment types. Those caps were sized for the 27-exercise gym pool. Add a bodyweight cap table used only when `equipment === 'bodyweight'`:
 
-| Muscle | Gym cap (unchanged) | Bodyweight cap |
-|---|---|---|
-| chest | 2 | 2 |
-| back | 2 | 3 |
-| tricep | 1 | 2 |
-| quad | 2 | 2 |
-| hamstring | 1 | 2 |
-| core | 1 | 2 |
-| shoulder / bicep / calf | 2 / 1 / 1 | unchanged (pool is empty anyway) |
+
+| Muscle                  | Gym cap (unchanged) | Bodyweight cap                   |
+| ----------------------- | ------------------- | -------------------------------- |
+| chest                   | 2                   | 2                                |
+| back                    | 2                   | 3                                |
+| tricep                  | 1                   | 2                                |
+| quad                    | 2                   | 2                                |
+| hamstring               | 1                   | 2                                |
+| core                    | 1                   | 2                                |
+| shoulder / bicep / calf | 2 / 1 / 1           | unchanged (pool is empty anyway) |
+
 
 Caps still never exceed the real pool size, so no duplicates inside a single day.
 
@@ -33,15 +35,17 @@ Core is a legitimate accessory on any session and has the deepest bodyweight poo
 
 ### Result after both changes (theoretical max vs. the 5-exercise 75-min minimum)
 
-| Session | Beginner | Intermediate/Advanced |
-|---|---|---|
-| Full Body A / B / C | 5-7 | 7-9 |
-| Upper A / Upper B | 6 | 9 |
-| Lower A / Lower B | 5 | 6 |
-| Push | n/a (no PPL for beginners) | 6 |
-| Pull | n/a | 5 |
-| Legs | n/a | 6 |
-| Weak-Point | n/a | 6 |
+
+| Session             | Beginner                   | Intermediate/Advanced |
+| ------------------- | -------------------------- | --------------------- |
+| Full Body A / B / C | 5-7                        | 7-9                   |
+| Upper A / Upper B   | 6                          | 9                     |
+| Lower A / Lower B   | 5                          | 6                     |
+| Push                | n/a (no PPL for beginners) | 6                     |
+| Pull                | n/a                        | 5                     |
+| Legs                | n/a                        | 6                     |
+| Weak-Point          | n/a                        | 6                     |
+
 
 Every reachable combination of experience x session type x duration clears the minimum.
 
