@@ -398,7 +398,36 @@ const SESSION_MUSCLE_CAP_OVERRIDES: Partial<Record<SessionType, Partial<Record<W
   PPL_PULL: { back: 3, bicep: 2 },
 };
 
-function maxForMuscle(session: SessionType, m: WMuscle): number {
+// Bodyweight-only caps. The global caps were sized for the 27-exercise gym
+// pool; the bodyweight pool has ZERO shoulder/bicep/calf exercises, so those
+// session slots can never be filled. Raising the caps on the groups that do
+// have bodyweight depth lets sessions reach the C1 count target.
+// Gym behaviour is untouched.
+const BODYWEIGHT_MUSCLE_CAPS: Partial<Record<WMuscle, number>> = {
+  chest: 2, back: 3, tricep: 2, quad: 2, hamstring: 2, core: 2,
+};
+
+// Bodyweight-only target extension. Core has the deepest bodyweight pool and
+// is a legitimate accessory on any session; the listed sessions otherwise have
+// no way to fill their slots. Gym target lists are unchanged.
+const BODYWEIGHT_EXTRA_TARGETS: Partial<Record<SessionType, WMuscle[]>> = {
+  PPL_PUSH:   ['core', 'chest'],
+  PPL_PULL:   ['core'],
+  UL_UPPER_A: ['core'],
+  UL_UPPER_B: ['core'],
+  WEAKPOINT:  ['core', 'back'],
+};
+
+function targetsFor(session: SessionType, equipment: WEquipment): WMuscle[] {
+  const base = SESSION_TARGETS[session];
+  if (equipment !== 'bodyweight') return base;
+  return [...base, ...(BODYWEIGHT_EXTRA_TARGETS[session] ?? [])];
+}
+
+function maxForMuscle(session: SessionType, m: WMuscle, equipment: WEquipment): number {
+  if (equipment === 'bodyweight' && BODYWEIGHT_MUSCLE_CAPS[m] !== undefined) {
+    return BODYWEIGHT_MUSCLE_CAPS[m] as number;
+  }
   return SESSION_MUSCLE_CAP_OVERRIDES[session]?.[m] ?? MAX_PER_MUSCLE[m] ?? 1;
 }
 
@@ -492,6 +521,7 @@ function selectSessionExercises(
   goal: WGoal,
   usedThisWeek: Set<string>,
   rotationMemory: Partial<Record<WMuscle, string>>,
+  equipment: WEquipment,
 ): ExerciseDef[] {
   const { max: countCap } = exerciseCountRange(sessionMinutes);
   const needsCardioFinisher = goal === 'Fat Loss' || goal === 'General Fitness';
@@ -501,12 +531,12 @@ function selectSessionExercises(
   const perMuscleUsed: Partial<Record<WMuscle, number>> = {};
   const picked: ExerciseDef[] = [];
 
-  const targetOrder = SESSION_TARGETS[session];
+  const targetOrder = targetsFor(session, equipment);
 
   // Two passes: 1) primary picks per target muscle (compound first),
   // 2) fill remaining slots with any allowed muscle.
   const pickForMuscle = (m: WMuscle): ExerciseDef | null => {
-    const cap = maxForMuscle(session, m);
+    const cap = maxForMuscle(session, m, equipment);
     if ((perMuscleUsed[m] ?? 0) >= cap) return null;
     // Same-day dedup is absolute: never pick something already in this session.
     const pickedNames = new Set(picked.map(p => p.name));
@@ -539,7 +569,7 @@ function selectSessionExercises(
 
   // Fill remaining slots ONLY from this session's own target muscle groups.
   if (picked.length < strengthCap) {
-    const fillMuscles: WMuscle[] = Array.from(new Set(SESSION_TARGETS[session]));
+    const fillMuscles: WMuscle[] = Array.from(new Set(targetsFor(session, equipment)));
     for (const m of fillMuscles) {
       while (picked.length < strengthCap) {
         const ex = pickForMuscle(m);
@@ -825,7 +855,7 @@ export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput 
       }
       const session = sessionOrder[trainingSlot];
       const picks = selectSessionExercises(
-        session, pool, cardioPool, sessionMinutes, goal, usedThisWeek, rotationMemory
+        session, pool, cardioPool, sessionMinutes, goal, usedThisWeek, rotationMemory, equipment
       );
       const exercises = picks.map(ex =>
         buildExerciseOutput(ex, goal, experience, week, equipment, prevPlanData)
