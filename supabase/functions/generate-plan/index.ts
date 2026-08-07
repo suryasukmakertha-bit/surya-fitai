@@ -777,7 +777,6 @@ function formatDayLabel(week: number, dayIdx: number, startDate: Date): string {
 
 interface WorkoutEngineInput {
   goal: WGoal;
-  goal: WGoal;
   experience: WExp;
   trainingDaysPerWeek: number;
   sessionMinutes: number;
