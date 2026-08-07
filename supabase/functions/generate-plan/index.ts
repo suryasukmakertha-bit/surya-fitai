@@ -767,6 +767,18 @@ function buildExerciseOutput(
   return applyProgression(base, week, compound, isCardio);
 }
 
+// Rest-day distribution table (WORKOUT_TEMPLATE_LOGIC.md, Layer A).
+// Ordered training weekday indices, Monday = 0. sessionOrder[i] lands on the
+// i-th index in this list; every weekday not listed is a rest day.
+const REST_DAY_PATTERN: Record<number, number[]> = {
+  2: [0, 3],
+  3: [0, 2, 4],
+  4: [0, 1, 3, 4],
+  5: [0, 1, 2, 4, 5],
+  6: [0, 1, 2, 4, 5, 6],
+  7: [0, 1, 2, 3, 4, 5, 6],
+};
+
 function formatDayLabel(week: number, dayIdx: number, startDate: Date): string {
   const d = new Date(startDate);
   d.setDate(d.getDate() + (week - 1) * 7 + dayIdx);
@@ -812,11 +824,11 @@ export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput 
   const cardioPool = filterCardioPool(experience, limitations);
   const rotationMemory = extractRotationMemory(prevPlanData);
 
-  // Distribute training days evenly across the 7-day week: place training on
-  // the first `trainingDaysPerWeek` days, then rest for the remainder. This
-  // matches the deterministic pattern users expect from a rule-based engine.
-  const trainingDayIndexes: number[] = [];
-  for (let i = 0; i < trainingDaysPerWeek; i++) trainingDayIndexes.push(i);
+  // Rest-day distribution (WORKOUT_TEMPLATE_LOGIC.md, Layer A). Rest days are
+  // spread through the week instead of being front-loaded. Monday = index 0.
+  const trainingDayIndexes: number[] =
+    REST_DAY_PATTERN[trainingDaysPerWeek] ??
+    Array.from({ length: Math.min(trainingDaysPerWeek, 7) }, (_, i) => i);
 
   const weeklySplit: string[] = sessionOrder.map((s, i) =>
     `Day ${i + 1}: ${sessionLabel(s)}`
