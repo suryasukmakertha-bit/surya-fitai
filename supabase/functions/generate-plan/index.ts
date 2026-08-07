@@ -812,11 +812,11 @@ export function generateWorkout(input: WorkoutEngineInput): WorkoutEngineOutput 
   const cardioPool = filterCardioPool(experience, limitations);
   const rotationMemory = extractRotationMemory(prevPlanData);
 
-  // Distribute training days evenly across the 7-day week: place training on
-  // the first `trainingDaysPerWeek` days, then rest for the remainder. This
-  // matches the deterministic pattern users expect from a rule-based engine.
-  const trainingDayIndexes: number[] = [];
-  for (let i = 0; i < trainingDaysPerWeek; i++) trainingDayIndexes.push(i);
+  // Rest-day distribution (WORKOUT_TEMPLATE_LOGIC.md, Layer A). Rest days are
+  // spread through the week instead of being front-loaded. Monday = index 0.
+  const trainingDayIndexes: number[] =
+    REST_DAY_PATTERN[trainingDaysPerWeek] ??
+    Array.from({ length: Math.min(trainingDaysPerWeek, 7) }, (_, i) => i);
 
   const weeklySplit: string[] = sessionOrder.map((s, i) =>
     `Day ${i + 1}: ${sessionLabel(s)}`
