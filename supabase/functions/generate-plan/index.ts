@@ -568,18 +568,35 @@ function selectSessionExercises(
   }
 
   // Fill remaining slots ONLY from this session's own target muscle groups.
+  // Redistribution-on-exhaustion: when a limitation empties one target muscle
+  // group (e.g. quad under Knee), the unused budget is spread over the OTHER
+  // muscle groups of this same session, each still bounded by its C2 cap.
+  // Round-robin repeated passes so ordering never strands available slots.
   if (picked.length < strengthCap) {
     const fillMuscles: WMuscle[] = Array.from(new Set(targetsFor(session, equipment)));
-    for (const m of fillMuscles) {
-      while (picked.length < strengthCap) {
+    let progress = true;
+    while (picked.length < strengthCap && progress) {
+      progress = false;
+      for (const m of fillMuscles) {
+        if (picked.length >= strengthCap) break;
         const ex = pickForMuscle(m);
-        if (!ex) break;
+        if (!ex) continue;
         picked.push(ex);
         perMuscleUsed[m] = (perMuscleUsed[m] ?? 0) + 1;
         usedThisWeek.add(ex.name);
+        progress = true;
       }
-      if (picked.length >= strengthCap) break;
     }
+  }
+
+  // All eligible muscle groups exhausted (capped or fully excluded) and still
+  // below the Layer C1 minimum — never break exclusion rules to hit it, but
+  // make the shortfall visible.
+  const c1Min = exerciseCountRange(sessionMinutes).min;
+  if (picked.length < c1Min) {
+    console.warn(
+      `[workout-engine] session=${session} equipment=${equipment} produced ${picked.length} exercises, below C1 minimum ${c1Min}; all target muscle groups (${targetsFor(session, equipment).join(', ')}) are capped or excluded by limitations.`
+    );
   }
 
   // Compound-first ordering across the whole session (C3).
